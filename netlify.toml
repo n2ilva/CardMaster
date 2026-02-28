@@ -1,3 +1,6 @@
 [build]
   command = "npm run web:build"
   publish = "dist"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "PORT,JWT_SECRET,DATABASE_URL"
