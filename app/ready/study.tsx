@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Easing, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SeniorityLevel, Track } from '@/data/flashcards';
@@ -847,7 +847,10 @@ export default function StudySessionScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: feedback !== null ? insets.bottom + 98 : insets.bottom + 28,
+          paddingBottom:
+            feedback !== null
+              ? Math.max(insets.bottom, Platform.OS === 'web' ? 16 : 0) + 98
+              : Math.max(insets.bottom, Platform.OS === 'web' ? 16 : 0) + 28,
         }}>
         <Animated.View className="mt-6" style={{ opacity: contentFadeAnimated, marginBottom: 24 }}>
           <View className="relative min-h-[220px] items-center justify-center rounded-2xl border border-[#E6E8EB] bg-[#F8FAFC] px-5 py-6 dark:border-[#30363D] dark:bg-[#1E2228]">
@@ -958,7 +961,7 @@ export default function StudySessionScreen() {
       {feedback !== null ? (
         <View
           className="absolute right-5 left-5 border-t border-[#E6E8EB] bg-white pt-3 dark:border-[#30363D] dark:bg-[#151718]"
-          style={{ bottom: insets.bottom + 6 }}>
+          style={{ bottom: Math.max(insets.bottom, Platform.OS === 'web' ? 16 : 0) + 6 }}>
           <Pressable
             onPress={() => {
               const correctOptionIndex = options.findIndex((item) => item === currentCard.answer);

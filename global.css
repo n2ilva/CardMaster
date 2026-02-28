@@ -5,11 +5,24 @@
 html,
 body,
 #root {
-  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+html {
+  height: 100vh;
+  height: 100dvh;
 }
 
 body {
   background-color: #ffffff;
+}
+
+#root > div {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
 }
 
 * {
@@ -30,12 +43,8 @@ body {
 }
 
 @media (min-width: 1200px) {
-  body {
-    display: flex;
-    justify-content: center;
-  }
-
   #root {
-    width: 60vw;
+    max-width: 60vw;
+    margin: 0 auto;
   }
 }

@@ -1,4 +1,3 @@
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Link } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -37,7 +36,7 @@ const levelLabelByCode: Record<SeniorityLevel, string> = {
 };
 
 export default function ProgressScreen() {
-  const tabBarHeight = useBottomTabBarHeight();
+  const bottomPadding = 24;
   const { token, user, progressRefreshKey, notifyProgressChanged } = useAuth();
   const [progress, setProgress] = useState<ProgressPayload | null>(null);
   const [loading, setLoading] = useState(false);
@@ -119,7 +118,7 @@ export default function ProgressScreen() {
     <ScrollView
       className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}>
+      contentContainerStyle={{ paddingBottom: bottomPadding }}>
       <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">Sua evolução</Text>
       <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
         Acompanhe desempenho, níveis e recompensas por acerto.
