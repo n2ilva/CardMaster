@@ -718,9 +718,7 @@ function buildCards(
 ): Prisma.ReadyFlashcardCreateManyInput[] {
   return levels.flatMap((level) => {
     const promptSource =
-      level === "INICIANTE"
-        ? [...beginnerInfraPrompts, ...contestBeginnerInfraPrompts]
-        : [...prompts, ...contestInfraPrompts];
+      level === "INICIANTE" ? [...beginnerInfraPrompts] : [...prompts];
     const focuses = infraFocusesByCategory[
       category as (typeof infraCategories)[number]
     ] ?? ["boas práticas operacionais"];
@@ -771,8 +769,8 @@ function buildCloudCards(
     const focuses = cloudFocusesByCategory[category];
     const questionSource =
       level === "INICIANTE"
-        ? expandedBeginnerCloudQuestionStems
-        : expandedCloudQuestionStems;
+        ? [...beginnerCloudQuestionStems]
+        : [...cloudQuestionStems];
     const answerSource =
       level === "INICIANTE"
         ? beginnerCloudAnswerTemplates

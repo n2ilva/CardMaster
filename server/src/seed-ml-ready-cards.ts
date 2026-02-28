@@ -261,7 +261,7 @@ function buildCardsForCategory(
   return levels.flatMap((level) => {
     const beginner = level === "INICIANTE";
     const promptPool = buildPromptPool(
-      beginner ? expandedBeginnerQuestionStems : expandedAdvancedQuestionStems,
+      beginner ? [...beginnerQuestionStems] : [...advancedQuestionStems],
       beginner ? beginnerAnswerTemplates : advancedAnswerTemplates,
       beginner ? beginnerMLDescriptions : advancedMLDescriptions,
     );

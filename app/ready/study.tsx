@@ -102,7 +102,16 @@ function parseAnswerDescription(text?: string): ParsedAnswerDescription {
 }
 
 function stripQuestionMetadata(text: string): string {
-  return normalizeText(text.replace(/\s+Foco:\s+.*$/i, '').replace(/\s+Cenário:\s+.*$/i, ''));
+  return normalizeText(
+    text
+      .replace(/^\[.*?\]\s*/i, '')
+      .replace(
+        /^(?:Versão concurso:\s*|Em prova de concurso sobre [^,]+,\s*|Noções básicas de concurso:\s*|Questão de concurso:\s*)/i,
+        '',
+      )
+      .replace(/\s+Foco:\s+.*$/i, '')
+      .replace(/\s+Cenário:\s+.*$/i, ''),
+  );
 }
 
 function stripAnswerMetadata(text: string): string {

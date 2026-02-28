@@ -653,9 +653,7 @@ function buildCardsForCategory(
 ): Prisma.ReadyFlashcardCreateManyInput[] {
   return levels.flatMap((level) => {
     const promptSource =
-      level === "INICIANTE"
-        ? [...beginnerPrompts, ...contestBeginnerPrompts]
-        : [...prompts, ...contestPrompts];
+      level === "INICIANTE" ? [...beginnerPrompts] : [...prompts];
     const focuses = categoryFocuses[category];
 
     const promptPool = promptSource.flatMap((prompt, idx) =>
