@@ -1579,20 +1579,23 @@ router.get("/ready-cards/summary", async (_req, res) => {
     select: { track: true },
   });
 
-  const summary = {
-    DESENVOLVIMENTO: 0,
-    INFRAESTRUTURA: 0,
-    CLOUD: 0,
-    MACHINE_LEARNING: 0,
-    SEGURANCA_INFORMACAO: 0,
-  };
-
+  const counts: Record<string, number> = {};
   for (const card of cards) {
-    summary[card.track] += 1;
+    counts[card.track] = (counts[card.track] ?? 0) + 1;
   }
 
+  const trackEntries = Object.entries(counts).map(([key, count]) => {
+    const meta = trackLabels[key as Track];
+    return {
+      key,
+      label: meta?.label ?? key,
+      count,
+    };
+  });
+
   return res.json({
-    counts: summary,
+    tracks: trackEntries,
+    activeTracksCount: trackEntries.length,
     total: cards.length,
   });
 });

@@ -6,14 +6,15 @@ import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
+type TrackEntry = {
+  key: string;
+  label: string;
+  count: number;
+};
+
 type ReadySummary = {
-  counts: {
-    DESENVOLVIMENTO: number;
-    INFRAESTRUTURA: number;
-    CLOUD: number;
-    MACHINE_LEARNING: number;
-    SEGURANCA_INFORMACAO: number;
-  };
+  tracks: TrackEntry[];
+  activeTracksCount: number;
   total: number;
 };
 
@@ -36,12 +37,9 @@ export default function HomeScreen() {
     void loadSummary();
   }, []);
 
-  const developmentCount = summary?.counts.DESENVOLVIMENTO ?? 0;
-  const infraCount = summary?.counts.INFRAESTRUTURA ?? 0;
-  const cloudCount = summary?.counts.CLOUD ?? 0;
-  const mlCount = summary?.counts.MACHINE_LEARNING ?? 0;
-  const securityCount = summary?.counts.SEGURANCA_INFORMACAO ?? 0;
   const totalCards = summary?.total ?? 0;
+  const activeTracksCount = summary?.activeTracksCount ?? 0;
+  const trackEntries = summary?.tracks ?? [];
 
   async function onLogout() {
     try {
@@ -78,7 +76,7 @@ export default function HomeScreen() {
         </View>
         <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Temas ativos</Text>
-          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">5</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{activeTracksCount}</Text>
         </View>
       </View>
 
@@ -86,8 +84,12 @@ export default function HomeScreen() {
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Temas de estudos</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            Desenvolvimento ({developmentCount}), Infraestrutura ({infraCount}), Cloud ({cloudCount}),
-            Machine Learning ({mlCount}) e Segurança ({securityCount}).
+            {trackEntries.length > 0
+              ? trackEntries.map((t, i) => {
+                  const sep = i === trackEntries.length - 1 ? '.' : i === trackEntries.length - 2 ? ' e ' : ', ';
+                  return `${t.label} (${t.count})${sep}`;
+                }).join('')
+              : 'Carregando...'}
           </Text>
         </View>
 
