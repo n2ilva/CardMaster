@@ -1238,6 +1238,9 @@ router.post(
       level: z.enum(seniorityLevels),
       question: z.string().min(5),
       answer: z.string().min(2),
+      categoryDescription: z.string().optional(),
+      questionDescription: z.string().optional(),
+      answerDescription: z.string().optional(),
       contestName: z.string().optional(),
       organization: z.string().optional(),
       year: z.number().int().min(2000).max(2100).optional(),
@@ -1250,8 +1253,16 @@ router.post(
         .json({ message: "Dados inválidos.", issues: parsed.error.issues });
     }
 
-    const { category, contestName, organization, year, ...cardData } =
-      parsed.data;
+    const {
+      category,
+      categoryDescription,
+      questionDescription,
+      answerDescription,
+      contestName,
+      organization,
+      year,
+      ...cardData
+    } = parsed.data;
     const normalizedThemeName = category.trim();
     const themeKey = normalizedThemeName.toLocaleLowerCase("pt-BR");
 
@@ -1267,6 +1278,9 @@ router.post(
       data: {
         ...cardData,
         category: normalizedCategory,
+        categoryDescription: categoryDescription?.trim() || undefined,
+        questionDescription: questionDescription?.trim() || undefined,
+        answerDescription: answerDescription?.trim() || undefined,
       } as any,
     });
 
@@ -1508,3 +1522,4 @@ router.post(
 );
 
 export { router };
+

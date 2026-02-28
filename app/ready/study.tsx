@@ -1,6 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SeniorityLevel, Track } from '@/data/flashcards';
 import { apiRequest } from '@/lib/api';
@@ -9,19 +10,30 @@ import { useAuth } from '@/providers/auth-provider';
 type ReadyCard = {
   id: string;
   category: string;
+  categoryDescription?: string;
+  questionTag?: string;
   level: SeniorityLevel;
   question: string;
+  questionDescription?: string;
   answer: string;
+  answerDescription?: string;
   track: Track;
 };
 
-type CategoryInsight = {
-  category: string;
-  track: Track;
-  summary: string;
-  applications: string[];
-  basicExample: string;
+type AnswerGuidance = {
+  why: string;
+  application: string;
+  example: string;
 };
+
+type GuidanceMode =
+  | 'conceito'
+  | 'pratica'
+  | 'seguranca'
+  | 'cloud'
+  | 'analise'
+  | 'comparacao'
+  | 'geral';
 
 function shuffleArray<T>(items: T[]): T[] {
   const copy = [...items];
@@ -34,6 +46,53 @@ function shuffleArray<T>(items: T[]): T[] {
 
 function normalizeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
+}
+
+function stripQuestionMetadata(text: string): string {
+  return normalizeText(text.replace(/\s+Foco:\s+.*$/i, '').replace(/\s+Cenário:\s+.*$/i, ''));
+}
+
+function stripAnswerMetadata(text: string): string {
+  return normalizeText(
+    text
+      .replace(/\s+Foco prático:\s+.*$/i, '')
+      .replace(/\s+Contexto aplicado:\s+.*$/i, '')
+      .replace(/\s+Contexto:\s+.*$/i, ''),
+  );
+}
+
+function canonicalAnswerKey(text: string): string {
+  return stripAnswerMetadata(text)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function canonicalQuestionKey(text: string): string {
+  return stripQuestionMetadata(text)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function dedupeCardsByQuestion(cards: ReadyCard[]): ReadyCard[] {
+  const seen = new Set<string>();
+  const unique: ReadyCard[] = [];
+
+  for (const card of cards) {
+    const key = canonicalQuestionKey(card.question);
+    if (!key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    unique.push(card);
+  }
+
+  return unique;
 }
 
 function tokenize(text: string): string[] {
@@ -157,19 +216,43 @@ function buildOptions(cards: ReadyCard[], card: ReadyCard, recentCorrectIndexes:
     .filter((item) => item.id !== card.id && item.track === card.track)
     .map((item) => item.answer);
 
-  const rankedPool = Array.from(new Set([...sameCategoryAndLevel, ...sameCategory, ...sameTrack]))
+  const rankedCandidates = Array.from(new Set([...sameCategoryAndLevel, ...sameCategory, ...sameTrack]))
     .map((answer) => ({
       answer,
-      score: similarityScore(card.answer, answer),
+      score: similarityScore(stripAnswerMetadata(card.answer), stripAnswerMetadata(answer)),
     }))
     .sort((left, right) => right.score - left.score)
     .map((item) => item.answer);
 
-  const generatedDistractors = generateSimilarDistractors(card.answer);
+  const canonicalCorrect = canonicalAnswerKey(card.answer);
+  const rankedPool: string[] = [];
+  const rankedSeen = new Set<string>();
 
-  const incorrectAnswers = Array.from(new Set([...rankedPool, ...generatedDistractors]))
-    .filter((answer) => answer !== card.answer)
-    .slice(0, 3);
+  for (const answer of rankedCandidates) {
+    const canonical = canonicalAnswerKey(answer);
+    if (!canonical || canonical === canonicalCorrect || rankedSeen.has(canonical)) {
+      continue;
+    }
+    rankedPool.push(answer);
+    rankedSeen.add(canonical);
+  }
+
+  const generatedDistractors = generateSimilarDistractors(stripAnswerMetadata(card.answer));
+
+  const incorrectAnswers: string[] = [];
+  const incorrectSeen = new Set<string>();
+
+  for (const answer of [...generatedDistractors, ...rankedPool]) {
+    const canonical = canonicalAnswerKey(answer);
+    if (!canonical || canonical === canonicalCorrect || incorrectSeen.has(canonical)) {
+      continue;
+    }
+    incorrectAnswers.push(answer);
+    incorrectSeen.add(canonical);
+    if (incorrectAnswers.length === 3) {
+      break;
+    }
+  }
 
   while (incorrectAnswers.length < 3) {
     incorrectAnswers.push(`Variação incorreta ${incorrectAnswers.length + 1} da resposta.`);
@@ -203,8 +286,259 @@ function formatDuration(totalSeconds: number): string {
   return `${minutes}:${seconds}`;
 }
 
+function removeTrailingPunctuation(text: string): string {
+  return text.replace(/[.!?\s]+$/g, '').trim();
+}
+
+function truncateText(text: string, maxLength: number): string {
+  const normalized = text.trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+  return `${normalized.slice(0, maxLength).trimEnd()}...`;
+}
+
+function hasAnyToken(text: string, tokens: string[]): boolean {
+  return tokens.some((token) => text.includes(token));
+}
+
+function detectGuidanceMode(card: ReadyCard): GuidanceMode {
+  const base = `${card.track} ${card.category} ${card.question}`.toLowerCase();
+
+  if (
+    card.track === 'SEGURANCA_INFORMACAO' ||
+    hasAnyToken(base, [
+      'segurança',
+      'vulnerabilidade',
+      'risco',
+      'phishing',
+      'ransomware',
+      'incidente',
+      'iam',
+      'mfa',
+      'criptografia',
+    ])
+  ) {
+    return 'seguranca';
+  }
+
+  if (
+    card.track === 'CLOUD' ||
+    hasAnyToken(base, [
+      'cloud',
+      'aws',
+      'azure',
+      'gcp',
+      'google cloud',
+      'kubernetes',
+      'container',
+      'iac',
+      'terraform',
+      'custo',
+      'escalabilidade',
+    ])
+  ) {
+    return 'cloud';
+  }
+
+  if (hasAnyToken(base, ['diferença', 'compar', 'versus', 'vs', 'melhor'])) {
+    return 'comparacao';
+  }
+
+  if (hasAnyToken(base, ['diagnóstico', 'troubleshooting', 'causa', 'análise', 'métrica'])) {
+    return 'analise';
+  }
+
+  if (
+    hasAnyToken(base, [
+      'como ',
+      'implement',
+      'aplicar',
+      'configurar',
+      'deploy',
+      'pipeline',
+      'automação',
+    ])
+  ) {
+    return 'pratica';
+  }
+
+  if (hasAnyToken(base, ['o que é', 'conceito', 'defini', 'fundamento', 'significa'])) {
+    return 'conceito';
+  }
+
+  return 'geral';
+}
+
+function detectQuestionType(card: ReadyCard): string {
+  if (card.questionTag?.trim()) {
+    return card.questionTag.trim();
+  }
+
+  const base = `${card.track} ${card.category} ${card.question}`.toLowerCase();
+
+  if (hasAnyToken(base, ['lógica', 'algoritmo', 'estrutura de dados', 'complexidade'])) {
+    return 'Lógica';
+  }
+
+  if (
+    hasAnyToken(base, ['arquitetura', 'design', 'acoplamento', 'escalabilidade', 'microserviço'])
+  ) {
+    return 'Arquitetura';
+  }
+
+  if (
+    card.track === 'SEGURANCA_INFORMACAO' ||
+    hasAnyToken(base, ['segurança', 'vulnerabilidade', 'phishing', 'ransomware', 'iam', 'mfa'])
+  ) {
+    return 'Segurança';
+  }
+
+  if (card.track === 'CLOUD' || hasAnyToken(base, ['cloud', 'aws', 'azure', 'gcp', 'terraform'])) {
+    return 'Cloud';
+  }
+
+  if (hasAnyToken(base, ['rede', 'protocolo', 'roteamento', 'latência', 'dns', 'dhcp'])) {
+    return 'Redes';
+  }
+
+  if (hasAnyToken(base, ['diagnóstico', 'troubleshooting', 'métrica', 'observabilidade', 'log'])) {
+    return 'Diagnóstico';
+  }
+
+  if (hasAnyToken(base, ['deploy', 'pipeline', 'ci/cd', 'automação', 'container', 'kubernetes'])) {
+    return 'DevOps';
+  }
+
+  if (hasAnyToken(base, ['o que é', 'conceito', 'defini', 'fundamento'])) {
+    return 'Conceito';
+  }
+
+  return 'Prática';
+}
+
+function levelGuidancePrefix(level: SeniorityLevel): {
+  why: string;
+  application: string;
+  example: string;
+} {
+  if (level === 'INICIANTE') {
+    return {
+      why: 'Resumo direto:',
+      application: 'Uso básico:',
+      example: 'Exemplo simples:',
+    };
+  }
+
+  if (level === 'JUNIOR') {
+    return {
+      why: 'Leitura técnica:',
+      application: 'Uso no dia a dia:',
+      example: 'Exemplo prático:',
+    };
+  }
+
+  if (level === 'PLENO') {
+    return {
+      why: 'Interpretação de cenário:',
+      application: 'Aplicação com critério técnico:',
+      example: 'Exemplo orientado à decisão:',
+    };
+  }
+
+  return {
+    why: 'Justificativa avançada:',
+    application: 'Aplicação estratégica:',
+    example: 'Exemplo com visão de arquitetura:',
+  };
+}
+
+function levelWhyComplement(level: SeniorityLevel, mode: GuidanceMode): string {
+  if (level === 'INICIANTE') {
+    return 'Priorize a alternativa que responde exatamente ao enunciado, sem adicionar hipóteses extras.';
+  }
+
+  if (level === 'JUNIOR') {
+    return 'Confirme palavras-chave do enunciado e escolha a opção com melhor aderência técnica ao contexto pedido.';
+  }
+
+  if (level === 'PLENO') {
+    return mode === 'analise' || mode === 'comparacao'
+      ? 'Considere impacto, causa raiz e trade-offs antes de validar a alternativa final.'
+      : 'Valide a alternativa considerando impacto operacional, consistência técnica e possíveis trade-offs.';
+  }
+
+  return mode === 'cloud' || mode === 'seguranca'
+    ? 'Além da correção técnica, avalie governança, risco, custo e sustentabilidade da decisão no ambiente real.'
+    : 'Além da correção técnica, avalie efeitos sistêmicos, trade-offs e alinhamento com arquitetura de longo prazo.';
+}
+
+function buildAnswerGuidance(card: ReadyCard): AnswerGuidance {
+  const normalizedAnswer = removeTrailingPunctuation(card.answer);
+  const normalizedQuestion = removeTrailingPunctuation(card.question);
+  const mode = detectGuidanceMode(card);
+  const levelPrefix = levelGuidancePrefix(card.level);
+  const whyComplement = levelWhyComplement(card.level, mode);
+
+  const baseWhy = card.answerDescription?.trim()
+    ? card.answerDescription.trim()
+    : `A alternativa correta é esta porque responde diretamente ao enunciado com o critério técnico esperado: ${normalizedAnswer}.`;
+  const why = `${levelPrefix.why} ${baseWhy} ${whyComplement}`;
+
+  let application = `${levelPrefix.application} ao resolver questões de ${card.category}, valide se a alternativa segue exatamente este critério — ${normalizedAnswer}.`;
+  let example = `${levelPrefix.example} para a pergunta “${truncateText(
+    normalizedQuestion,
+    110,
+  )}”, a escolha correta é a opção que afirma “${truncateText(normalizedAnswer, 110)}”.`;
+
+  if (mode === 'seguranca') {
+    application = `Aplicação prática: em cenários de segurança, priorize a alternativa que reduz risco e exposição real — ${normalizedAnswer}.`;
+    example = `Exemplo de prova: diante de ameaça/incidente, a resposta correta é a que fortalece prevenção, detecção ou contenção: “${truncateText(
+      normalizedAnswer,
+      115,
+    )}”.`;
+  } else if (mode === 'cloud') {
+    application = `Aplicação prática: em cloud, escolha a opção que melhora confiabilidade, custo e governança ao mesmo tempo — ${normalizedAnswer}.`;
+    example = `Exemplo de arquitetura: para “${truncateText(normalizedQuestion, 90)}”, a decisão correta é “${truncateText(
+      normalizedAnswer,
+      110,
+    )}”.`;
+  } else if (mode === 'pratica') {
+    application = `Aplicação prática: trate essa resposta como passo operacional recomendado para execução no ambiente real — ${normalizedAnswer}.`;
+    example = `Exemplo de execução: quando for implementar o cenário da pergunta, siga o procedimento indicado na alternativa correta: “${truncateText(
+      normalizedAnswer,
+      115,
+    )}”.`;
+  } else if (mode === 'analise') {
+    application = `Aplicação prática: em análise/troubleshooting, use a alternativa correta como hipótese principal de diagnóstico — ${normalizedAnswer}.`;
+    example = `Exemplo de diagnóstico: ao investigar “${truncateText(
+      normalizedQuestion,
+      90,
+    )}”, priorize o critério “${truncateText(normalizedAnswer, 110)}”.`;
+  } else if (mode === 'comparacao') {
+    application = `Aplicação prática: em questões comparativas, escolha a alternativa com melhor aderência ao requisito central do enunciado — ${normalizedAnswer}.`;
+    example = `Exemplo de comparação: entre opções parecidas, a correta é a que atende o objetivo principal descrito: “${truncateText(
+      normalizedAnswer,
+      115,
+    )}”.`;
+  } else if (mode === 'conceito') {
+    application = `Aplicação prática: use essa definição como referência-base para diferenciar alternativas conceitualmente próximas — ${normalizedAnswer}.`;
+    example = `Exemplo de conceito: se a pergunta pede definição/fundamento, a opção correta é a que descreve com precisão: “${truncateText(
+      normalizedAnswer,
+      115,
+    )}”.`;
+  }
+
+  return {
+    why,
+    application,
+    example,
+  };
+}
+
 export default function StudySessionScreen() {
   const { token, notifyProgressChanged } = useAuth();
+  const insets = useSafeAreaInsets();
   const { track, category, level } = useLocalSearchParams<{
     track: Track;
     category: string;
@@ -212,7 +546,6 @@ export default function StudySessionScreen() {
   }>();
 
   const [cards, setCards] = useState<ReadyCard[]>([]);
-  const [categoryInsight, setCategoryInsight] = useState<CategoryInsight | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -220,7 +553,6 @@ export default function StudySessionScreen() {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
-  const [wrongCountdown, setWrongCountdown] = useState<number | null>(null);
   const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
   const [sessionCompletedAt, setSessionCompletedAt] = useState<number | null>(null);
   const [recentCorrectIndexes, setRecentCorrectIndexes] = useState<number[]>([]);
@@ -228,11 +560,12 @@ export default function StudySessionScreen() {
   const progressAnimated = useRef(new Animated.Value(0)).current;
   const contentFadeAnimated = useRef(new Animated.Value(1)).current;
   const correctOptionScaleAnimated = useRef(new Animated.Value(1)).current;
-  const wrongAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wrongCountdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const questionStartedAtRef = useRef<number | null>(null);
 
   const decodedCategory = useMemo(() => decodeURIComponent(category ?? ''), [category]);
+  const contextLabel = useMemo(() => {
+    return `${track ?? ''} · ${decodedCategory} · ${level ?? ''}`.toLocaleUpperCase('pt-BR');
+  }, [decodedCategory, level, track]);
 
   useEffect(() => {
     async function loadCards() {
@@ -250,15 +583,16 @@ export default function StudySessionScreen() {
           level,
         });
 
-        const [payload, insightPayload] = await Promise.all([
+        const [payload] = await Promise.all([
           apiRequest<ReadyCard[]>(`/ready-cards?${params.toString()}`),
-          apiRequest<CategoryInsight>(
-            `/ready-themes/insight?track=${track}&category=${encodeURIComponent(decodedCategory)}`,
-          ).catch(() => null),
         ]);
 
-        setCards(shuffleArray(payload));
-        setCategoryInsight(insightPayload);
+        const shuffledPayload = shuffleArray(payload);
+        const uniqueCards = dedupeCardsByQuestion(shuffledPayload);
+        const minimumUniqueToUse = Math.max(5, Math.ceil(shuffledPayload.length * 0.3));
+        const shouldUseUniqueDeck = uniqueCards.length >= minimumUniqueToUse;
+
+        setCards(shouldUseUniqueDeck ? uniqueCards : shuffledPayload);
         setCurrentIndex(0);
         setSelectedOption(null);
         setFeedback(null);
@@ -292,6 +626,24 @@ export default function StudySessionScreen() {
     return buildOptions(cards, currentCard, recentCorrectIndexes);
   }, [cards, currentCard, recentCorrectIndexes]);
 
+  const answerGuidance = useMemo(() => {
+    if (!currentCard) {
+      return null;
+    }
+    return buildAnswerGuidance({
+      ...currentCard,
+      question: stripQuestionMetadata(currentCard.question),
+      answer: stripAnswerMetadata(currentCard.answer),
+    });
+  }, [currentCard]);
+
+  const questionType = useMemo(() => {
+    if (!currentCard) {
+      return '';
+    }
+    return detectQuestionType(currentCard);
+  }, [currentCard]);
+
   const elapsedSeconds = useMemo(() => {
     if (!sessionStartedAt) {
       return 0;
@@ -321,24 +673,6 @@ export default function StudySessionScreen() {
     }
   }, [currentCard?.id]);
 
-  function clearWrongTimers() {
-    if (wrongAdvanceTimeoutRef.current) {
-      clearTimeout(wrongAdvanceTimeoutRef.current);
-      wrongAdvanceTimeoutRef.current = null;
-    }
-
-    if (wrongCountdownIntervalRef.current) {
-      clearInterval(wrongCountdownIntervalRef.current);
-      wrongCountdownIntervalRef.current = null;
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      clearWrongTimers();
-    };
-  }, []);
-
   async function registerAttempt(isCorrect: boolean, durationSeconds?: number) {
     if (!token || !currentCard) {
       return;
@@ -362,8 +696,6 @@ export default function StudySessionScreen() {
   }
 
   function goNextCard(correctOptionIndex?: number) {
-    clearWrongTimers();
-
     Animated.timing(contentFadeAnimated, {
       toValue: 0,
       duration: 140,
@@ -372,7 +704,6 @@ export default function StudySessionScreen() {
     }).start(() => {
       setSelectedOption(null);
       setFeedback(null);
-      setWrongCountdown(null);
       correctOptionScaleAnimated.setValue(1);
       if (correctOptionIndex !== undefined) {
         setRecentCorrectIndexes((previous) => [...previous.slice(-7), correctOptionIndex]);
@@ -403,7 +734,6 @@ export default function StudySessionScreen() {
     setFeedback(isCorrect ? 'correct' : 'wrong');
 
     if (isCorrect) {
-      clearWrongTimers();
       setCorrectCount((previous) => previous + 1);
 
       Animated.sequence([
@@ -426,26 +756,8 @@ export default function StudySessionScreen() {
 
     await registerAttempt(isCorrect, durationSeconds);
 
-    if (isCorrect) {
-      setTimeout(() => {
-        goNextCard(correctOptionIndex >= 0 ? correctOptionIndex : undefined);
-      }, 700);
-    } else {
-      setWrongCountdown(5);
-      clearWrongTimers();
-
-      wrongCountdownIntervalRef.current = setInterval(() => {
-        setWrongCountdown((previous) => {
-          if (previous === null || previous <= 1) {
-            return null;
-          }
-          return previous - 1;
-        });
-      }, 1000);
-
-      wrongAdvanceTimeoutRef.current = setTimeout(() => {
-        goNextCard();
-      }, 5000);
+    if (isCorrect && correctOptionIndex >= 0) {
+      setRecentCorrectIndexes((previous) => [...previous.slice(-7), correctOptionIndex]);
     }
   }
 
@@ -469,11 +781,11 @@ export default function StudySessionScreen() {
     return (
       <View className="flex-1 bg-white px-6 pt-14 dark:bg-[#151718]">
         <Text className="text-center text-xs text-[#687076] dark:text-[#9BA1A6]">
-          {track} · {decodedCategory} · {level}
+          {contextLabel}
         </Text>
         <Text className="mt-2 text-center text-xs text-[#687076] dark:text-[#9BA1A6]">100% concluído</Text>
         <View className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#E6E8EB] dark:bg-[#2A2F36]">
-          <Animated.View className="h-full rounded-full bg-[#3F51B5]" style={{ width: '100%' }} />
+          <Animated.View style={{ height: '100%', width: '100%', borderRadius: 999, backgroundColor: '#22C55E' }} />
         </View>
 
         <View className="mt-8 rounded-2xl border border-[#E6E8EB] p-5 dark:border-[#30363D]">
@@ -514,41 +826,54 @@ export default function StudySessionScreen() {
   return (
     <View className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]">
       <Text className="text-xs text-[#687076] dark:text-[#9BA1A6]">
-        {track} · {decodedCategory} · {level}
+        {contextLabel}
       </Text>
       <Text className="mt-2 text-xs text-[#687076] dark:text-[#9BA1A6]">
         Card {currentIndex + 1} de {cards.length}
       </Text>
       <View className="mt-3 mb-5 h-2 w-full overflow-hidden rounded-full bg-[#E6E8EB] dark:bg-[#2A2F36]">
-        <Animated.View className="h-full rounded-full bg-[#3F51B5]" style={{ width: progressWidth }} />
+        <Animated.View
+          style={{
+            height: '100%',
+            width: progressWidth,
+            borderRadius: 999,
+            backgroundColor: '#22C55E',
+          }}
+        />
       </View>
       <Text className="mb-4 text-xs text-[#687076] dark:text-[#9BA1A6]">{progressPercent}% concluído</Text>
 
-      <Animated.View className="mt-6" style={{ opacity: contentFadeAnimated, marginBottom: 40 }}>
-        <View className="min-h-[220px] items-center justify-center rounded-2xl border border-[#E6E8EB] bg-[#F8FAFC] px-5 py-6 dark:border-[#30363D] dark:bg-[#1E2228]">
-          <Text className="text-center text-2xl font-bold leading-8 text-[#11181C] dark:text-[#ECEDEE]">
-            {currentCard.question}
-          </Text>
-        </View>
-      </Animated.View>
-
-      <Animated.View className="mt-4 mb-12 gap-8" style={{ opacity: contentFadeAnimated }}>
-        {feedback === 'wrong' ? (
-          <View className="mb-2 rounded-xl border border-[#E6E8EB] bg-[#F8FAFC] px-4 py-3 dark:border-[#30363D] dark:bg-[#1E2228]">
-            <Text className="text-center text-sm text-[#687076] dark:text-[#9BA1A6]">
-              Próximo card em {wrongCountdown ?? 0}s
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: feedback !== null ? insets.bottom + 98 : insets.bottom + 28,
+        }}>
+        <Animated.View className="mt-6" style={{ opacity: contentFadeAnimated, marginBottom: 24 }}>
+          <View className="relative min-h-[220px] items-center justify-center rounded-2xl border border-[#E6E8EB] bg-[#F8FAFC] px-5 py-6 dark:border-[#30363D] dark:bg-[#1E2228]">
+            <View className="absolute top-3 right-3 rounded-full bg-[#E6ECFF] px-3 py-1 dark:bg-[#2A3352]">
+              <Text className="text-[11px] font-semibold text-[#3F51B5] dark:text-[#C7D2FE]">
+                {questionType}
+              </Text>
+            </View>
+            <Text className="text-center text-2xl font-bold leading-8 text-[#11181C] dark:text-[#ECEDEE]">
+              {stripQuestionMetadata(currentCard.question)}
             </Text>
-            <Pressable
-              onPress={() => {
-                goNextCard();
-              }}
-              className="mt-2 rounded-lg bg-[#3F51B5] px-3 py-2">
-              <Text className="text-center text-sm font-semibold text-white">Próximo card agora</Text>
-            </Pressable>
           </View>
-        ) : null}
+          {currentCard.questionDescription ? (
+            <View className="mt-3 rounded-xl border border-[#E6E8EB] bg-[#F8FAFC] px-4 py-3 dark:border-[#30363D] dark:bg-[#1E2228]">
+              <Text className="text-sm font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+                Descrição da pergunta
+              </Text>
+              <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                {currentCard.questionDescription}
+              </Text>
+            </View>
+          ) : null}
+        </Animated.View>
 
-        {options.map((option, index) => {
+        <Animated.View className="mt-2 gap-5" style={{ opacity: contentFadeAnimated }}>
+          {options.map((option, index) => {
           const isSelected = selectedOption === option;
           const isCorrect = option === currentCard.answer;
           const optionLabel = String.fromCharCode(65 + index);
@@ -560,62 +885,90 @@ export default function StudySessionScreen() {
                 ? 'bg-[#C92A2A]'
                 : 'bg-[#3F51B5]';
 
-          return (
-            <Animated.View
-              key={`${currentCard.id}-${option}`}
-              style={{
-                marginBottom: 6,
-                transform:
-                  feedback === 'correct' && isCorrect
-                    ? [{ scale: correctOptionScaleAnimated }]
-                    : [{ scale: 1 }],
-              }}>
-              <Pressable
-                disabled={feedback !== null}
-                onPress={() => {
-                  void onSelectOption(option);
-                }}
-                style={({ pressed }) => ({
-                  opacity: pressed ? 0.9 : 1,
-                  transform: [{ scale: pressed ? 0.985 : 1 }],
-                })}
-                className={`rounded-xl px-3 py-3.5 ${className}`}>
-                <View className="flex-row items-start gap-2.5">
-                  <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-white/25">
-                    <Text className="text-xs font-bold text-white">{optionLabel}</Text>
+            return (
+              <Animated.View
+                key={`${currentCard.id}-${option}`}
+                style={{
+                  marginBottom: 6,
+                  transform:
+                    feedback === 'correct' && isCorrect
+                      ? [{ scale: correctOptionScaleAnimated }]
+                      : [{ scale: 1 }],
+                }}>
+                <Pressable
+                  disabled={feedback !== null}
+                  onPress={() => {
+                    void onSelectOption(option);
+                  }}
+                  style={({ pressed }) => ({
+                    opacity: pressed ? 0.9 : 1,
+                    transform: [{ scale: pressed ? 0.985 : 1 }],
+                  })}
+                  className={`rounded-xl px-3 py-3.5 ${className}`}>
+                  <View className="flex-row items-start gap-2.5">
+                    <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-white/25">
+                      <Text className="text-xs font-bold text-white">{optionLabel}</Text>
+                    </View>
+                    <Text className="flex-1 text-sm font-semibold text-white">{stripAnswerMetadata(option)}</Text>
                   </View>
-                  <Text className="flex-1 text-sm font-semibold text-white">{option}</Text>
-                </View>
-              </Pressable>
-            </Animated.View>
-          );
-        })}
+                </Pressable>
+              </Animated.View>
+            );
+          })}
 
-        {feedback !== null ? (
-          <View className="mt-2 rounded-xl border border-[#E6E8EB] bg-[#F8FAFC] px-4 py-3 dark:border-[#30363D] dark:bg-[#1E2228]">
-            <Text className="text-sm font-semibold text-[#11181C] dark:text-[#ECEDEE]">
-              Entendendo a resposta correta
-            </Text>
-            <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
-              ✅ Correta: {currentCard.answer}
-            </Text>
+          {feedback !== null ? (
+            <View className="mt-2 rounded-xl border border-[#E6E8EB] bg-[#F8FAFC] px-4 py-3 dark:border-[#30363D] dark:bg-[#1E2228]">
+              <Text className="text-sm font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+                Entendendo a resposta correta
+              </Text>
+              <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                ✅ Correta: {stripAnswerMetadata(currentCard.answer)}
+              </Text>
 
-            {categoryInsight ? (
-              <>
+              {currentCard.answerDescription ? (
                 <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
-                  💡 Contexto: {categoryInsight.summary}
+                  🧾 Descrição da resposta: {currentCard.answerDescription}
                 </Text>
+              ) : null}
+
+              {currentCard.categoryDescription ? (
                 <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
-                  🛠️ Aplicação: {categoryInsight.applications[0]}
+                  📚 Descrição da categoria: {currentCard.categoryDescription}
                 </Text>
-                <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
-                  🧪 Exemplo: {categoryInsight.basicExample}
-                </Text>
-              </>
-            ) : null}
-          </View>
-        ) : null}
-      </Animated.View>
+              ) : null}
+
+              {answerGuidance ? (
+                <>
+                  <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                    💡 Justificativa: {answerGuidance.why}
+                  </Text>
+                  <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                    🛠️ Aplicação: {answerGuidance.application}
+                  </Text>
+                  <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                    🧪 Exemplo: {answerGuidance.example}
+                  </Text>
+                </>
+              ) : null}
+            </View>
+          ) : null}
+        </Animated.View>
+      </ScrollView>
+
+      {feedback !== null ? (
+        <View
+          className="absolute right-5 left-5 border-t border-[#E6E8EB] bg-white pt-3 dark:border-[#30363D] dark:bg-[#151718]"
+          style={{ bottom: insets.bottom + 6 }}>
+          <Pressable
+            onPress={() => {
+              const correctOptionIndex = options.findIndex((item) => item === currentCard.answer);
+              goNextCard(correctOptionIndex >= 0 ? correctOptionIndex : undefined);
+            }}
+            className="rounded-xl bg-[#3F51B5] px-4 py-3">
+            <Text className="text-center text-sm font-semibold text-white">Próximo</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }

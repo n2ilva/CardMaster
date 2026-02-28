@@ -24,12 +24,15 @@ export function ReadyCardForm() {
 
   const [track, setTrack] = useState<Track>('DESENVOLVIMENTO');
   const [category, setCategory] = useState('');
+  const [categoryDescription, setCategoryDescription] = useState('');
   const [contestName, setContestName] = useState('');
   const [organization, setOrganization] = useState('');
   const [year, setYear] = useState('');
   const [level, setLevel] = useState<SeniorityLevel>('INICIANTE');
   const [question, setQuestion] = useState('');
+  const [questionDescription, setQuestionDescription] = useState('');
   const [answer, setAnswer] = useState('');
+  const [answerDescription, setAnswerDescription] = useState('');
   const [themes, setThemes] = useState<string[]>([]);
   const [loadingThemes, setLoadingThemes] = useState(false);
   const [newTheme, setNewTheme] = useState('');
@@ -118,9 +121,12 @@ export function ReadyCardForm() {
         body: {
           track,
           category,
+          categoryDescription: categoryDescription || undefined,
           level,
           question,
+          questionDescription: questionDescription || undefined,
           answer,
+          answerDescription: answerDescription || undefined,
           contestName: contestName || undefined,
           organization: organization || undefined,
           year: year ? Number(year) : undefined,
@@ -128,11 +134,14 @@ export function ReadyCardForm() {
       });
 
       setCategory('');
+      setCategoryDescription('');
       setContestName('');
       setOrganization('');
       setYear('');
       setQuestion('');
+      setQuestionDescription('');
       setAnswer('');
+      setAnswerDescription('');
       setMessage('Card criado no CardMaster com sucesso.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Erro ao criar card.');
@@ -234,6 +243,14 @@ export function ReadyCardForm() {
           className="rounded-xl border border-[#E6E8EB] px-4 py-3 text-[#11181C] dark:border-[#30363D] dark:text-[#ECEDEE]"
         />
         <TextInput
+          value={categoryDescription}
+          onChangeText={setCategoryDescription}
+          placeholder="Descrição da categoria (opcional)"
+          placeholderTextColor="#8D98A5"
+          multiline
+          className="min-h-20 rounded-xl border border-[#E6E8EB] px-4 py-3 text-[#11181C] dark:border-[#30363D] dark:text-[#ECEDEE]"
+        />
+        <TextInput
           value={contestName}
           onChangeText={setContestName}
           placeholder="Fonte / prova (opcional)"
@@ -286,12 +303,28 @@ export function ReadyCardForm() {
           className="rounded-xl border border-[#E6E8EB] px-4 py-3 text-[#11181C] dark:border-[#30363D] dark:text-[#ECEDEE]"
         />
         <TextInput
+          value={questionDescription}
+          onChangeText={setQuestionDescription}
+          placeholder="Descrição da pergunta (opcional)"
+          placeholderTextColor="#8D98A5"
+          multiline
+          className="min-h-20 rounded-xl border border-[#E6E8EB] px-4 py-3 text-[#11181C] dark:border-[#30363D] dark:text-[#ECEDEE]"
+        />
+        <TextInput
           value={answer}
           onChangeText={setAnswer}
           placeholder="Resposta"
           placeholderTextColor="#8D98A5"
           multiline
           className="min-h-24 rounded-xl border border-[#E6E8EB] px-4 py-3 text-[#11181C] dark:border-[#30363D] dark:text-[#ECEDEE]"
+        />
+        <TextInput
+          value={answerDescription}
+          onChangeText={setAnswerDescription}
+          placeholder="Descrição da resposta (opcional)"
+          placeholderTextColor="#8D98A5"
+          multiline
+          className="min-h-20 rounded-xl border border-[#E6E8EB] px-4 py-3 text-[#11181C] dark:border-[#30363D] dark:text-[#ECEDEE]"
         />
       </View>
 

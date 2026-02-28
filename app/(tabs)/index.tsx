@@ -61,7 +61,8 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}>
       <Text className="text-3xl font-bold text-[#11181C] dark:text-[#ECEDEE]">CardMaster</Text>
       <Text className="mt-2 text-base text-[#687076] dark:text-[#9BA1A6]">
-        {user ? `Bem-vindo, ${user.name}.` : 'Bem-vindo.'} Evolua todos os dias com estudos práticos por tema.
+        {user ? `Bem-vindo, ${user.name}.` : 'Bem-vindo.'} Seu app de estudos para evolução contínua com
+        questões por trilha, níveis progressivos e revisão guiada.
       </Text>
 
       <View className="mt-5 flex-row gap-3">
@@ -77,31 +78,49 @@ export default function HomeScreen() {
 
       <View className="mt-3 gap-3">
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
-            Sessão CardMaster
-          </Text>
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Trilhas de estudo</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            Desenvolvimento ({developmentCount}), Infraestrutura ({infraCount}), Cloud ({cloudCount}) e
+            Desenvolvimento ({developmentCount}), Infraestrutura ({infraCount}), Cloud ({cloudCount}),
             Machine Learning ({mlCount}) e Segurança ({securityCount}).
           </Text>
         </View>
 
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
-            Revisão inteligente
-          </Text>
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Como estudar aqui</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            Escolha tema e nível para revisar com foco. O progresso é sincronizado com sua conta.
+            1) Escolha trilha e categoria. 2) Selecione o nível (Iniciante → Sênior). 3) Responda e revise a
+            justificativa de cada resposta correta.
           </Text>
         </View>
 
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
-            Plano de evolução
-          </Text>
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Recursos do app</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            Mantenha consistência: mais acertos e mais domínio por tema.
+            • Explicação contextual por resposta{`\n`}• Tipo da pergunta no card (Lógica, Arquitetura,
+            Segurança...){`\n`}• Progresso por nível (80% libera, 100% conclui){`\n`}• Tempo médio por
+            tentativa e sequência de estudos
           </Text>
+        </View>
+
+        <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Atalhos rápidos</Text>
+          <View className="mt-3 gap-2">
+            <Link href="/(tabs)/ready" asChild>
+              <Text className="rounded-xl bg-[#EEF2F5] px-3 py-2 text-center font-semibold text-[#11181C] dark:bg-[#2A2F36] dark:text-[#ECEDEE]">
+                Estudar agora
+              </Text>
+            </Link>
+            <Link href="/(tabs)/create" asChild>
+              <Text className="rounded-xl bg-[#EEF2F5] px-3 py-2 text-center font-semibold text-[#11181C] dark:bg-[#2A2F36] dark:text-[#ECEDEE]">
+                Criar novo CARD
+              </Text>
+            </Link>
+            <Link href="/(tabs)/progress" asChild>
+              <Text className="rounded-xl bg-[#EEF2F5] px-3 py-2 text-center font-semibold text-[#11181C] dark:bg-[#2A2F36] dark:text-[#ECEDEE]">
+                Ver minha evolução
+              </Text>
+            </Link>
+          </View>
         </View>
       </View>
 

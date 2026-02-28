@@ -134,12 +134,41 @@ function selectRotatingPrompts(
     return [];
   }
 
-  const start = (hashString(key) + rotationSeed()) % pool.length;
+  const extractBaseQuestion = (question: string): string =>
+    question.split(" Foco:")[0].split(" Cenário:")[0].trim();
 
-  return Array.from(
-    { length: count },
-    (_, index) => pool[(start + index) % pool.length],
+  const groupsMap = new Map<string, PromptPair[]>();
+  for (const prompt of pool) {
+    const groupKey = extractBaseQuestion(prompt.question);
+    const existing = groupsMap.get(groupKey);
+    if (existing) {
+      existing.push(prompt);
+    } else {
+      groupsMap.set(groupKey, [prompt]);
+    }
+  }
+
+  const groups = Array.from(groupsMap.values());
+  if (groups.length === 0) {
+    return [];
+  }
+
+  const baseSeed = hashString(`${key}:${rotationSeed()}`);
+  const groupStart = baseSeed % groups.length;
+  const pointers = groups.map(
+    (group, index) => hashString(`${key}:group:${index}`) % group.length,
   );
+
+  const selected: PromptPair[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const groupIndex = (groupStart + index) % groups.length;
+    const group = groups[groupIndex];
+    const pointer = pointers[groupIndex] % group.length;
+    selected.push(group[pointer]);
+    pointers[groupIndex] = (pointer + 1) % group.length;
+  }
+
+  return selected;
 }
 
 function buildCardsForCategory(

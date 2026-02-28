@@ -15,6 +15,7 @@ type CategoryInsight = {
 
 export default function ReadyThemeInfoScreen() {
   const { track, category } = useLocalSearchParams<{ track: Track; category: string }>();
+  const contextLabel = `Tema: ${track ?? ''} · Categoria: ${category ?? ''}`.toLocaleUpperCase('pt-BR');
   const [insight, setInsight] = useState<CategoryInsight | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,9 +48,7 @@ export default function ReadyThemeInfoScreen() {
   return (
     <ScrollView className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]" showsVerticalScrollIndicator={false}>
       <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">Pesquisa de categoria</Text>
-      <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-        Tema: {track} · Categoria: {category}
-      </Text>
+      <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">{contextLabel}</Text>
 
       <View className="mt-5 gap-3 pb-8">
         {loading ? <Text className="text-[#687076] dark:text-[#9BA1A6]">Carregando...</Text> : null}

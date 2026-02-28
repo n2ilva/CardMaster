@@ -40,9 +40,12 @@ model ReadyFlashcard {
   id        String         @id @default(auto()) @map("_id") @db.ObjectId
   track     Track
   category  String
+  categoryDescription String?
   level     SeniorityLevel
   question  String
+  questionDescription String?
   answer    String
+  answerDescription String?
   createdAt DateTime       @default(now())
 }
 
