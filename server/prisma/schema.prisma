@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum SeniorityLevel {
+  INICIANTE
+  JUNIOR
+  PLENO
+  SENIOR
+}
+
+enum Track {
+  DESENVOLVIMENTO
+  INFRAESTRUTURA
+  CLOUD
+}
+
+model User {
+  id             String               @id @default(auto()) @map("_id") @db.ObjectId
+  email          String               @unique
+  name           String
+  passwordHash   String
+  totalPoints    Int                  @default(0)
+  streakDays     Int                  @default(0)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  customCards    CustomFlashcard[]
+  attempts       SessionAttempt[]
+  rewardProgress UserRewardProgress?
+}
+
+model ReadyFlashcard {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  track     Track
+  category  String
+  level     SeniorityLevel
+  question  String
+  answer    String
+  createdAt DateTime       @default(now())
+}
+
+model ReadyTheme {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  track     Track
+  name      String
+  nameKey   String
+  createdAt DateTime @default(now())
+
+  @@unique([track, nameKey])
+}
+
+model CustomFlashcard {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String         @db.ObjectId
+  topic     String
+  question  String
+  answer    String
+  level     SeniorityLevel
+  createdAt DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SessionAttempt {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String         @db.ObjectId
+  readyCardId  String?        @db.ObjectId
+  customCardId String?        @db.ObjectId
+  level        SeniorityLevel
+  isCorrect    Boolean
+  pointsEarned Int
+  durationSeconds Int?
+  createdAt    DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserRewardProgress {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  badges    String[]
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

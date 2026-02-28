@@ -1,98 +1,128 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { Link, router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { tracks } from '@/data/flashcards';
+import { apiRequest } from '@/lib/api';
+import { useAuth } from '@/providers/auth-provider';
+
+type ReadySummary = {
+  counts: {
+    DESENVOLVIMENTO: number;
+    INFRAESTRUTURA: number;
+    CLOUD: number;
+  };
+  total: number;
+};
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const tabBarHeight = useBottomTabBarHeight();
+  const { user, logout } = useAuth();
+  const [summary, setSummary] = useState<ReadySummary | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    async function loadSummary() {
+      try {
+        const payload = await apiRequest<ReadySummary>('/ready-cards/summary');
+        setSummary(payload);
+      } catch {
+        setSummary(null);
+      }
+    }
+
+    void loadSummary();
+  }, []);
+
+  const developmentCount = summary?.counts.DESENVOLVIMENTO ?? 0;
+  const infraCount = summary?.counts.INFRAESTRUTURA ?? 0;
+  const cloudCount = summary?.counts.CLOUD ?? 0;
+  const totalCards = summary?.total ?? 0;
+
+  async function onLogout() {
+    try {
+      setLoggingOut(true);
+      await logout();
+      router.replace('/login');
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
+  return (
+    <ScrollView
+      className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}>
+      <Text className="text-3xl font-bold text-[#11181C] dark:text-[#ECEDEE]">CardMaster</Text>
+      <Text className="mt-2 text-base text-[#687076] dark:text-[#9BA1A6]">
+        {user ? `Bem-vindo, ${user.name}.` : 'Bem-vindo.'} Evolua todos os dias com estudos práticos por tema.
+      </Text>
+
+      <View className="mt-5 flex-row gap-3">
+        <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+          <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Total de cards</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{totalCards}</Text>
+        </View>
+        <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+          <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Temas ativos</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">3</Text>
+        </View>
+      </View>
+
+      <View className="mt-3 gap-3">
+        <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+            Sessão CardMaster
+          </Text>
+          <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
+            Desenvolvimento ({developmentCount}), Infraestrutura ({infraCount}) e Cloud ({cloudCount}).
+          </Text>
+        </View>
+
+        <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+            Revisão inteligente
+          </Text>
+          <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
+            Escolha tema e nível para revisar com foco. O progresso é sincronizado com sua conta.
+          </Text>
+        </View>
+
+        <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+            Plano de evolução
+          </Text>
+          <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
+            Mantenha consistência: mais acertos e mais domínio por tema.
+          </Text>
+        </View>
+      </View>
+
+      <View className="mt-6 gap-3">
+        <Link href="/(tabs)/ready" asChild>
+          <Text className="rounded-xl bg-[#3F51B5] px-4 py-3 text-center font-semibold text-white">
+            Começar no CardMaster
+          </Text>
+        </Link>
+        <Pressable
+          onPress={() => {
+            if (!loggingOut) {
+              void onLogout();
+            }
+          }}
+          className="rounded-xl border border-[#3F51B5] px-4 py-3">
+          <Text className="text-center font-semibold text-[#3F51B5]">
+            {loggingOut ? 'Saindo...' : 'Logout'}
+          </Text>
+        </Pressable>
+      </View>
+
+      <Text className="mt-5 text-xs text-[#687076] dark:text-[#9BA1A6]">
+        Temas base: {tracks.DESENVOLVIMENTO.length} em Desenvolvimento,{' '}
+        {tracks.INFRAESTRUTURA.length} em Infra e {tracks.CLOUD.length} em Cloud.
+      </Text>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});

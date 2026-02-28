@@ -1,50 +1,103 @@
-# Welcome to your Expo app 👋
+# CardMaster
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App de flashcards inteligente para estudo de vestibular, certificações e provas técnicas de TI, com suporte a **mobile e web** via Expo.
 
-## Get started
+## Stack
 
-1. Install dependencies
+- Frontend: Expo + React Native + Expo Router + Tailwind (NativeWind)
+- Backend: Express + Prisma
+- Banco: MongoDB
+- Auth: JWT
 
-   ```bash
-   npm install
-   ```
+## Funcionalidades base
 
-2. Start the app
+- Flashcards prontos por trilha:
+  - Desenvolvimento (linguagens, frameworks, CSS, Tailwind)
+  - Infraestrutura (cabeamento, redes, arquitetura de computadores)
+  - Cloud (AWS, Azure, Google Cloud)
+- Níveis de dificuldade: Júnior, Pleno e Sênior
+- Criação de flashcards personalizados
+- Progresso do usuário com pontos, sequência e recompensas
+- Login e cadastro
 
-   ```bash
-   npx expo start
-   ```
+## Estrutura
 
-In the output, you'll find options to open the app in a
+- App Expo: `./app`
+- Dados mock de cards prontos: `./data/flashcards.ts`
+- API: `./server`
+- Prisma schema: `./server/prisma/schema.prisma`
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Como rodar o frontend (mobile + web)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+1. Instale dependências:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Rode o app:
 
-## Learn more
+```bash
+npm run start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Abra em:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Android: `a`
+- iOS: `i`
+- Web: `w`
 
-## Join the community
+## Como rodar o backend (Express + Prisma + MongoDB)
 
-Join our community of developers creating universal apps.
+1. Instale dependências da API:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm --prefix server install
+```
+
+2. Crie o arquivo de ambiente:
+
+```bash
+copy server\.env.example server\.env
+```
+
+3. Ajuste `DATABASE_URL` e `JWT_SECRET` em `server/.env`.
+
+4. Gere o client Prisma e sincronize schema:
+
+```bash
+npm --prefix server run prisma:generate
+npm --prefix server run prisma:push
+```
+
+5. (Opcional) Popular cards iniciais:
+
+```bash
+npm --prefix server run seed
+npm --prefix server run seed:all-cards
+```
+
+6. Suba a API:
+
+```bash
+npm run server:dev
+```
+
+API disponível em `http://localhost:4000/api`.
+
+## Rotas principais da API
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/ready-cards?track=DESENVOLVIMENTO&level=JUNIOR`
+- `POST /api/custom-cards` (auth)
+- `GET /api/custom-cards` (auth)
+- `POST /api/study/attempt` (auth)
+- `GET /api/progress/me` (auth)
+
+## Próximos passos recomendados
+
+- Conectar telas do app às rotas da API
+- Persistir token JWT com armazenamento seguro
+- Criar sessão de estudo com modo "virar card" e correção (acerto/erro)
+- Adicionar ranking e objetivos semanais
