@@ -15,6 +15,14 @@ type ReadyCard = {
   track: Track;
 };
 
+type CategoryInsight = {
+  category: string;
+  track: Track;
+  summary: string;
+  applications: string[];
+  basicExample: string;
+};
+
 function shuffleArray<T>(items: T[]): T[] {
   const copy = [...items];
   for (let index = copy.length - 1; index > 0; index -= 1) {
@@ -204,6 +212,7 @@ export default function StudySessionScreen() {
   }>();
 
   const [cards, setCards] = useState<ReadyCard[]>([]);
+  const [categoryInsight, setCategoryInsight] = useState<CategoryInsight | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -241,9 +250,15 @@ export default function StudySessionScreen() {
           level,
         });
 
-        const payload = await apiRequest<ReadyCard[]>(`/ready-cards?${params.toString()}`);
+        const [payload, insightPayload] = await Promise.all([
+          apiRequest<ReadyCard[]>(`/ready-cards?${params.toString()}`),
+          apiRequest<CategoryInsight>(
+            `/ready-themes/insight?track=${track}&category=${encodeURIComponent(decodedCategory)}`,
+          ).catch(() => null),
+        ]);
 
         setCards(shuffleArray(payload));
+        setCategoryInsight(insightPayload);
         setCurrentIndex(0);
         setSelectedOption(null);
         setFeedback(null);
@@ -575,6 +590,31 @@ export default function StudySessionScreen() {
             </Animated.View>
           );
         })}
+
+        {feedback !== null ? (
+          <View className="mt-2 rounded-xl border border-[#E6E8EB] bg-[#F8FAFC] px-4 py-3 dark:border-[#30363D] dark:bg-[#1E2228]">
+            <Text className="text-sm font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+              Entendendo a resposta correta
+            </Text>
+            <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+              ✅ Correta: {currentCard.answer}
+            </Text>
+
+            {categoryInsight ? (
+              <>
+                <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                  💡 Contexto: {categoryInsight.summary}
+                </Text>
+                <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                  🛠️ Aplicação: {categoryInsight.applications[0]}
+                </Text>
+                <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
+                  🧪 Exemplo: {categoryInsight.basicExample}
+                </Text>
+              </>
+            ) : null}
+          </View>
+        ) : null}
       </Animated.View>
     </View>
   );
