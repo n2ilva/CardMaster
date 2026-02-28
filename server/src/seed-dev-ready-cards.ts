@@ -476,6 +476,14 @@ function selectRotatingPrompts(
   return selected;
 }
 
+function stripMetadata(text: string): string {
+  return text
+    .replace(/\s*Foco\s*(?:prático)?\s*:[^.]*\./gi, "")
+    .replace(/\s*Cenário\s*:[^.]*\./gi, "")
+    .replace(/\s*Contexto\s*(?:aplicado)?\s*:[^.]*\./gi, "")
+    .trim();
+}
+
 function cleanAnswerForButton(answer: string): string {
   return answer
     .replace(/^Resposta\s+[A-D]:\s*/i, "")
@@ -513,9 +521,9 @@ function buildCardsForCategory(
       track: "DESENVOLVIMENTO",
       category,
       level,
-      question: prompt.question.replaceAll("{lang}", category),
+      question: stripMetadata(prompt.question.replaceAll("{lang}", category)),
       answer: cleanAnswerForButton(
-        prompt.answer.replaceAll("{lang}", category),
+        stripMetadata(prompt.answer.replaceAll("{lang}", category)),
       ),
     }));
   });

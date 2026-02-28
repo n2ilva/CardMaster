@@ -90,6 +90,14 @@ type PromptPair = {
   answer: string;
 };
 
+function stripMetadata(text: string): string {
+  return text
+    .replace(/\s*Foco\s*(?:prático)?\s*:[^.]*\./gi, "")
+    .replace(/\s*Cenário\s*:[^.]*\./gi, "")
+    .replace(/\s*Contexto\s*(?:aplicado)?\s*:[^.]*\./gi, "")
+    .trim();
+}
+
 function buildPromptPool(
   questionStems: readonly string[],
   answerTemplates: readonly string[],
@@ -189,8 +197,10 @@ function buildCardsForCategory(
       track,
       category,
       level,
-      question: prompt.question.replaceAll("{category}", category),
-      answer: prompt.answer.replaceAll("{category}", category),
+      question: stripMetadata(
+        prompt.question.replaceAll("{category}", category),
+      ),
+      answer: stripMetadata(prompt.answer.replaceAll("{category}", category)),
     }));
   });
 }

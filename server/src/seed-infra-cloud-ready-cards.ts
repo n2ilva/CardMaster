@@ -538,6 +538,14 @@ const prompts = [
   },
 ] as const;
 
+function stripMetadata(text: string): string {
+  return text
+    .replace(/\s*Foco\s*(?:prático)?\s*:[^.]*\./gi, "")
+    .replace(/\s*Cenário\s*:[^.]*\./gi, "")
+    .replace(/\s*Contexto\s*(?:aplicado)?\s*:[^.]*\./gi, "")
+    .trim();
+}
+
 function cleanAnswerForButton(answer: string): string {
   return answer
     .replace(/^Resposta\s+[A-D]:\s*/i, "")
@@ -578,9 +586,11 @@ function buildCards(
       track,
       category,
       level,
-      question: prompt.question.replaceAll("{category}", category),
+      question: stripMetadata(
+        prompt.question.replaceAll("{category}", category),
+      ),
       answer: cleanAnswerForButton(
-        prompt.answer.replaceAll("{category}", category),
+        stripMetadata(prompt.answer.replaceAll("{category}", category)),
       ),
     }));
   });
@@ -629,8 +639,8 @@ function buildCloudCards(
       track: "CLOUD",
       category,
       level,
-      question: prompt.question,
-      answer: cleanAnswerForButton(prompt.answer),
+      question: stripMetadata(prompt.question),
+      answer: cleanAnswerForButton(stripMetadata(prompt.answer)),
     }));
   });
 }
