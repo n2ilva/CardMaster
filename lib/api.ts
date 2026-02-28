@@ -30,16 +30,16 @@ function inferApiUrlFromExpoHost(): string | null {
 }
 
 function resolveApiBaseUrl(): string {
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
-  }
-
   if (Platform.OS === "web") {
     const isLocalWeb =
       typeof window !== "undefined" &&
       ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
     return isLocalWeb ? DEFAULT_WEB_API_URL : DEFAULT_PRODUCTION_WEB_API_URL;
+  }
+
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
   }
 
   return (
