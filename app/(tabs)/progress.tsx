@@ -15,11 +15,20 @@ type LevelProgressItem = {
   correctPercent: number;
   unlocked: boolean;
   completed: boolean;
+  categories?: Array<{
+    category: string;
+    cards: number;
+    attempts: number;
+    correctAttempts: number;
+    correctPercent: number;
+    averageDurationSeconds: number;
+  }>;
 };
 
 type ProgressPayload = {
   streakDays: number;
   attempts: number;
+  totalUniqueReadyCards?: number;
   correctAttempts: number;
   averageDurationSeconds?: number;
   currentLevel?: SeniorityLevel;
@@ -35,6 +44,17 @@ const levelLabelByCode: Record<SeniorityLevel, string> = {
   PLENO: 'Pleno',
   SENIOR: 'Sênior',
 };
+
+function formatSecondsToMMSS(totalSeconds: number): string {
+  const safeSeconds = Math.max(0, Math.round(totalSeconds));
+  const minutes = Math.floor(safeSeconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const seconds = Math.floor(safeSeconds % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
 
 export default function ProgressScreen() {
   const bottomPadding = useTabContentPadding();
@@ -67,6 +87,7 @@ export default function ProgressScreen() {
   }, [progressRefreshKey, token]);
 
   const effectiveAttempts = progress?.attempts ?? 0;
+  const effectiveTotalCards = progress?.totalUniqueReadyCards ?? 0;
   const effectiveCorrectAttempts = progress?.correctAttempts ?? 0;
   const effectiveStreak = progress?.streakDays ?? 0;
   const averageDurationSeconds = progress?.averageDurationSeconds ?? 0;
@@ -143,7 +164,9 @@ export default function ProgressScreen() {
       <View className="mt-5 rounded-2xl bg-[#3F51B5] p-4">
         <Text className="text-sm text-white/80">Nível atual</Text>
         <Text className="text-2xl font-bold text-white">{levelLabel}</Text>
-        <Text className="mt-1 text-white">{effectiveCorrectAttempts} acertos em {effectiveAttempts} tentativas</Text>
+        <Text className="mt-1 text-white">
+          {effectiveCorrectAttempts} acertos • {effectiveTotalCards} cards únicos • {effectiveAttempts} tentativas
+        </Text>
       </View>
 
       <View className="mt-4 flex-row gap-3">
@@ -188,6 +211,32 @@ export default function ProgressScreen() {
                 Acertos: {item?.correctPercent ?? 0}% • Estudado: {item?.studiedPercent ?? 0}%
                 {item?.completed ? ' • Concluído' : item?.unlocked ? ' • Liberado' : ' • Em estudo'}
               </Text>
+
+              <View className="mt-2 rounded-lg bg-[#F8FAFC] p-2.5 dark:bg-[#1E2228]">
+                <Text className="text-xs font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+                  Categorias estudadas
+                </Text>
+
+                {(item?.categories ?? []).length === 0 ? (
+                  <Text className="mt-1 text-xs text-[#687076] dark:text-[#9BA1A6]">
+                    Sem categorias estudadas neste nível ainda.
+                  </Text>
+                ) : (
+                  (item?.categories ?? []).map((categoryItem) => (
+                    <View
+                      key={`${level}-${categoryItem.category}`}
+                      className="mt-2 rounded-md border border-[#E6E8EB] px-2.5 py-2 dark:border-[#30363D]">
+                      <Text className="text-xs font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+                        {categoryItem.category}
+                      </Text>
+                      <Text className="mt-1 text-[11px] text-[#687076] dark:text-[#9BA1A6]">
+                        Cards: {categoryItem.cards} • Acertos: {categoryItem.correctPercent}% • Tempo médio:{' '}
+                        {formatSecondsToMMSS(categoryItem.averageDurationSeconds)}
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
             </View>
           );
         })}
@@ -216,7 +265,7 @@ export default function ProgressScreen() {
           }}
           className="mt-5 rounded-xl border border-[#EF4444] px-4 py-3">
           <Text className="text-center font-semibold text-[#EF4444]">
-            {resetting ? 'Resetando...' : 'Resetar progresso (temporário)'}
+            {resetting ? 'Resetando...' : 'Resetar Processo'}
           </Text>
         </Pressable>
       ) : null}

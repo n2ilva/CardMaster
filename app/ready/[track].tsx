@@ -1,5 +1,5 @@
 import { Link, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { SeniorityLevel, Track } from '@/data/flashcards';
@@ -24,16 +24,26 @@ const levels: SeniorityLevel[] = ['INICIANTE', 'JUNIOR', 'PLENO', 'SENIOR'];
 export default function ReadyTrackCategoriesScreen() {
   const { token } = useAuth();
   const { track } = useLocalSearchParams<{ track: Track }>();
-  const contextLabel = `Tema selecionado: ${track ?? ''}. Escolha categoria, nível e inicie direto.`.toLocaleUpperCase('pt-BR');
+  const contextLabel = `Tema selecionado: ${track ?? ''}. Categorias ordenadas por progresso (mais estudadas primeiro).`.toLocaleUpperCase('pt-BR');
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevels, setSelectedLevels] = useState<Record<string, SeniorityLevel>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const filteredCategories = categories.filter((item) =>
-    item.category.toLocaleLowerCase('pt-BR').includes(searchTerm.trim().toLocaleLowerCase('pt-BR')),
-  );
+  const filteredCategories = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLocaleLowerCase('pt-BR');
+
+    return categories
+      .filter((item) => item.category.toLocaleLowerCase('pt-BR').includes(normalizedSearch))
+      .sort((left, right) => {
+        if (right.studiedPercent !== left.studiedPercent) {
+          return right.studiedPercent - left.studiedPercent;
+        }
+
+        return left.category.localeCompare(right.category, 'pt-BR');
+      });
+  }, [categories, searchTerm]);
 
   useEffect(() => {
     async function loadCategories() {

@@ -708,6 +708,14 @@ type LevelProgressStats = {
   correctPercent: number;
   unlocked: boolean;
   completed: boolean;
+  categories: {
+    category: string;
+    cards: number;
+    attempts: number;
+    correctAttempts: number;
+    correctPercent: number;
+    averageDurationSeconds: number;
+  }[];
 };
 
 type CategoryProgressStats = {
@@ -736,6 +744,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
         isCorrect: true,
         level: true,
         createdAt: true,
+        durationSeconds: true,
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -796,6 +805,82 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
     SENIOR: 0,
   };
 
+  const cardMetadataMap = new Map<
+    string,
+    { category: string; level: SeniorityLevel }
+  >();
+
+  for (const card of cards) {
+    cardMetadataMap.set(card.id, {
+      category: card.category,
+      level: card.level,
+    });
+  }
+
+  const levelCategoryStats = orderedLevels.reduce(
+    (accumulator, level) => {
+      accumulator[level] = new Map<
+        string,
+        {
+          uniqueCardIds: Set<string>;
+          attempts: number;
+          correctAttempts: number;
+          durationSum: number;
+          durationCount: number;
+        }
+      >();
+      return accumulator;
+    },
+    {} as Record<
+      SeniorityLevel,
+      Map<
+        string,
+        {
+          uniqueCardIds: Set<string>;
+          attempts: number;
+          correctAttempts: number;
+          durationSum: number;
+          durationCount: number;
+        }
+      >
+    >,
+  );
+
+  for (const attempt of attempts) {
+    if (!attempt.readyCardId) {
+      continue;
+    }
+
+    const metadata = cardMetadataMap.get(attempt.readyCardId);
+    if (!metadata) {
+      continue;
+    }
+
+    const categoryMap = levelCategoryStats[attempt.level];
+    const existing = categoryMap.get(metadata.category) ?? {
+      uniqueCardIds: new Set<string>(),
+      attempts: 0,
+      correctAttempts: 0,
+      durationSum: 0,
+      durationCount: 0,
+    };
+
+    existing.uniqueCardIds.add(attempt.readyCardId);
+    existing.attempts += 1;
+    if (attempt.isCorrect) {
+      existing.correctAttempts += 1;
+    }
+    if (
+      attempt.durationSeconds !== null &&
+      attempt.durationSeconds !== undefined
+    ) {
+      existing.durationSum += attempt.durationSeconds;
+      existing.durationCount += 1;
+    }
+
+    categoryMap.set(metadata.category, existing);
+  }
+
   const categoriesMap = new Map<string, CategoryProgressStats>();
 
   for (const theme of themes) {
@@ -811,6 +896,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
           correctPercent: 0,
           unlocked: false,
           completed: false,
+          categories: [],
         },
         JUNIOR: {
           totalCards: 0,
@@ -820,6 +906,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
           correctPercent: 0,
           unlocked: false,
           completed: false,
+          categories: [],
         },
         PLENO: {
           totalCards: 0,
@@ -829,6 +916,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
           correctPercent: 0,
           unlocked: false,
           completed: false,
+          categories: [],
         },
         SENIOR: {
           totalCards: 0,
@@ -838,6 +926,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
           correctPercent: 0,
           unlocked: false,
           completed: false,
+          categories: [],
         },
       },
     });
@@ -870,6 +959,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
             correctPercent: 0,
             unlocked: false,
             completed: false,
+            categories: [],
           },
           JUNIOR: {
             totalCards: 0,
@@ -879,6 +969,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
             correctPercent: 0,
             unlocked: false,
             completed: false,
+            categories: [],
           },
           PLENO: {
             totalCards: 0,
@@ -888,6 +979,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
             correctPercent: 0,
             unlocked: false,
             completed: false,
+            categories: [],
           },
           SENIOR: {
             totalCards: 0,
@@ -897,6 +989,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
             correctPercent: 0,
             unlocked: false,
             completed: false,
+            categories: [],
           },
         },
       });
@@ -958,6 +1051,31 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
       const attemptsInWindow = latestAttemptsByLevel[level].length;
       const windowCorrect = latestAttemptsByLevel[level].filter(Boolean).length;
       const correctPercent = toPercent(windowCorrect, attemptsWindowSize);
+      const categories = Array.from(levelCategoryStats[level].entries())
+        .map(([category, stats]) => ({
+          category,
+          cards: stats.uniqueCardIds.size,
+          attempts: stats.attempts,
+          correctAttempts: stats.correctAttempts,
+          correctPercent: toPercent(stats.correctAttempts, stats.attempts),
+          averageDurationSeconds:
+            stats.durationCount > 0
+              ? Math.round(stats.durationSum / stats.durationCount)
+              : 0,
+        }))
+        .sort((left, right) => {
+          if (right.cards !== left.cards) {
+            return right.cards - left.cards;
+          }
+          if (right.attempts !== left.attempts) {
+            return right.attempts - left.attempts;
+          }
+          if (right.correctPercent !== left.correctPercent) {
+            return right.correctPercent - left.correctPercent;
+          }
+          return left.category.localeCompare(right.category, "pt-BR");
+        });
+
       accumulator[level] = {
         totalCards: attemptsWindowSize,
         studiedCards: attemptsInWindow,
@@ -969,6 +1087,7 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
           correctPercent >= approvalPercent,
         completed:
           attemptsInWindow >= attemptsWindowSize && correctPercent >= 100,
+        categories,
       };
       return accumulator;
     },
@@ -1518,6 +1637,22 @@ router.get(
       _count: { _all: true },
     });
 
+    const uniqueReadyCardsAttempts = await prisma.sessionAttempt.findMany({
+      where: {
+        userId: req.userId,
+        readyCardId: { not: null },
+      },
+      select: {
+        readyCardId: true,
+      },
+    });
+
+    const totalUniqueReadyCards = new Set(
+      uniqueReadyCardsAttempts
+        .map((attempt) => attempt.readyCardId)
+        .filter((cardId): cardId is string => Boolean(cardId)),
+    ).size;
+
     const averageDurationResult = await prisma.sessionAttempt.aggregate({
       where: {
         userId: req.userId,
@@ -1548,6 +1683,7 @@ router.get(
       ...user,
       streakDays,
       attempts: attempts._count._all,
+      totalUniqueReadyCards,
       correctAttempts,
       averageDurationSeconds: Math.round(
         averageDurationResult._avg.durationSeconds ?? 0,
