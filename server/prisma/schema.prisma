@@ -18,6 +18,7 @@ enum Track {
   DESENVOLVIMENTO
   INFRAESTRUTURA
   CLOUD
+  MACHINE_LEARNING
 }
 
 model User {

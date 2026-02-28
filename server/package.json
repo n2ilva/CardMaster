@@ -11,8 +11,9 @@
     "prisma:push": "prisma db push",
     "seed": "tsx src/seed.ts",
     "seed:dev-cards": "tsx src/seed-dev-ready-cards.ts",
+    "seed:ml-cards": "tsx src/seed-ml-ready-cards.ts",
     "seed:infra-cloud-cards": "tsx src/seed-infra-cloud-ready-cards.ts",
-    "seed:all-cards": "npm run seed:dev-cards && npm run seed:infra-cloud-cards"
+    "seed:all-cards": "npm run seed:dev-cards && npm run seed:ml-cards && npm run seed:infra-cloud-cards"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",

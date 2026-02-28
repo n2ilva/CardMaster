@@ -6,10 +6,19 @@ import { createToken, requireAuth, type AuthenticatedRequest } from "./auth.js";
 import { prisma } from "./prisma.js";
 
 type SeniorityLevel = "INICIANTE" | "JUNIOR" | "PLENO" | "SENIOR";
-type Track = "DESENVOLVIMENTO" | "INFRAESTRUTURA" | "CLOUD";
+type Track =
+  | "DESENVOLVIMENTO"
+  | "INFRAESTRUTURA"
+  | "CLOUD"
+  | "MACHINE_LEARNING";
 
 const seniorityLevels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
-const tracks = ["DESENVOLVIMENTO", "INFRAESTRUTURA", "CLOUD"] as const;
+const tracks = [
+  "DESENVOLVIMENTO",
+  "INFRAESTRUTURA",
+  "CLOUD",
+  "MACHINE_LEARNING",
+] as const;
 const orderedLevels: SeniorityLevel[] = [
   "INICIANTE",
   "JUNIOR",
@@ -560,6 +569,7 @@ router.get("/ready-cards/summary", async (_req, res) => {
     DESENVOLVIMENTO: 0,
     INFRAESTRUTURA: 0,
     CLOUD: 0,
+    MACHINE_LEARNING: 0,
   };
 
   for (const card of cards) {

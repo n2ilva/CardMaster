@@ -12,6 +12,7 @@ type ReadySummary = {
     DESENVOLVIMENTO: number;
     INFRAESTRUTURA: number;
     CLOUD: number;
+    MACHINE_LEARNING: number;
   };
   total: number;
 };
@@ -38,6 +39,7 @@ export default function HomeScreen() {
   const developmentCount = summary?.counts.DESENVOLVIMENTO ?? 0;
   const infraCount = summary?.counts.INFRAESTRUTURA ?? 0;
   const cloudCount = summary?.counts.CLOUD ?? 0;
+  const mlCount = summary?.counts.MACHINE_LEARNING ?? 0;
   const totalCards = summary?.total ?? 0;
 
   async function onLogout() {
@@ -67,7 +69,7 @@ export default function HomeScreen() {
         </View>
         <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Temas ativos</Text>
-          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">3</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">4</Text>
         </View>
       </View>
 
@@ -77,7 +79,8 @@ export default function HomeScreen() {
             Sessão CardMaster
           </Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            Desenvolvimento ({developmentCount}), Infraestrutura ({infraCount}) e Cloud ({cloudCount}).
+            Desenvolvimento ({developmentCount}), Infraestrutura ({infraCount}), Cloud ({cloudCount}) e
+            Machine Learning ({mlCount}).
           </Text>
         </View>
 
@@ -121,7 +124,8 @@ export default function HomeScreen() {
 
       <Text className="mt-5 text-xs text-[#687076] dark:text-[#9BA1A6]">
         Temas base: {tracks.DESENVOLVIMENTO.length} em Desenvolvimento,{' '}
-        {tracks.INFRAESTRUTURA.length} em Infra e {tracks.CLOUD.length} em Cloud.
+        {tracks.INFRAESTRUTURA.length} em Infra, {tracks.CLOUD.length} em Cloud e{' '}
+        {tracks.MACHINE_LEARNING.length} em Machine Learning.
       </Text>
     </ScrollView>
   );

@@ -20,6 +20,11 @@ const studyTracks: { key: Track; label: string; description: string }[] = [
     label: 'Cloud',
     description: 'AWS, Azure e Google Cloud com foco em cenários de prova.',
   },
+  {
+    key: 'MACHINE_LEARNING',
+    label: 'Machine Learning',
+    description: 'IA aplicada, modelos modernos, MLOps/LLMOps e governança de ML.',
+  },
 ];
 
 export default function ReadyCardsScreen() {

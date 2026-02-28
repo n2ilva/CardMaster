@@ -7,7 +7,12 @@ import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
 const levels: SeniorityLevel[] = ['INICIANTE', 'JUNIOR', 'PLENO', 'SENIOR'];
-const tracks: Track[] = ['DESENVOLVIMENTO', 'INFRAESTRUTURA', 'CLOUD'];
+const tracks: Track[] = [
+  'DESENVOLVIMENTO',
+  'INFRAESTRUTURA',
+  'CLOUD',
+  'MACHINE_LEARNING',
+];
 
 type ThemeItem = {
   category: string;
