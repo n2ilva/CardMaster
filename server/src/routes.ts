@@ -717,6 +717,8 @@ type CategoryProgressStats = {
 };
 
 async function getUserReadyCardsProgress(userId: string, track?: Track) {
+  const attemptsWindowSize = 30;
+  const approvalPercent = 80;
   const whereClause = track ? { track } : undefined;
 
   const [cards, attempts, themes] = await Promise.all([
@@ -732,7 +734,10 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
       select: {
         readyCardId: true,
         isCorrect: true,
+        level: true,
+        createdAt: true,
       },
+      orderBy: { createdAt: "desc" },
     }),
     track
       ? prisma.readyTheme.findMany({
@@ -754,6 +759,22 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
     if (attempt.isCorrect) {
       correctCardIds.add(attempt.readyCardId);
     }
+  }
+
+  const latestAttemptsByLevel = orderedLevels.reduce(
+    (accumulator, level) => {
+      accumulator[level] = [];
+      return accumulator;
+    },
+    {} as Record<SeniorityLevel, boolean[]>,
+  );
+
+  for (const attempt of attempts) {
+    const bucket = latestAttemptsByLevel[attempt.level];
+    if (bucket.length >= attemptsWindowSize) {
+      continue;
+    }
+    bucket.push(attempt.isCorrect);
   }
 
   const levelTotals: Record<SeniorityLevel, number> = {
@@ -906,8 +927,19 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
           levelStats.correctCards,
           levelStats.totalCards,
         );
-        levelStats.unlocked = levelStats.correctPercent >= 80;
-        levelStats.completed = levelStats.correctPercent >= 100;
+        const attemptsInWindow = latestAttemptsByLevel[level].length;
+        const windowCorrect =
+          latestAttemptsByLevel[level].filter(Boolean).length;
+        const windowCorrectPercent = toPercent(
+          windowCorrect,
+          attemptsWindowSize,
+        );
+
+        levelStats.unlocked =
+          attemptsInWindow >= attemptsWindowSize &&
+          windowCorrectPercent >= approvalPercent;
+        levelStats.completed =
+          attemptsInWindow >= attemptsWindowSize && windowCorrectPercent >= 100;
 
         categoryTotal += levelStats.totalCards;
         categoryStudied += levelStats.studiedCards;
@@ -923,15 +955,20 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
 
   const levelProgress = orderedLevels.reduce(
     (accumulator, level) => {
-      const correctPercent = toPercent(levelCorrect[level], levelTotals[level]);
+      const attemptsInWindow = latestAttemptsByLevel[level].length;
+      const windowCorrect = latestAttemptsByLevel[level].filter(Boolean).length;
+      const correctPercent = toPercent(windowCorrect, attemptsWindowSize);
       accumulator[level] = {
-        totalCards: levelTotals[level],
-        studiedCards: levelStudied[level],
-        correctCards: levelCorrect[level],
-        studiedPercent: toPercent(levelStudied[level], levelTotals[level]),
+        totalCards: attemptsWindowSize,
+        studiedCards: attemptsInWindow,
+        correctCards: windowCorrect,
+        studiedPercent: toPercent(attemptsInWindow, attemptsWindowSize),
         correctPercent,
-        unlocked: correctPercent >= 80,
-        completed: correctPercent >= 100,
+        unlocked:
+          attemptsInWindow >= attemptsWindowSize &&
+          correctPercent >= approvalPercent,
+        completed:
+          attemptsInWindow >= attemptsWindowSize && correctPercent >= 100,
       };
       return accumulator;
     },
@@ -939,14 +976,14 @@ async function getUserReadyCardsProgress(userId: string, track?: Track) {
   );
 
   let currentLevel: SeniorityLevel = "INICIANTE";
-  if (levelProgress.INICIANTE.unlocked) {
+  if (levelProgress.SENIOR.unlocked) {
+    currentLevel = "SENIOR";
+  } else if (levelProgress.PLENO.unlocked) {
+    currentLevel = "PLENO";
+  } else if (levelProgress.JUNIOR.unlocked) {
     currentLevel = "JUNIOR";
-    if (levelProgress.JUNIOR.unlocked) {
-      currentLevel = "PLENO";
-      if (levelProgress.PLENO.unlocked) {
-        currentLevel = "SENIOR";
-      }
-    }
+  } else if (levelProgress.INICIANTE.unlocked) {
+    currentLevel = "INICIANTE";
   }
 
   return {

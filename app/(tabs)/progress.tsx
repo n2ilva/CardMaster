@@ -168,7 +168,9 @@ export default function ProgressScreen() {
       </View>
 
       <View className="mt-5 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-        <Text className="text-base font-semibold text-[#11181C] dark:text-[#ECEDEE]">Progresso por nível (80% libera • 100% conclui)</Text>
+        <Text className="text-base font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+          Progresso por nível (janela de 30 tentativas: 80% libera • 100% conclui)
+        </Text>
         {(['INICIANTE', 'JUNIOR', 'PLENO', 'SENIOR'] as SeniorityLevel[]).map((level) => {
           const item = progress?.levelProgress?.[level];
           return (

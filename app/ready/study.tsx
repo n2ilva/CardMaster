@@ -26,6 +26,13 @@ type AnswerGuidance = {
   example: string;
 };
 
+type ParsedAnswerDescription = {
+  summary: string;
+  application: string;
+  example: string;
+  plain: string;
+};
+
 type GuidanceMode =
   | 'conceito'
   | 'pratica'
@@ -46,6 +53,52 @@ function shuffleArray<T>(items: T[]): T[] {
 
 function normalizeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
+}
+
+function stripLeadingGuidancePrefixes(text: string): string {
+  return text
+    .replace(
+      /^\s*(?:justificativa(?:\s+avançada)?|resumo\s+direto|leitura\s+técnica|interpretação\s+de\s+cenário|aplicação\s+estratégica|aplicação\s+prática|exemplo\s+simples|exemplo\s+prático|exemplo\s+com\s+visão\s+de\s+arquitetura)\s*:\s*/i,
+      '',
+    )
+    .trim();
+}
+
+function cleanStandaloneDescription(text: string): string {
+  return normalizeText(
+    stripLeadingGuidancePrefixes(text)
+      .replace(/\bResumo\s*:\s*/gi, '')
+      .replace(/\bAplicação\s*:\s*/gi, '')
+      .replace(/\bExemplo\s*:\s*/gi, ''),
+  );
+}
+
+function parseAnswerDescription(text?: string): ParsedAnswerDescription {
+  const source = stripLeadingGuidancePrefixes((text ?? '').replace(/\r\n/g, '\n').trim());
+
+  if (!source) {
+    return {
+      summary: '',
+      application: '',
+      example: '',
+      plain: '',
+    };
+  }
+
+  const summaryMatch = source.match(
+    /(?:^|\n)\s*Resumo\s*:\s*([\s\S]*?)(?=\n\s*(?:Aplicação|Exemplo)\s*:|$)/i,
+  );
+  const applicationMatch = source.match(
+    /(?:^|\n)\s*Aplicação\s*:\s*([\s\S]*?)(?=\n\s*Exemplo\s*:|$)/i,
+  );
+  const exampleMatch = source.match(/(?:^|\n)\s*Exemplo\s*:\s*([\s\S]*?)$/i);
+
+  return {
+    summary: normalizeText(summaryMatch?.[1] ?? ''),
+    application: normalizeText(applicationMatch?.[1] ?? ''),
+    example: normalizeText(exampleMatch?.[1] ?? ''),
+    plain: cleanStandaloneDescription(source),
+  };
 }
 
 function stripQuestionMetadata(text: string): string {
@@ -417,42 +470,6 @@ function detectQuestionType(card: ReadyCard): string {
   return 'Prática';
 }
 
-function levelGuidancePrefix(level: SeniorityLevel): {
-  why: string;
-  application: string;
-  example: string;
-} {
-  if (level === 'INICIANTE') {
-    return {
-      why: 'Resumo direto:',
-      application: 'Uso básico:',
-      example: 'Exemplo simples:',
-    };
-  }
-
-  if (level === 'JUNIOR') {
-    return {
-      why: 'Leitura técnica:',
-      application: 'Uso no dia a dia:',
-      example: 'Exemplo prático:',
-    };
-  }
-
-  if (level === 'PLENO') {
-    return {
-      why: 'Interpretação de cenário:',
-      application: 'Aplicação com critério técnico:',
-      example: 'Exemplo orientado à decisão:',
-    };
-  }
-
-  return {
-    why: 'Justificativa avançada:',
-    application: 'Aplicação estratégica:',
-    example: 'Exemplo com visão de arquitetura:',
-  };
-}
-
 function levelWhyComplement(level: SeniorityLevel, mode: GuidanceMode): string {
   if (level === 'INICIANTE') {
     return 'Priorize a alternativa que responde exatamente ao enunciado, sem adicionar hipóteses extras.';
@@ -477,53 +494,80 @@ function buildAnswerGuidance(card: ReadyCard): AnswerGuidance {
   const normalizedAnswer = removeTrailingPunctuation(card.answer);
   const normalizedQuestion = removeTrailingPunctuation(card.question);
   const mode = detectGuidanceMode(card);
-  const levelPrefix = levelGuidancePrefix(card.level);
   const whyComplement = levelWhyComplement(card.level, mode);
+  const parsedDescription = parseAnswerDescription(card.answerDescription);
 
-  const baseWhy = card.answerDescription?.trim()
-    ? card.answerDescription.trim()
-    : `A alternativa correta é esta porque responde diretamente ao enunciado com o critério técnico esperado: ${normalizedAnswer}.`;
-  const why = `${levelPrefix.why} ${baseWhy} ${whyComplement}`;
+  const whyCore =
+    parsedDescription.summary ||
+    (card.answerDescription?.trim()
+      ? parsedDescription.plain
+      : `A alternativa correta é esta porque responde diretamente ao enunciado com o critério técnico esperado: ${normalizedAnswer}.`);
+  const why = `${whyCore} ${whyComplement}`.trim();
 
-  let application = `${levelPrefix.application} ao resolver questões de ${card.category}, valide se a alternativa segue exatamente este critério — ${normalizedAnswer}.`;
-  let example = `${levelPrefix.example} para a pergunta “${truncateText(
-    normalizedQuestion,
-    110,
-  )}”, a escolha correta é a opção que afirma “${truncateText(normalizedAnswer, 110)}”.`;
+  let application =
+    parsedDescription.application ||
+    `Ao resolver questões de ${card.category}, valide se a alternativa segue exatamente este critério — ${normalizedAnswer}.`;
+  let example =
+    parsedDescription.example ||
+    `Para a pergunta “${truncateText(normalizedQuestion, 110)}”, a escolha correta é a opção que afirma “${truncateText(normalizedAnswer, 110)}”.`;
 
   if (mode === 'seguranca') {
-    application = `Aplicação prática: em cenários de segurança, priorize a alternativa que reduz risco e exposição real — ${normalizedAnswer}.`;
-    example = `Exemplo de prova: diante de ameaça/incidente, a resposta correta é a que fortalece prevenção, detecção ou contenção: “${truncateText(
+    application = parsedDescription.application
+      ? parsedDescription.application
+      : `Em cenários de segurança, priorize a alternativa que reduz risco e exposição real — ${normalizedAnswer}.`;
+    example = parsedDescription.example
+      ? parsedDescription.example
+      : `Diante de ameaça/incidente, a resposta correta é a que fortalece prevenção, detecção ou contenção: “${truncateText(
       normalizedAnswer,
       115,
     )}”.`;
   } else if (mode === 'cloud') {
-    application = `Aplicação prática: em cloud, escolha a opção que melhora confiabilidade, custo e governança ao mesmo tempo — ${normalizedAnswer}.`;
-    example = `Exemplo de arquitetura: para “${truncateText(normalizedQuestion, 90)}”, a decisão correta é “${truncateText(
+    application = parsedDescription.application
+      ? parsedDescription.application
+      : `Em cloud, escolha a opção que melhora confiabilidade, custo e governança ao mesmo tempo — ${normalizedAnswer}.`;
+    example = parsedDescription.example
+      ? parsedDescription.example
+      : `Para “${truncateText(normalizedQuestion, 90)}”, a decisão correta é “${truncateText(
       normalizedAnswer,
       110,
     )}”.`;
   } else if (mode === 'pratica') {
-    application = `Aplicação prática: trate essa resposta como passo operacional recomendado para execução no ambiente real — ${normalizedAnswer}.`;
-    example = `Exemplo de execução: quando for implementar o cenário da pergunta, siga o procedimento indicado na alternativa correta: “${truncateText(
+    application = parsedDescription.application
+      ? parsedDescription.application
+      : `Trate essa resposta como passo operacional recomendado para execução no ambiente real — ${normalizedAnswer}.`;
+    example = parsedDescription.example
+      ? parsedDescription.example
+      : `Quando for implementar o cenário da pergunta, siga o procedimento indicado na alternativa correta: “${truncateText(
       normalizedAnswer,
       115,
     )}”.`;
   } else if (mode === 'analise') {
-    application = `Aplicação prática: em análise/troubleshooting, use a alternativa correta como hipótese principal de diagnóstico — ${normalizedAnswer}.`;
-    example = `Exemplo de diagnóstico: ao investigar “${truncateText(
+    application = parsedDescription.application
+      ? parsedDescription.application
+      : `Em análise/troubleshooting, use a alternativa correta como hipótese principal de diagnóstico — ${normalizedAnswer}.`;
+    example = parsedDescription.example
+      ? parsedDescription.example
+      : `Ao investigar “${truncateText(
       normalizedQuestion,
       90,
     )}”, priorize o critério “${truncateText(normalizedAnswer, 110)}”.`;
   } else if (mode === 'comparacao') {
-    application = `Aplicação prática: em questões comparativas, escolha a alternativa com melhor aderência ao requisito central do enunciado — ${normalizedAnswer}.`;
-    example = `Exemplo de comparação: entre opções parecidas, a correta é a que atende o objetivo principal descrito: “${truncateText(
+    application = parsedDescription.application
+      ? parsedDescription.application
+      : `Em questões comparativas, escolha a alternativa com melhor aderência ao requisito central do enunciado — ${normalizedAnswer}.`;
+    example = parsedDescription.example
+      ? parsedDescription.example
+      : `Entre opções parecidas, a correta é a que atende o objetivo principal descrito: “${truncateText(
       normalizedAnswer,
       115,
     )}”.`;
   } else if (mode === 'conceito') {
-    application = `Aplicação prática: use essa definição como referência-base para diferenciar alternativas conceitualmente próximas — ${normalizedAnswer}.`;
-    example = `Exemplo de conceito: se a pergunta pede definição/fundamento, a opção correta é a que descreve com precisão: “${truncateText(
+    application = parsedDescription.application
+      ? parsedDescription.application
+      : `Use essa definição como referência-base para diferenciar alternativas conceitualmente próximas — ${normalizedAnswer}.`;
+    example = parsedDescription.example
+      ? parsedDescription.example
+      : `Se a pergunta pede definição/fundamento, a opção correta é a que descreve com precisão: “${truncateText(
       normalizedAnswer,
       115,
     )}”.`;
@@ -930,7 +974,7 @@ export default function StudySessionScreen() {
 
               {currentCard.answerDescription ? (
                 <Text className="mt-2 text-sm text-[#687076] dark:text-[#9BA1A6]">
-                  🧾 Descrição da resposta: {currentCard.answerDescription}
+                  🧾 {cleanStandaloneDescription(currentCard.answerDescription)}
                 </Text>
               ) : null}
 
