@@ -1579,9 +1579,17 @@ router.get("/ready-cards/summary", async (_req, res) => {
     select: { track: true },
   });
 
-  const counts: Record<string, number> = {};
+  const counts: Record<Track, number> = {
+    DESENVOLVIMENTO: 0,
+    INFRAESTRUTURA: 0,
+    CLOUD: 0,
+    MACHINE_LEARNING: 0,
+    SEGURANCA_INFORMACAO: 0,
+    MATEMATICA: 0,
+    PORTUGUES: 0,
+  };
   for (const card of cards) {
-    counts[card.track] = (counts[card.track] ?? 0) + 1;
+    counts[card.track] += 1;
   }
 
   const trackEntries = Object.entries(counts).map(([key, count]) => {
@@ -1594,8 +1602,9 @@ router.get("/ready-cards/summary", async (_req, res) => {
   });
 
   return res.json({
+    counts,
     tracks: trackEntries,
-    activeTracksCount: trackEntries.length,
+    activeTracksCount: trackEntries.filter((entry) => entry.count > 0).length,
     total: cards.length,
   });
 });
