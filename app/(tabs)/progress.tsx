@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { SeniorityLevel } from '@/data/flashcards';
+import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -36,7 +37,7 @@ const levelLabelByCode: Record<SeniorityLevel, string> = {
 };
 
 export default function ProgressScreen() {
-  const bottomPadding = 24;
+  const bottomPadding = useTabContentPadding();
   const { token, user, progressRefreshKey, notifyProgressChanged } = useAuth();
   const [progress, setProgress] = useState<ProgressPayload | null>(null);
   const [loading, setLoading] = useState(false);

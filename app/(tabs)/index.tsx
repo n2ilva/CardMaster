@@ -2,6 +2,7 @@ import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -17,6 +18,7 @@ type ReadySummary = {
 };
 
 export default function HomeScreen() {
+  const bottomPadding = useTabContentPadding();
   const { user, logout } = useAuth();
   const [summary, setSummary] = useState<ReadySummary | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -55,7 +57,7 @@ export default function HomeScreen() {
     <ScrollView
       className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 24 }}>
+      contentContainerStyle={{ paddingBottom: bottomPadding }}>
       <Text className="text-3xl font-bold text-[#11181C] dark:text-[#ECEDEE]">CardMaster</Text>
       <Text className="mt-2 text-base text-[#687076] dark:text-[#9BA1A6]">
         {user ? (
