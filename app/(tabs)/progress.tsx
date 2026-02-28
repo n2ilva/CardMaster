@@ -143,7 +143,7 @@ export default function ProgressScreen() {
       contentContainerStyle={{ paddingBottom: bottomPadding }}>
       <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">Sua evolução</Text>
       <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-        Acompanhe desempenho, níveis e recompensas por acerto.
+        Acompanhe desempenho, níveis e o tempo médio por card respondido.
       </Text>
 
       {!user ? (
@@ -165,7 +165,7 @@ export default function ProgressScreen() {
         <Text className="text-sm text-white/80">Nível atual</Text>
         <Text className="text-2xl font-bold text-white">{levelLabel}</Text>
         <Text className="mt-1 text-white">
-          {effectiveCorrectAttempts} acertos • {effectiveTotalCards} cards únicos • {effectiveAttempts} tentativas
+          {effectiveCorrectAttempts} acertos • {effectiveTotalCards} cards únicos • {effectiveAttempts} cards
         </Text>
       </View>
 
@@ -177,7 +177,7 @@ export default function ProgressScreen() {
           </Text>
         </View>
         <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-          <Text className="text-xs text-[#687076] dark:text-[#9BA1A6]">Tempo médio</Text>
+          <Text className="text-xs text-[#687076] dark:text-[#9BA1A6]">Tempo médio por card</Text>
           <Text className="mt-1 text-lg font-bold text-[#11181C] dark:text-[#ECEDEE] sm:text-xl">
             {averageDurationLabel}
           </Text>
@@ -192,7 +192,7 @@ export default function ProgressScreen() {
 
       <View className="mt-5 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
         <Text className="text-base font-semibold text-[#11181C] dark:text-[#ECEDEE]">
-          Progresso por nível (janela de 30 tentativas: 80% libera • 100% conclui)
+          Progresso por nível (janela de 30 cards: 80% libera • 100% conclui)
         </Text>
         {(['INICIANTE', 'JUNIOR', 'PLENO', 'SENIOR'] as SeniorityLevel[]).map((level) => {
           const item = progress?.levelProgress?.[level];
@@ -230,7 +230,7 @@ export default function ProgressScreen() {
                         {categoryItem.category}
                       </Text>
                       <Text className="mt-1 text-[11px] text-[#687076] dark:text-[#9BA1A6]">
-                        Cards: {categoryItem.cards} • Acertos: {categoryItem.correctPercent}% • Tempo médio:{' '}
+                        Cards: {categoryItem.cards} • Acertos: {categoryItem.correctPercent}% • Tempo médio por card:{' '}
                         {formatSecondsToMMSS(categoryItem.averageDurationSeconds)}
                       </Text>
                     </View>
