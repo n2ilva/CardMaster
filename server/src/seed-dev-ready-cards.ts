@@ -492,35 +492,65 @@ const promptAnswerDescriptions: Record<string, string> = {
 };
 
 const beginnerAnswerDescriptions: string[] = [
+  // 0 — "O que é uma variável em {lang}?"
   "Uma variável é um espaço nomeado na memória para armazenar valores. Use nomes descritivos para facilitar a leitura.\n\nExemplo:\nnome = 'João'\nidade = 25\n// Reutilize variáveis ao longo do programa",
+  // 1 — "Para que serve um comentário em {lang}?"
   "Comentários explicam a intenção do código para quem lê. Use para clarificar lógica complexa, não para repetir o óbvio.\n\nExemplo:\n// Calcula desconto para clientes premium\ndesconto = preco * 0.15",
+  // 2 — "O que é uma função em {lang}?"
   "Função agrupa instruções reutilizáveis com um propósito único. Recebe parâmetros e pode retornar resultado.\n\nExemplo:\nfunction somar(a, b) { return a + b }\nresultado = somar(3, 5) // 8",
+  // 3 — "Qual a diferença entre texto e número em {lang}?"
   "Tipos básicos: inteiro (42), decimal (3.14), texto ('Olá'), booleano (true/false). Cada tipo define quais operações são válidas.\n\nExemplo:\nidade = 25 // inteiro\npreco = 9.99 // decimal\nnome = 'Ana' // texto",
-  "if executa bloco se condição for verdadeira; else executa alternativa. É a base da tomada de decisão no código.\n\nExemplo:\nif (idade >= 18) { mostrar('Maior de idade') }\nelse { mostrar('Menor de idade') }",
-  "for repete um bloco um número determinado de vezes. Ideal para iterar sobre listas ou contadores.\n\nExemplo:\nfor (i = 0; i < 5; i++) { mostrar(i) }\n// imprime 0, 1, 2, 3, 4",
-  "Array armazena vários valores em sequência, acessíveis por índice (começando em 0). É a coleção mais básica.\n\nExemplo:\nfrutas = ['maçã', 'banana', 'uva']\nfrutas[0] // 'maçã'\nfrutas[2] // 'uva'",
-  "String é o tipo para texto. Permite concatenar, buscar caracteres e converter maiúsculas/minúsculas.\n\nExemplo:\nnome = 'Maria'\nnome.tamanho // 5\nnome.maiuscula() // 'MARIA'",
-  "Operadores aritméticos: + soma, - subtrai, * multiplica, / divide, % retorna resto. Módulo (%) verifica paridade.\n\nExemplo:\n10 + 3 = 13\n10 % 3 = 1 (resto da divisão)",
-  "Import permite reutilizar código de outros arquivos ou bibliotecas, organizando o projeto em módulos independentes.\n\nAplicação: Importe apenas o necessário para manter o código limpo e evitar dependências circulares.",
+  // 4 — "Para que serve um if em {lang}?"
+  "if avalia uma condição e executa o bloco somente quando ela é verdadeira. É a base da tomada de decisão no código.\n\nExemplo:\nif (idade >= 18) { mostrar('Maior de idade') }\n// bloco executado apenas quando condição é true",
+  // 5 — "Quando usar else em {lang}?"
+  "else executa um bloco alternativo quando a condição do if não é atendida. Garante que sempre haja um caminho de execução.\n\nExemplo:\nif (idade >= 18) { mostrar('Maior') }\nelse { mostrar('Menor') }\n// sempre executa um dos dois blocos",
+  // 6 — "O que é um loop em {lang}?"
+  "Loop (for, while) repete um bloco enquanto uma condição for verdadeira. Ideal para iterar sobre listas ou contadores.\n\nExemplo:\nfor (i = 0; i < 5; i++) { mostrar(i) }\n// imprime 0, 1, 2, 3, 4",
+  // 7 — "O que significa erro de sintaxe em {lang}?"
+  "Erro de sintaxe ocorre quando o código viola as regras gramaticais da linguagem. O programa nem chega a executar.\n\nExemplo:\nif (x == 10 // faltou fechar parêntese → erro de sintaxe\n// A mensagem de erro indica a linha e o caractere esperado",
+  // 8 — "Para que serve imprimir no console em {lang}?"
   "A função print/console exibe valores na saída do programa. Essencial para verificar resultados durante desenvolvimento.\n\nExemplo:\nprint('Olá, mundo!')\nprint(resultado) // mostra o valor atual",
-  "Conversão transforma valor de um tipo para outro (texto '42' para número 42). Conversão incorreta gera erro.\n\nExemplo:\ntexto = '42'\nnumero = converterParaInteiro(texto) // 42\nconverterParaInteiro('abc') // ERRO",
-  "Depurar é encontrar e corrigir erros. Técnicas básicas: print para ver valores e ler mensagens de erro com atenção.\n\nAplicação: Verifique valores das variáveis em cada etapa para encontrar onde o resultado diverge.",
-  "Indentação mostra quais linhas pertencem a funções, loops ou condições. Código sem indentação é difícil de ler.\n\nExemplo:\n// Correto:\nif (x) {\n    executar()\n}\n// Confuso: sem recuo",
-  "null representa ausência de valor. Acessar propriedades de variável nula causa erro — sempre verifique antes.\n\nExemplo:\nusuario = buscar(id)\nif (usuario != null) { mostrar(usuario.nome) }",
-  "Escopo define onde variável é acessível. Variáveis dentro de função só existem ali dentro.\n\nExemplo:\nfunction exemplo() { local = 10 }\n// 'local' não existe fora da função",
-  "Constante é variável que não muda após criação. Use para configurações fixas e valores nomeados.\n\nExemplo:\nconst PI = 3.14159\nconst URL = 'https://api.exemplo.com'\n// PI = 3.0 → ERRO",
+  // 9 — "O que é uma lista/array em {lang}?"
+  "Array armazena vários valores em sequência, acessíveis por índice (começando em 0). É a coleção mais básica.\n\nExemplo:\nfrutas = ['maçã', 'banana', 'uva']\nfrutas[0] // 'maçã'\nfrutas[2] // 'uva'",
+  // 10 — "O que é um booleano em {lang}?"
   "Booleano aceita apenas true ou false. É a base de todas as condições no código.\n\nExemplo:\nmaior = idade >= 18 // true ou false\nif (maior) { permitir() }",
-  "Método é função que pertence a um objeto/classe. Opera sobre os dados daquele objeto.\n\nExemplo:\nlista = [3, 1, 2]\nlista.ordenar() // método do objeto\n// lista = [1, 2, 3]",
-  "AND (&&): ambas condições verdadeiras. OR (||): basta uma verdadeira. Essenciais para condições compostas.\n\nExemplo:\nif (idade >= 18 && temCNH) { dirigir() }\nif (admin || dono) { editar() }",
-  "return encerra a função e devolve valor ao chamador. Sem return, pode não produzir resultado utilizável.\n\nExemplo:\nfunction dobro(n) { return n * 2 }\nresultado = dobro(5) // 10",
+  // 11 — "Para que serve comparar valores em {lang}?"
+  "Comparação (==, !=, <, >) avalia a relação entre dois valores e retorna true ou false, guiando decisões no código.\n\nExemplo:\nif (nota >= 7) { aprovar() }\nif (senha == senhaCorreta) { liberar() }",
+  // 12 — "O que é uma string em {lang}?"
+  "String é o tipo para texto. Permite concatenar, buscar caracteres e converter maiúsculas/minúsculas.\n\nExemplo:\nnome = 'Maria'\nnome.tamanho // 5\nnome.maiuscula() // 'MARIA'",
+  // 13 — "O que é concatenar texto em {lang}?"
   "Concatenar é juntar textos em um só. O operador + é o mais comum.\n\nExemplo:\nsaudacao = 'Olá, ' + nome + '!'\n// 'Olá, Maria!'",
+  // 14 — "O que é entrada de dados em {lang}?"
+  "Entrada de dados é receber informação do usuário ou de outra fonte externa (teclado, arquivo, API).\n\nExemplo:\nnome = input('Digite seu nome: ')\n// programa pausa e aguarda digitação do usuário",
+  // 15 — "O que é saída de dados em {lang}?"
+  "Saída de dados é mostrar ou retornar o resultado do programa para o usuário, tela ou outro sistema.\n\nExemplo:\nprint('Resultado: ' + resultado)\n// exibe na tela o valor calculado",
+  // 16 — "Por que dar nome claro para variáveis em {lang}?"
+  "Nomes descritivos tornam o código autoexplicativo, reduzem necessidade de comentários e facilitam manutenção.\n\nExemplo:\n// Ruim: x = 30\n// Bom: idadeMinima = 30\n// O nome claro já explica o propósito",
+  // 17 — "O que é retorno de função em {lang}?"
+  "return encerra a função e devolve valor ao chamador. Sem return, pode não produzir resultado utilizável.\n\nExemplo:\nfunction dobro(n) { return n * 2 }\nresultado = dobro(5) // 10",
+  // 18 — "Para que serve organizar código em funções em {lang}?"
+  "Organizar em funções divide o programa em partes menores, cada uma com responsabilidade clara. Facilita reutilização e testes.\n\nExemplo:\nfunction validar(email) { ... }\nfunction enviar(email) { ... }\n// cada função faz uma coisa bem feita",
+  // 19 — "O que é depuração (debug) em {lang}?"
+  "Depurar é encontrar e corrigir erros. Técnicas básicas: print para ver valores e ler mensagens de erro com atenção.\n\nAplicação: Verifique valores das variáveis em cada etapa para encontrar onde o resultado diverge.",
+  // 20 — "Qual a importância de testar código em {lang}?"
+  "Testes verificam se o código se comporta como esperado. Detectam regressões e dão confiança para alterar o programa.\n\nExemplo:\nassert somar(2, 3) == 5\nassert somar(0, 0) == 0\n// se falhar, sabemos que algo quebrou",
+  // 21 — "O que é uma condição verdadeira em {lang}?"
+  "Condição verdadeira é uma expressão que resulta em true. O bloco do if é executado quando a condição é verdadeira.\n\nExemplo:\n5 > 3 // true → condição verdadeira\nif (true) { executar() } // sempre executa",
+  // 22 — "O que é uma condição falsa em {lang}?"
+  "Condição falsa é uma expressão que resulta em false. O bloco do if não executa; o else (se houver) é executado.\n\nExemplo:\n3 > 5 // false → condição falsa\nif (false) { ... } else { executarAlternativa() }",
+  // 23 — "Para que serve quebrar problemas em partes menores em {lang}?"
+  "Dividir um problema grande em etapas menores facilita desenvolver, testar e corrigir cada parte isoladamente.\n\nAplicação: Resolva uma etapa por vez — entrada, processamento e saída — antes de integrar tudo.",
+  // 24 — "O que é erro de lógica em {lang}?"
+  "Erro de lógica é quando o código executa sem falha, mas produz resultado incorreto. A causa está no raciocínio, não na sintaxe.\n\nExemplo:\n// Queria somar, mas multiplicou:\nresultado = a * b // deveria ser a + b\n// Programa roda mas resposta está errada",
+  // 25 — "Para que serve uma constante em {lang}?"
+  "Constante é variável que não muda após criação. Use para configurações fixas e valores nomeados.\n\nExemplo:\nconst PI = 3.14159\nconst URL = 'https://api.exemplo.com'\n// PI = 3.0 → ERRO",
+  // 26 — "Por que evitar código duplicado em {lang}?"
+  "Código duplicado gera retrabalho: corrigir um bug exige alterar múltiplos lugares. Extraia para função reutilizável.\n\nExemplo:\n// Ruim: mesma validação em 5 lugares\n// Bom: function validar(x) { ... } e chamar onde precisar",
+  // 27 — "O que é parâmetro de função em {lang}?"
   "Parâmetros são variáveis na definição da função que recebem valores na chamada.\n\nExemplo:\nfunction cumprimentar(nome) { mostrar('Olá, ' + nome) }\ncumprimentar('Ana') // 'Ana' é o argumento",
-  "Vetor vazio é lista sem elementos, ponto de partida para adicionar itens dinamicamente.\n\nExemplo:\nitens = []\nitens.add('maçã')\nitens.add('banana')\n// itens = ['maçã', 'banana']",
-  "Incrementar é aumentar valor da variável. ++ adiciona 1, += adiciona valor específico.\n\nExemplo:\ncontador = 0\ncontador++ // 1\ncontador += 5 // 6",
-  "= atribui valor. == compara igualdade. Confundir os dois é erro clássico de iniciantes.\n\nExemplo:\nx = 10 // atribuição: x recebe 10\nif (x == 10) // comparação: x é igual a 10?",
-  "Palavras como if, else, for, return, class têm significado especial e não podem ser usadas como nomes de variáveis.\n\nAplicação: Erro de sintaxe no nome de variável? Verifique se não é palavra reservada.",
-  "== compara se dois valores são iguais. Em algumas linguagens, === verifica tipo e valor.\n\nExemplo:\n5 == 5 // true\n5 == '5' // depende da linguagem\n5 === '5' // false (tipos diferentes)",
-  "Verificar tipo ajuda a evitar operações incompatíveis. Quando o erro diz 'tipo incompatível', inspecione o tipo real.\n\nAplicação: Use typeof, type() ou equivalente para descobrir o tipo de uma variável.",
+  // 28 — "O que é chamada de função em {lang}?"
+  "Chamada de função é o ato de executar uma função já definida, passando os argumentos necessários.\n\nExemplo:\nfunction somar(a, b) { return a + b }\nsomar(3, 5) // chamada → executa e retorna 8",
+  // 29 — "Por que ler mensagens de erro em {lang}?"
   "Mensagens de erro indicam o que deu errado, o arquivo e a linha do problema. Ler com calma é o primeiro passo.\n\nAplicação: Copie a mensagem e pesquise online — a maioria dos erros comuns já foi respondida pela comunidade.",
 ];
 
