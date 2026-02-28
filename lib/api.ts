@@ -2,6 +2,8 @@ import * as Linking from "expo-linking";
 import { Platform } from "react-native";
 
 const DEFAULT_WEB_API_URL = "http://localhost:4000/api";
+const DEFAULT_PRODUCTION_WEB_API_URL =
+  "http://ec2-52-67-13-135.sa-east-1.compute.amazonaws.com:4000/api";
 const DEFAULT_ANDROID_EMULATOR_API_URL = "http://10.0.2.2:4000/api";
 const DEFAULT_IOS_SIMULATOR_API_URL = "http://localhost:4000/api";
 
@@ -34,7 +36,11 @@ function resolveApiBaseUrl(): string {
   }
 
   if (Platform.OS === "web") {
-    return DEFAULT_WEB_API_URL;
+    const isLocalWeb =
+      typeof window !== "undefined" &&
+      ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+    return isLocalWeb ? DEFAULT_WEB_API_URL : DEFAULT_PRODUCTION_WEB_API_URL;
   }
 
   return (
