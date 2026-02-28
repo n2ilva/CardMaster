@@ -6,7 +6,8 @@ export type Track =
   | "CLOUD"
   | "MACHINE_LEARNING"
   | "SEGURANCA_INFORMACAO"
-  | "MATEMATICA";
+  | "MATEMATICA"
+  | "PORTUGUES";
 
 export type ReadyFlashcard = {
   id: string;
@@ -73,5 +74,12 @@ export const tracks = {
     "Matemática Básica e Aritmética",
     "Raciocínio Lógico e Matemática Discreta",
     "Matemática para TI",
+  ],
+  PORTUGUES: [
+    "Compreensão e Interpretação de Textos",
+    "Sintaxe",
+    "Morfologia",
+    "Ortografia e Acentuação",
+    "Semântica",
   ],
 };

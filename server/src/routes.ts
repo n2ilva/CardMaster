@@ -12,7 +12,8 @@ type Track =
   | "CLOUD"
   | "MACHINE_LEARNING"
   | "SEGURANCA_INFORMACAO"
-  | "MATEMATICA";
+  | "MATEMATICA"
+  | "PORTUGUES";
 
 const seniorityLevels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
 const tracks = [
@@ -101,6 +102,8 @@ const trackContext: Record<Track, string> = {
     "proteção de ativos digitais, gestão de riscos, conformidade e resposta a incidentes",
   MATEMATICA:
     "matemática aplicada à tecnologia com aritmética, lógica, álgebra linear e análise de algoritmos",
+  PORTUGUES:
+    "língua portuguesa com compreensão de textos, sintaxe, morfologia, ortografia e semântica",
 };
 
 type CategoryInsightProfile = {
@@ -1250,10 +1253,12 @@ router.get("/ready-cards", async (req, res) => {
 });
 
 const SESSION_SIZE = 30;
-const MATH_SESSION_SIZE = 10;
+const SMALL_SESSION_SIZE = 10;
 
 function getSessionSize(track: Track): number {
-  return track === "MATEMATICA" ? MATH_SESSION_SIZE : SESSION_SIZE;
+  if (track === "MATEMATICA" || track === "PORTUGUES")
+    return SMALL_SESSION_SIZE;
+  return SESSION_SIZE;
 }
 
 router.get(
