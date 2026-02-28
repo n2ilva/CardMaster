@@ -1031,6 +1031,35 @@ router.post("/auth/login", async (req, res) => {
   });
 });
 
+router.post("/auth/reset-password", async (req, res) => {
+  const schema = z.object({
+    email: z.string().email(),
+    newPassword: z.string().min(6),
+  });
+
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({ message: "Dados inválidos.", issues: parsed.error.issues });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+  });
+  if (!user) {
+    return res.status(404).json({ message: "Email não encontrado." });
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.newPassword, 10);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash },
+  });
+
+  return res.json({ message: "Senha redefinida com sucesso." });
+});
+
 router.get("/ready-cards", async (req, res) => {
   const querySchema = z.object({
     track: z.enum(tracks).optional(),
