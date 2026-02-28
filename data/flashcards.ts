@@ -4,7 +4,8 @@ export type Track =
   | "DESENVOLVIMENTO"
   | "INFRAESTRUTURA"
   | "CLOUD"
-  | "MACHINE_LEARNING";
+  | "MACHINE_LEARNING"
+  | "SEGURANCA_INFORMACAO";
 
 export type ReadyFlashcard = {
   id: string;
@@ -54,5 +55,17 @@ export const tracks = {
     "Aprendizado Federado (Federated Learning)",
     "Cientista de Dados/ML Engineer",
     "Colaboração Humano-IA",
+  ],
+  SEGURANCA_INFORMACAO: [
+    "IA Generativa e Deepfakes",
+    "Defesa Automatizada",
+    "Engenharia Social e Phishing",
+    "Identidade como Perímetro",
+    "Segurança em Nuvem (CSPM/DSPM)",
+    "Continuidade de Negócios",
+    "Evolução do Ransomware",
+    "Regulação Rígida",
+    "Preparação Pós-Quântica (PQC)",
+    "Segurança em IoT/OT (Cidades Conectadas)",
   ],
 };

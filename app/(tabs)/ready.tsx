@@ -25,6 +25,11 @@ const studyTracks: { key: Track; label: string; description: string }[] = [
     label: 'Machine Learning',
     description: 'IA aplicada, modelos modernos, MLOps/LLMOps e governança de ML.',
   },
+  {
+    key: 'SEGURANCA_INFORMACAO',
+    label: 'Segurança da Informação',
+    description: 'Cibersegurança moderna, identidade, nuvem segura, resiliência e regulação.',
+  },
 ];
 
 export default function ReadyCardsScreen() {

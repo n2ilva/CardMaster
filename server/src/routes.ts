@@ -10,7 +10,8 @@ type Track =
   | "DESENVOLVIMENTO"
   | "INFRAESTRUTURA"
   | "CLOUD"
-  | "MACHINE_LEARNING";
+  | "MACHINE_LEARNING"
+  | "SEGURANCA_INFORMACAO";
 
 const seniorityLevels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
 const tracks = [
@@ -18,6 +19,7 @@ const tracks = [
   "INFRAESTRUTURA",
   "CLOUD",
   "MACHINE_LEARNING",
+  "SEGURANCA_INFORMACAO",
 ] as const;
 const orderedLevels: SeniorityLevel[] = [
   "INICIANTE",
@@ -570,6 +572,7 @@ router.get("/ready-cards/summary", async (_req, res) => {
     INFRAESTRUTURA: 0,
     CLOUD: 0,
     MACHINE_LEARNING: 0,
+    SEGURANCA_INFORMACAO: 0,
   };
 
   for (const card of cards) {

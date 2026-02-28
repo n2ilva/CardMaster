@@ -12,6 +12,7 @@ const tracks: Track[] = [
   'INFRAESTRUTURA',
   'CLOUD',
   'MACHINE_LEARNING',
+  'SEGURANCA_INFORMACAO',
 ];
 
 type ThemeItem = {
