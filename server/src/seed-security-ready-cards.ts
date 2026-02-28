@@ -21,7 +21,7 @@ const categories = [
 ] as const;
 
 const levels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
-const cardsPerLevel = 20;
+const cardsPerLevel = 30;
 
 const beginnerQuestionStems = [
   "Qual risco principal deve ser observado em {category}?",
@@ -65,37 +65,99 @@ const advancedAnswerTemplates = [
   "Para {category}, equilíbrio entre usabilidade e proteção deve ser guiado por contexto e criticidade do ativo.",
 ] as const;
 
+const contextAngles = [
+  "órgão público de grande porte",
+  "ambiente híbrido com cloud e on-premises",
+  "operação 24x7",
+  "dados pessoais sensíveis",
+  "integração com fornecedores terceiros",
+  "pressão regulatória elevada",
+  "alto risco reputacional",
+  "time reduzido de segurança",
+  "ameaças internas e externas",
+  "necessidade de resposta rápida",
+  "infraestrutura crítica",
+  "serviços digitais para cidadãos",
+] as const;
+
+type PromptPair = {
+  question: string;
+  answer: string;
+};
+
+function buildPromptPool(
+  questionStems: readonly string[],
+  answerTemplates: readonly string[],
+): PromptPair[] {
+  return questionStems.flatMap((questionStem) =>
+    answerTemplates.flatMap((answerTemplate) =>
+      contextAngles.map((angle) => ({
+        question: `${questionStem} Cenário: ${angle}.`,
+        answer: `${answerTemplate} Contexto aplicado: ${angle}.`,
+      })),
+    ),
+  );
+}
+
+function hashString(value: string): number {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
+  }
+
+  return hash;
+}
+
+function rotationSeed(): number {
+  const rawSeed = process.env.SEED_ROTATION;
+
+  if (!rawSeed) {
+    return Math.floor(Date.now() / 86400000);
+  }
+
+  const numeric = Number(rawSeed);
+  return Number.isFinite(numeric) ? numeric : hashString(rawSeed);
+}
+
+function selectRotatingPrompts(
+  pool: PromptPair[],
+  count: number,
+  key: string,
+): PromptPair[] {
+  if (pool.length === 0) {
+    return [];
+  }
+
+  const start = (hashString(key) + rotationSeed()) % pool.length;
+
+  return Array.from({ length: count }, (_, index) =>
+    pool[(start + index) % pool.length],
+  );
+}
+
 function buildCardsForCategory(
   category: (typeof categories)[number],
 ): Prisma.ReadyFlashcardCreateManyInput[] {
-  return levels.flatMap((level) =>
-    Array.from({ length: cardsPerLevel }, (_, index) => {
-      const beginner = level === "INICIANTE";
-      const questionSource = beginner
-        ? beginnerQuestionStems
-        : advancedQuestionStems;
-      const answerSource = beginner
-        ? beginnerAnswerTemplates
-        : advancedAnswerTemplates;
+  return levels.flatMap((level) => {
+    const beginner = level === "INICIANTE";
+    const promptPool = buildPromptPool(
+      beginner ? beginnerQuestionStems : advancedQuestionStems,
+      beginner ? beginnerAnswerTemplates : advancedAnswerTemplates,
+    );
 
-      const question = questionSource[index % questionSource.length].replaceAll(
-        "{category}",
-        category,
-      );
-      const answer = answerSource[index % answerSource.length].replaceAll(
-        "{category}",
-        category,
-      );
-
-      return {
-        track,
-        category,
-        level,
-        question,
-        answer,
-      };
-    }),
-  );
+    return selectRotatingPrompts(
+      promptPool,
+      cardsPerLevel,
+      `${track}:${category}:${level}`,
+    ).map((prompt) => ({
+      track,
+      category,
+      level,
+      question: prompt.question.replaceAll("{category}", category),
+      answer: prompt.answer.replaceAll("{category}", category),
+    }));
+  });
 }
 
 async function main() {
