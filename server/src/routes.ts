@@ -99,11 +99,531 @@ const trackContext: Record<Track, string> = {
     "proteção de ativos digitais, gestão de riscos, conformidade e resposta a incidentes",
 };
 
+type CategoryInsightProfile = {
+  summary: string;
+  applications: [string, string, string];
+  basicExample: string;
+};
+
+function categoryKey(category: string): string {
+  return category.trim().toLocaleLowerCase("pt-BR");
+}
+
+const categoryInsightProfiles: Record<string, CategoryInsightProfile> = {
+  javascript: {
+    summary:
+      "JavaScript é linguagem central para aplicações web modernas, com uso intenso em frontend e backend com Node.js.",
+    applications: [
+      "Construção de interfaces web reativas e componentes reutilizáveis.",
+      "Desenvolvimento de APIs e serviços assíncronos com Node.js.",
+      "Automação de build, testes e tarefas de integração contínua.",
+    ],
+    basicExample:
+      "Criar uma API simples em Node.js com rota GET para listar cards e validação básica de entrada.",
+  },
+  java: {
+    summary:
+      "Java é linguagem amplamente cobrada em concursos e usada em sistemas corporativos robustos com forte tipagem e ecossistema maduro.",
+    applications: [
+      "Backends empresariais com Spring Boot e integração com bancos relacionais.",
+      "Sistemas transacionais com requisitos de confiabilidade e escalabilidade.",
+      "Microserviços com mensageria, observabilidade e autenticação centralizada.",
+    ],
+    basicExample:
+      "Implementar endpoint REST em Spring Boot para cadastro de usuário com validação e tratamento de exceções.",
+  },
+  "c#": {
+    summary:
+      "C# é linguagem forte no ecossistema .NET, muito usada em APIs, sistemas corporativos e integrações com nuvem.",
+    applications: [
+      "APIs com ASP.NET Core e autenticação JWT.",
+      "Aplicações corporativas com Entity Framework e arquitetura limpa.",
+      "Serviços assíncronos e filas para processamento desacoplado.",
+    ],
+    basicExample:
+      "Criar controller em ASP.NET Core com rota POST para persistir entidade com EF Core e retornar status adequado.",
+  },
+  "c++": {
+    summary:
+      "C++ é linguagem de alto desempenho, usada em sistemas críticos, aplicações de baixa latência e software embarcado.",
+    applications: [
+      "Desenvolvimento de componentes com controle fino de memória.",
+      "Aplicações de alta performance e processamento intensivo.",
+      "Soluções embarcadas e integração com hardware.",
+    ],
+    basicExample:
+      "Implementar classe com RAII para gerenciar recurso de arquivo sem vazamento de memória.",
+  },
+  kotlin: {
+    summary:
+      "Kotlin é linguagem moderna usada em Android e backend, com foco em produtividade e segurança contra null.",
+    applications: [
+      "Apps Android com arquitetura MVVM e coroutines.",
+      "APIs backend com Ktor ou Spring em ambientes JVM.",
+      "Integração gradual com bases legadas Java.",
+    ],
+    basicExample:
+      "Criar função suspend para buscar dados de API e atualizar estado de tela no Android.",
+  },
+  python: {
+    summary:
+      "Python é linguagem versátil muito demandada em automação, backend, dados e IA, além de bastante cobrada em provas.",
+    applications: [
+      "APIs com FastAPI/Django e validação de payloads.",
+      "Scripts de automação e integração entre sistemas.",
+      "Pipelines de dados e prototipação de modelos de ML.",
+    ],
+    basicExample:
+      "Criar endpoint FastAPI para receber requisição, validar schema e devolver resposta padronizada.",
+  },
+  "cabeamento estruturado": {
+    summary:
+      "Cabeamento Estruturado define padrões físicos para redes confiáveis, com organização, manutenção e expansão facilitadas.",
+    applications: [
+      "Planejamento de patch panels e identificação de pontos de rede.",
+      "Certificação de enlaces e redução de falhas intermitentes.",
+      "Padronização de infraestrutura para ambientes corporativos.",
+    ],
+    basicExample:
+      "Montar checklist de instalação com etiquetagem, teste de continuidade e documentação de portas.",
+  },
+  "rede de computadores": {
+    summary:
+      "Rede de Computadores cobre comunicação entre dispositivos, roteamento, segmentação e diagnóstico de conectividade.",
+    applications: [
+      "Configuração de sub-redes, gateways e roteamento básico.",
+      "Troubleshooting com ping, traceroute e análise de latência.",
+      "Segmentação de rede para desempenho e segurança.",
+    ],
+    basicExample:
+      "Dividir uma rede /24 em sub-redes e definir gateway correto para cada VLAN.",
+  },
+  "arquitetura de computadores": {
+    summary:
+      "Arquitetura de Computadores aborda CPU, memória, cache e barramentos, influenciando desempenho de sistemas.",
+    applications: [
+      "Análise de gargalos de processamento e memória.",
+      "Escolha de hardware conforme perfil de carga.",
+      "Otimização de execução com paralelismo e cache.",
+    ],
+    basicExample:
+      "Comparar impacto de cache miss no tempo de resposta de uma aplicação intensiva em leitura.",
+  },
+  "fundamentos de redes": {
+    summary:
+      "Fundamentos de Redes reúne conceitos base como OSI/TCP-IP, IP, portas e protocolos essenciais.",
+    applications: [
+      "Configuração inicial de conectividade em ambientes corporativos.",
+      "Interpretação de tráfego por camadas de protocolo.",
+      "Resolução de falhas básicas de DNS/DHCP e roteamento.",
+    ],
+    basicExample:
+      "Diagnosticar perda de acesso validando IP, máscara, gateway e resolução DNS.",
+  },
+  "infraestrutura e hardware": {
+    summary:
+      "Infraestrutura e Hardware envolve disponibilidade física, capacidade, redundância e manutenção preventiva.",
+    applications: [
+      "Planejamento de capacidade para evitar saturação de recursos.",
+      "Estratégias de redundância de energia e armazenamento.",
+      "Gestão de ciclo de vida de equipamentos críticos.",
+    ],
+    basicExample:
+      "Definir plano de manutenção preventiva para servidores com monitoramento de temperatura e disco.",
+  },
+  "protocolos e roteamento": {
+    summary:
+      "Protocolos e Roteamento trata da troca de rotas, segmentação de tráfego e políticas de encaminhamento.",
+    applications: [
+      "Configuração de protocolos dinâmicos como OSPF/BGP.",
+      "Aplicação de ACL e QoS para controle de tráfego.",
+      "Estratégias de alta disponibilidade entre links.",
+    ],
+    basicExample:
+      "Criar regra de ACL para permitir apenas tráfego HTTP/HTTPS entre duas redes.",
+  },
+  "administração e gestão": {
+    summary:
+      "Administração e Gestão foca em processos operacionais, governança, métricas de serviço e melhoria contínua.",
+    applications: [
+      "Gestão de incidentes, problemas e mudanças.",
+      "Definição e acompanhamento de SLA/SLO.",
+      "Documentação e auditoria de operações críticas.",
+    ],
+    basicExample:
+      "Montar fluxo de incidentes com classificação por severidade e tempo alvo de resolução.",
+  },
+  segurança: {
+    summary:
+      "Segurança (Infra) concentra controles técnicos para proteger rede, servidores e dados contra ameaças operacionais.",
+    applications: [
+      "Hardening de servidores e revisão de privilégios.",
+      "Gestão de vulnerabilidades e patching contínuo.",
+      "Monitoramento de eventos e resposta a incidentes.",
+    ],
+    basicExample:
+      "Aplicar baseline de hardening em servidor Linux e validar portas expostas com varredura controlada.",
+  },
+  "tecnologias modernas": {
+    summary:
+      "Tecnologias Modernas em infraestrutura inclui virtualização, automação, containers e observabilidade.",
+    applications: [
+      "Provisionamento automatizado com scripts e IaC.",
+      "Execução de workloads em containers com isolamento.",
+      "Monitoramento centralizado com métricas e logs.",
+    ],
+    basicExample:
+      "Subir serviço containerizado com healthcheck e coletar métricas básicas de CPU/memória.",
+  },
+  "programação e suporte": {
+    summary:
+      "Programação e Suporte integra automação operacional com análise de falhas e suporte técnico estruturado.",
+    applications: [
+      "Criação de scripts para tarefas repetitivas de operação.",
+      "Automação de coleta de evidências para troubleshooting.",
+      "Padronização de runbooks e procedimentos de suporte.",
+    ],
+    basicExample:
+      "Criar script que verifica serviços críticos e envia alerta quando algum ficar indisponível.",
+  },
+  aws: {
+    summary:
+      "AWS é plataforma cloud com amplo portfólio para computação, dados e segurança em escala global.",
+    applications: [
+      "Hospedagem de APIs e aplicações com EC2, ECS e Lambda.",
+      "Armazenamento e backup com S3 e políticas de ciclo de vida.",
+      "Segurança e governança com IAM, VPC e CloudWatch.",
+    ],
+    basicExample:
+      "Publicar API em serviço gerenciado, armazenar arquivos em S3 e monitorar erros no CloudWatch.",
+  },
+  azure: {
+    summary:
+      "Azure oferece serviços corporativos para aplicações, integração e governança com forte aderência ao ecossistema Microsoft.",
+    applications: [
+      "Publicação de APIs com App Service e Functions.",
+      "Gestão de identidade com Entra ID e RBAC.",
+      "Monitoramento e policy para compliance de recursos.",
+    ],
+    basicExample:
+      "Subir API no App Service com identidade gerenciada para acessar banco sem senha no código.",
+  },
+  "google cloud": {
+    summary:
+      "Google Cloud combina serviços de dados, containers e computação gerenciada com foco em escala e analytics.",
+    applications: [
+      "Deploy de serviços em Cloud Run ou GKE.",
+      "Analytics e BI com BigQuery.",
+      "Segurança e IAM para controle de acesso granular.",
+    ],
+    basicExample:
+      "Publicar serviço no Cloud Run e registrar métricas de latência para otimizar autoscaling.",
+  },
+  geral: {
+    summary:
+      "Cloud Geral cobre fundamentos transversais de arquitetura, custos, segurança e operação em múltiplos provedores.",
+    applications: [
+      "Desenho de arquitetura resiliente multiambiente.",
+      "Gestão de custos e direitos de uso de recursos.",
+      "Automação de deploy e governança com IaC.",
+    ],
+    basicExample:
+      "Comparar duas arquiteturas cloud para escolher entre menor custo mensal e maior disponibilidade.",
+  },
+  "ia generativa em produção": {
+    summary:
+      "IA Generativa em Produção trata da entrega confiável de modelos generativos com controle de qualidade e risco.",
+    applications: [
+      "Assistentes internos para acelerar fluxos operacionais.",
+      "Geração assistida de conteúdo com revisão humana.",
+      "Automação de tarefas repetitivas com políticas de segurança.",
+    ],
+    basicExample:
+      "Criar endpoint que recebe contexto, consulta modelo e aplica validações antes de retornar resposta.",
+  },
+  multimodalidade: {
+    summary:
+      "Multimodalidade combina texto, imagem, áudio e outros sinais para melhorar entendimento e resposta de sistemas de IA.",
+    applications: [
+      "Análise conjunta de documento e imagem em atendimento.",
+      "Classificação de conteúdo com múltiplas fontes de entrada.",
+      "Experiências conversacionais enriquecidas por mídia.",
+    ],
+    basicExample:
+      "Receber imagem + pergunta textual e retornar descrição estruturada com campos principais.",
+  },
+  "engenharia de contexto": {
+    summary:
+      "Engenharia de Contexto organiza instruções e dados relevantes para elevar precisão de respostas em IA generativa.",
+    applications: [
+      "Montagem de prompts com políticas e conhecimento de domínio.",
+      "Uso de histórico e metadados para respostas consistentes.",
+      "Controle de contexto para reduzir ambiguidades e alucinações.",
+    ],
+    basicExample:
+      "Construir prompt template com seção de regras, contexto e formato obrigatório de saída.",
+  },
+  "modelos de domínio específico": {
+    summary:
+      "Modelos de Domínio Específico são ajustados para áreas como jurídico, saúde ou finanças, com vocabulário e regras próprias.",
+    applications: [
+      "Classificação e extração de informação em documentos especializados.",
+      "Assistência técnica em processos regulados por domínio.",
+      "Aumento de precisão em tarefas com jargão específico.",
+    ],
+    basicExample:
+      "Treinar classificador para identificar tipos de documento de um domínio e sugerir fluxo adequado.",
+  },
+  "modelos leves (edge ai/quantização)": {
+    summary:
+      "Modelos Leves (Edge AI/Quantização) priorizam inferência eficiente em dispositivos com recursos limitados.",
+    applications: [
+      "Inferência local em dispositivos móveis e IoT.",
+      "Redução de latência e custo de processamento em tempo real.",
+      "Execução offline para cenários com conectividade instável.",
+    ],
+    basicExample:
+      "Quantizar modelo para 8 bits e medir ganho de tempo de inferência sem perda crítica de acurácia.",
+  },
+  "fine-tuning eficiente (peft)": {
+    summary:
+      "Fine-Tuning Eficiente (PEFT) adapta modelos grandes com custo menor, atualizando subconjuntos de parâmetros.",
+    applications: [
+      "Customização de LLM para domínio interno com baixo custo.",
+      "Ciclos rápidos de experimentação e melhoria incremental.",
+      "Ajuste de comportamento sem retreinamento completo do modelo.",
+    ],
+    basicExample:
+      "Aplicar LoRA em base de perguntas do domínio e comparar métricas antes/depois do ajuste.",
+  },
+  "ia agêntica (agentic ai)": {
+    summary:
+      "IA Agêntica (Agentic AI) coordena planejamento e execução de tarefas com uso de ferramentas e memória de contexto.",
+    applications: [
+      "Automação de fluxos com múltiplas etapas e decisões.",
+      "Orquestração de chamadas a APIs e bases de conhecimento.",
+      "Assistentes que executam ações com validação de políticas.",
+    ],
+    basicExample:
+      "Criar agente que consulta base, propõe plano e executa etapas com confirmação humana nas ações críticas.",
+  },
+  "automl avançado": {
+    summary:
+      "AutoML Avançado automatiza busca de modelos e hiperparâmetros para acelerar experimentação com governança.",
+    applications: [
+      "Comparação automática de pipelines candidatos.",
+      "Otimização de hiperparâmetros com limites de custo.",
+      "Padronização de avaliação e seleção de modelos.",
+    ],
+    basicExample:
+      "Rodar experimento AutoML com budget definido e publicar melhor modelo apenas se superar baseline.",
+  },
+  "governança de ml (ml governance)": {
+    summary:
+      "Governança de ML define regras de risco, rastreabilidade e conformidade ao longo do ciclo de vida dos modelos.",
+    applications: [
+      "Auditoria de dados, features, versões e decisões do modelo.",
+      "Controles de aprovação para deploy em produção.",
+      "Monitoramento de viés, drift e impacto regulatório.",
+    ],
+    basicExample:
+      "Implementar checklist de governança antes de promover modelo para produção.",
+  },
+  "mlops e llmops": {
+    summary:
+      "MLOps e LLMOps unem práticas de engenharia para operar modelos de ML/LLM com confiabilidade e evolução contínua.",
+    applications: [
+      "Pipeline de treino, avaliação, deploy e monitoramento automatizado.",
+      "Versionamento de dados, modelos, prompts e artefatos.",
+      "Alertas de performance para rollback e retreinamento.",
+    ],
+    basicExample:
+      "Criar pipeline CI/CD para modelos com teste automático e promoção controlada entre ambientes.",
+  },
+  "gradient boosting machines (gbm)": {
+    summary:
+      "Gradient Boosting Machines (GBM) são modelos supervisionados fortes para dados tabulares e tarefas de classificação/regressão.",
+    applications: [
+      "Scoring de risco e previsão em cenários estruturados.",
+      "Modelagem com foco em interpretabilidade por feature importance.",
+      "Baseline robusta para comparação com redes neurais.",
+    ],
+    basicExample:
+      "Treinar GBM para classificação binária e validar AUC com cross-validation.",
+  },
+  "redes neurais (deep learning)": {
+    summary:
+      "Redes Neurais (Deep Learning) aprendem representações complexas e são essenciais para visão, linguagem e áudio.",
+    applications: [
+      "Classificação de imagens e reconhecimento de padrões.",
+      "Modelos de linguagem e tarefas de NLP.",
+      "Sistemas preditivos em dados de alta dimensionalidade.",
+    ],
+    basicExample:
+      "Treinar rede simples com camadas densas e comparar overfitting entre treino e validação.",
+  },
+  "aprendizado federado (federated learning)": {
+    summary:
+      "Aprendizado Federado treina modelos de forma distribuída sem centralizar dados sensíveis.",
+    applications: [
+      "Treino colaborativo entre dispositivos mantendo privacidade.",
+      "Redução de risco de exposição de dados brutos.",
+      "Ajuste de modelos em ambientes regulados.",
+    ],
+    basicExample:
+      "Simular dois nós de treino local e agregar pesos globalmente sem enviar datasets originais.",
+  },
+  "cientista de dados/ml engineer": {
+    summary:
+      "Cientista de Dados/ML Engineer conecta análise, modelagem e engenharia para gerar valor com soluções de IA.",
+    applications: [
+      "Transformação de problema de negócio em experimento mensurável.",
+      "Construção de pipeline de dados e modelos para produção.",
+      "Acompanhamento de métricas técnicas e de negócio.",
+    ],
+    basicExample:
+      "Definir baseline de modelo, feature set inicial e plano de monitoramento pós-deploy.",
+  },
+  "colaboração humano-ia": {
+    summary:
+      "Colaboração Humano-IA combina automação com revisão humana para decisões mais seguras e efetivas.",
+    applications: [
+      "Fluxos com aprovação humana em casos críticos.",
+      "Assistência à decisão com explicabilidade e trilha de auditoria.",
+      "Treinamento contínuo baseado em feedback humano.",
+    ],
+    basicExample:
+      "Criar tela de revisão onde IA sugere resposta e analista aprova, corrige ou rejeita.",
+  },
+  "ia generativa e deepfakes": {
+    summary:
+      "IA Generativa e Deepfakes aborda riscos de conteúdo sintético malicioso e técnicas de prevenção/detecção.",
+    applications: [
+      "Detecção de manipulação de mídia em processos sensíveis.",
+      "Políticas de validação de identidade e origem de conteúdo.",
+      "Campanhas de conscientização para reduzir fraude digital.",
+    ],
+    basicExample:
+      "Definir fluxo de checagem para conteúdo suspeito com validação de metadados e dupla revisão humana.",
+  },
+  "defesa automatizada": {
+    summary:
+      "Defesa Automatizada usa regras e orquestração para reduzir tempo de detecção e resposta a ameaças.",
+    applications: [
+      "Playbooks SOAR para contenção inicial de incidentes.",
+      "Automação de bloqueios com critérios de risco.",
+      "Correlação de alertas para priorização operacional.",
+    ],
+    basicExample:
+      "Configurar playbook que isola endpoint quando detectar comportamento de ransomware.",
+  },
+  "engenharia social e phishing": {
+    summary:
+      "Engenharia Social e Phishing explora fator humano para roubo de credenciais e acesso indevido.",
+    applications: [
+      "Treinamentos periódicos com simulações realistas.",
+      "Filtros de e-mail e validação de remetentes.",
+      "Procedimentos de reporte rápido de mensagens suspeitas.",
+    ],
+    basicExample:
+      "Executar campanha simulada de phishing e medir taxa de clique por equipe para plano de melhoria.",
+  },
+  "identidade como perímetro": {
+    summary:
+      "Identidade como Perímetro coloca IAM, MFA e contexto de acesso no centro da estratégia de segurança.",
+    applications: [
+      "Controle granular de acesso por função e risco.",
+      "Políticas de acesso condicional por dispositivo/local.",
+      "Revisão contínua de privilégios e contas críticas.",
+    ],
+    basicExample:
+      "Implementar MFA obrigatório para contas administrativas e acesso condicional para sistemas críticos.",
+  },
+  "segurança em nuvem (cspm/dspm)": {
+    summary:
+      "Segurança em Nuvem (CSPM/DSPM) monitora postura de configuração e exposição de dados em ambientes cloud.",
+    applications: [
+      "Detecção de configurações inseguras em recursos cloud.",
+      "Mapeamento de dados sensíveis e risco de exposição.",
+      "Correção contínua com políticas automatizadas.",
+    ],
+    basicExample:
+      "Criar regra que alerta bucket público com dados sensíveis e dispara remediação automática.",
+  },
+  "continuidade de negócios": {
+    summary:
+      "Continuidade de Negócios garante operação mínima em cenários de falha grave, desastre ou ataque.",
+    applications: [
+      "Definição de RTO/RPO por serviço crítico.",
+      "Planos de contingência e testes periódicos de recuperação.",
+      "Comunicação de crise e priorização de restauração.",
+    ],
+    basicExample:
+      "Executar teste de recuperação de serviço crítico validando tempo real de retorno e integridade dos dados.",
+  },
+  "evolução do ransomware": {
+    summary:
+      "Evolução do Ransomware inclui táticas de dupla extorsão e movimentação lateral com alto impacto operacional.",
+    applications: [
+      "Segmentação de rede e proteção de backups imutáveis.",
+      "Detecção de comportamentos anômalos em endpoints e servidores.",
+      "Resposta rápida com isolamento e plano de recuperação.",
+    ],
+    basicExample:
+      "Validar estratégia de backup imutável e simular restauração completa após incidente crítico.",
+  },
+  "regulação rígida": {
+    summary:
+      "Regulação Rígida exige aderência a requisitos legais de privacidade, segurança e auditoria contínua.",
+    applications: [
+      "Implementação de controles e evidências de conformidade.",
+      "Mapeamento de riscos regulatórios por processo.",
+      "Governança de dados com trilha de auditoria.",
+    ],
+    basicExample:
+      "Criar matriz de controles regulatórios vinculada a evidências técnicas e responsáveis.",
+  },
+  "preparação pós-quântica (pqc)": {
+    summary:
+      "Preparação Pós-Quântica (PQC) trata da transição criptográfica para algoritmos resistentes a ataques quânticos.",
+    applications: [
+      "Inventário de ativos criptográficos e dependências.",
+      "Plano de migração gradual para algoritmos pós-quânticos.",
+      "Teste de interoperabilidade em ambientes híbridos.",
+    ],
+    basicExample:
+      "Mapear certificados e bibliotecas usadas hoje e definir ordem de migração para suites pós-quânticas.",
+  },
+  "segurança em iot/ot (cidades conectadas)": {
+    summary:
+      "Segurança em IoT/OT protege dispositivos e infraestrutura crítica conectada com foco em disponibilidade e segurança física.",
+    applications: [
+      "Segmentação de redes industriais e IoT.",
+      "Gestão de firmware e vulnerabilidades em dispositivos.",
+      "Monitoramento contínuo de anomalias operacionais.",
+    ],
+    basicExample:
+      "Definir zona de rede isolada para sensores críticos e monitorar tráfego fora do padrão esperado.",
+  },
+};
+
 function generateCategoryInsight(
   track: Track,
   category: string,
 ): CategoryInsight {
   const normalized = category.trim();
+  const profile = categoryInsightProfiles[categoryKey(normalized)];
+
+  if (profile) {
+    return {
+      category: normalized,
+      track,
+      summary: profile.summary,
+      applications: profile.applications,
+      basicExample: profile.basicExample,
+    };
+  }
+
   const baseSummary = `${normalized} é um tópico de ${trackContext[track]}, frequentemente cobrado em mercado e concursos por impactar decisões técnicas e operacionais.`;
 
   const baseApplications = [
