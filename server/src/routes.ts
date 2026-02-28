@@ -611,7 +611,7 @@ router.post(
       data: {
         ...cardData,
         category: normalizedCategory,
-      },
+      } as any,
     });
 
     await prisma.readyTheme.upsert({
@@ -657,7 +657,7 @@ router.post(
       data: {
         userId: req.userId!,
         ...parsed.data,
-      },
+      } as any,
     });
 
     return res.status(201).json(card);
