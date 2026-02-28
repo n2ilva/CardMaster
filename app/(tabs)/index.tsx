@@ -3,7 +3,6 @@ import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { tracks } from '@/data/flashcards';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -61,8 +60,15 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}>
       <Text className="text-3xl font-bold text-[#11181C] dark:text-[#ECEDEE]">CardMaster</Text>
       <Text className="mt-2 text-base text-[#687076] dark:text-[#9BA1A6]">
-        {user ? `Bem-vindo, ${user.name}.` : 'Bem-vindo.'} Seu app de estudos para evolução contínua com
-        questões por trilha, níveis progressivos e revisão guiada.
+        {user ? (
+          <>
+            Bem-vindo, <Text className="font-bold text-[#11181C] dark:text-[#ECEDEE]">{user.name}</Text>.
+          </>
+        ) : (
+          'Bem-vindo.'
+        )}{' '}
+        Seu app de estudos para evolução contínua com questões por temas, níveis progressivos e revisão
+        guiada.
       </Text>
 
       <View className="mt-5 flex-row gap-3">
@@ -78,7 +84,7 @@ export default function HomeScreen() {
 
       <View className="mt-3 gap-3">
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Trilhas de estudo</Text>
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Temas de estudos</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
             Desenvolvimento ({developmentCount}), Infraestrutura ({infraCount}), Cloud ({cloudCount}),
             Machine Learning ({mlCount}) e Segurança ({securityCount}).
@@ -88,8 +94,8 @@ export default function HomeScreen() {
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Como estudar aqui</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            1) Escolha trilha e categoria. 2) Selecione o nível (Iniciante → Sênior). 3) Responda e revise a
-            justificativa de cada resposta correta.
+            1) Escolha tema e categoria. 2) Selecione o nível (Iniciante → Sênior). 3) Responda e revise a
+            justificativa de cada resposta correta. Você também pode criar seus próprios cards personalizados!
           </Text>
         </View>
 
@@ -102,32 +108,13 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Atalhos rápidos</Text>
-          <View className="mt-3 gap-2">
-            <Link href="/(tabs)/ready" asChild>
-              <Text className="rounded-xl bg-[#EEF2F5] px-3 py-2 text-center font-semibold text-[#11181C] dark:bg-[#2A2F36] dark:text-[#ECEDEE]">
-                Estudar agora
-              </Text>
-            </Link>
-            <Link href="/(tabs)/create" asChild>
-              <Text className="rounded-xl bg-[#EEF2F5] px-3 py-2 text-center font-semibold text-[#11181C] dark:bg-[#2A2F36] dark:text-[#ECEDEE]">
-                Criar novo CARD
-              </Text>
-            </Link>
-            <Link href="/(tabs)/progress" asChild>
-              <Text className="rounded-xl bg-[#EEF2F5] px-3 py-2 text-center font-semibold text-[#11181C] dark:bg-[#2A2F36] dark:text-[#ECEDEE]">
-                Ver minha evolução
-              </Text>
-            </Link>
-          </View>
-        </View>
+
       </View>
 
       <View className="mt-6 gap-3">
         <Link href="/(tabs)/ready" asChild>
-          <Text className="rounded-xl bg-[#3F51B5] px-4 py-3 text-center font-semibold text-white">
-            Começar no CardMaster
+          <Text className="overflow-hidden rounded-2xl bg-[#22C55E] px-5 py-4 text-center text-lg font-bold tracking-wide text-white shadow-lg">
+            BORA ESTUDAR!
           </Text>
         </Link>
         <Pressable
@@ -142,13 +129,6 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
       </View>
-
-      <Text className="mt-5 text-xs text-[#687076] dark:text-[#9BA1A6]">
-        Temas base: {tracks.DESENVOLVIMENTO.length} em Desenvolvimento,{' '}
-        {tracks.INFRAESTRUTURA.length} em Infra, {tracks.CLOUD.length} em Cloud e{' '}
-        {tracks.MACHINE_LEARNING.length} em Machine Learning e{' '}
-        {tracks.SEGURANCA_INFORMACAO.length} em Segurança da Informação.
-      </Text>
     </ScrollView>
   );
 }
