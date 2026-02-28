@@ -1562,28 +1562,29 @@ router.post(
   "/progress/reset",
   requireAuth,
   async (req: AuthenticatedRequest, res) => {
-    await prisma.sessionAttempt.deleteMany({
-      where: { userId: req.userId },
-    });
+    const userId = req.userId!;
 
-    await prisma.user.update({
-      where: { id: req.userId },
-      data: {
-        streakDays: 0,
-        totalPoints: 0,
-      },
-    });
+    const [deletedAttempts, _updatedUser, _deletedRewardProgress] =
+      await prisma.$transaction([
+        prisma.sessionAttempt.deleteMany({
+          where: { userId },
+        }),
+        prisma.user.update({
+          where: { id: userId },
+          data: {
+            streakDays: 0,
+            totalPoints: 0,
+          },
+        }),
+        prisma.userRewardProgress.deleteMany({
+          where: { userId },
+        }),
+      ]);
 
-    await prisma.userRewardProgress.upsert({
-      where: { userId: req.userId! },
-      update: { badges: [] },
-      create: {
-        userId: req.userId!,
-        badges: [],
-      },
+    return res.json({
+      message: "Progresso resetado com sucesso.",
+      deletedAttempts: deletedAttempts.count,
     });
-
-    return res.json({ message: "Progresso resetado com sucesso." });
   },
 );
 
