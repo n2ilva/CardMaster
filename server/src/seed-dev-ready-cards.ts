@@ -327,6 +327,126 @@ const beginnerPrompts = [
   },
 ] as const;
 
+const categoryFocuses: Record<(typeof categories)[number], readonly string[]> =
+  {
+    JavaScript: [
+      "Node.js em produção",
+      "React com estado assíncrono",
+      "segurança no frontend",
+      "testes com Jest",
+      "APIs REST/GraphQL",
+      "event loop e performance",
+      "TypeScript progressivo",
+      "arquitetura modular",
+    ],
+    Java: [
+      "Spring Boot",
+      "JPA/Hibernate",
+      "concorrência e threads",
+      "microserviços",
+      "JVM e garbage collection",
+      "segurança com OAuth2",
+      "mensageria com Kafka",
+      "testes com JUnit",
+    ],
+    "C#": [
+      ".NET e ASP.NET Core",
+      "Entity Framework",
+      "LINQ e coleções",
+      "programação assíncrona",
+      "arquitetura limpa",
+      "autenticação JWT",
+      "observabilidade",
+      "testes xUnit",
+    ],
+    "C++": [
+      "gestão de memória",
+      "STL e algoritmos",
+      "concorrência",
+      "otimização de desempenho",
+      "RAII",
+      "boas práticas de ponteiros",
+      "sistemas embarcados",
+      "depuração avançada",
+    ],
+    Kotlin: [
+      "Android moderno",
+      "coroutines",
+      "Ktor/Spring",
+      "arquitetura MVVM",
+      "null safety",
+      "injeção de dependência",
+      "testes instrumentados",
+      "integração com Java",
+    ],
+    Python: [
+      "FastAPI/Django",
+      "automação de tarefas",
+      "data engineering",
+      "testes com pytest",
+      "tipagem com mypy",
+      "concorrência async",
+      "segurança de dependências",
+      "boas práticas de API",
+    ],
+  };
+
+const contextAngles = [
+  "cenário de concurso público",
+  "projeto legado em evolução",
+  "sistema de alta disponibilidade",
+  "ambiente com compliance",
+  "time distribuído",
+  "prazo curto de entrega",
+  "alto volume de usuários",
+  "integração com terceiros",
+  "monitoramento contínuo",
+  "necessidade de rollback rápido",
+] as const;
+
+type PromptPair = {
+  question: string;
+  answer: string;
+};
+
+function hashString(value: string): number {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
+  }
+
+  return hash;
+}
+
+function rotationSeed(): number {
+  const rawSeed = process.env.SEED_ROTATION;
+
+  if (!rawSeed) {
+    return Math.floor(Date.now() / 86400000);
+  }
+
+  const numeric = Number(rawSeed);
+  return Number.isFinite(numeric) ? numeric : hashString(rawSeed);
+}
+
+function selectRotatingPrompts(
+  pool: PromptPair[],
+  count: number,
+  key: string,
+): PromptPair[] {
+  if (pool.length === 0) {
+    return [];
+  }
+
+  const start = (hashString(key) + rotationSeed()) % pool.length;
+
+  return Array.from(
+    { length: count },
+    (_, index) => pool[(start + index) % pool.length],
+  );
+}
+
 function cleanAnswerForButton(answer: string): string {
   return answer
     .replace(/^Resposta\s+[A-D]:\s*/i, "")
@@ -343,22 +463,33 @@ function cleanAnswerForButton(answer: string): string {
 function buildCardsForCategory(
   category: (typeof categories)[number],
 ): Prisma.ReadyFlashcardCreateManyInput[] {
-  return levels.flatMap((level) =>
-    Array.from({ length: cardsPerLevel }, (_, index) => {
-      const promptSource = level === "INICIANTE" ? beginnerPrompts : prompts;
-      const prompt = promptSource[index % promptSource.length];
+  return levels.flatMap((level) => {
+    const promptSource = level === "INICIANTE" ? beginnerPrompts : prompts;
+    const focuses = categoryFocuses[category];
 
-      return {
-        track: "DESENVOLVIMENTO",
-        category,
-        level,
-        question: prompt.question.replaceAll("{lang}", category),
-        answer: cleanAnswerForButton(
-          prompt.answer.replaceAll("{lang}", category),
-        ),
-      };
-    }),
-  );
+    const promptPool = promptSource.flatMap((prompt) =>
+      focuses.flatMap((focus) =>
+        contextAngles.map((angle) => ({
+          question: `${prompt.question} Foco: ${focus}. Cenário: ${angle}.`,
+          answer: `${prompt.answer} Foco prático: ${focus}. Contexto: ${angle}.`,
+        })),
+      ),
+    );
+
+    return selectRotatingPrompts(
+      promptPool,
+      cardsPerLevel,
+      `DESENVOLVIMENTO:${category}:${level}`,
+    ).map((prompt) => ({
+      track: "DESENVOLVIMENTO",
+      category,
+      level,
+      question: prompt.question.replaceAll("{lang}", category),
+      answer: cleanAnswerForButton(
+        prompt.answer.replaceAll("{lang}", category),
+      ),
+    }));
+  });
 }
 
 async function main() {

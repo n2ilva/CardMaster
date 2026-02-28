@@ -209,6 +209,151 @@ const beginnerCloudAnswerTemplates = [
   "Para iniciantes, {theme} fica mais fácil com exemplos práticos e passos curtos.",
 ] as const;
 
+const infraFocusesByCategory: Record<
+  (typeof infraCategories)[number],
+  readonly string[]
+> = {
+  "Cabeamento Estruturado": [
+    "padrões TIA/EIA",
+    "certificação de enlaces",
+    "organização de rack",
+    "continuidade elétrica",
+  ],
+  "Rede de Computadores": [
+    "modelo OSI/TCP-IP",
+    "sub-redes e CIDR",
+    "NAT e roteamento",
+    "diagnóstico com ping/traceroute",
+  ],
+  "Arquitetura de Computadores": [
+    "memória cache",
+    "processamento paralelo",
+    "barramentos",
+    "desempenho e gargalos",
+  ],
+  "Fundamentos de Redes": [
+    "endereçamento IPv4/IPv6",
+    "switching",
+    "DNS/DHCP",
+    "protocolos de transporte",
+  ],
+  "Infraestrutura e Hardware": [
+    "redundância física",
+    "monitoramento de hardware",
+    "manutenção preventiva",
+    "capacidade e expansão",
+  ],
+  "Protocolos e Roteamento": ["OSPF/BGP", "VLAN e trunk", "ACLs", "QoS"],
+  "Administração e Gestão": [
+    "ITIL e incidentes",
+    "mudança controlada",
+    "SLA/SLO",
+    "inventário de ativos",
+  ],
+  Segurança: [
+    "menor privilégio",
+    "hardening",
+    "gestão de vulnerabilidades",
+    "resposta a incidentes",
+  ],
+  "Tecnologias Modernas": [
+    "virtualização",
+    "containers",
+    "automação",
+    "observabilidade",
+  ],
+  "Programação e Suporte": [
+    "scripts de automação",
+    "debug e troubleshooting",
+    "integração via API",
+    "runbooks",
+  ],
+};
+
+const cloudFocusesByCategory: Record<
+  (typeof cloudCategories)[number],
+  readonly string[]
+> = {
+  AWS: ["IAM", "VPC", "EC2/Lambda", "S3 e resiliência", "Well-Architected"],
+  AZURE: [
+    "Entra ID",
+    "VNets",
+    "App Service/Functions",
+    "Storage e monitoramento",
+    "governança com Policy",
+  ],
+  "GOOGLE CLOUD": [
+    "IAM",
+    "VPC",
+    "GKE/Cloud Run",
+    "BigQuery",
+    "SRE e confiabilidade",
+  ],
+  GERAL: [
+    "custos e FinOps",
+    "segurança em nuvem",
+    "IaC",
+    "MLOps",
+    "disaster recovery",
+  ],
+};
+
+const contextAngles = [
+  "prova de concurso público",
+  "operação crítica 24x7",
+  "ambiente híbrido",
+  "time enxuto",
+  "migração de legado",
+  "restrição orçamentária",
+  "compliance regulatório",
+  "alta demanda de usuários",
+  "incidente em produção",
+  "escala nacional",
+] as const;
+
+type PromptPair = {
+  question: string;
+  answer: string;
+};
+
+function hashString(value: string): number {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
+  }
+
+  return hash;
+}
+
+function rotationSeed(): number {
+  const rawSeed = process.env.SEED_ROTATION;
+
+  if (!rawSeed) {
+    return Math.floor(Date.now() / 86400000);
+  }
+
+  const numeric = Number(rawSeed);
+  return Number.isFinite(numeric) ? numeric : hashString(rawSeed);
+}
+
+function selectRotatingPrompts(
+  pool: PromptPair[],
+  count: number,
+  key: string,
+): PromptPair[] {
+  if (pool.length === 0) {
+    return [];
+  }
+
+  const start = (hashString(key) + rotationSeed()) % pool.length;
+
+  return Array.from(
+    { length: count },
+    (_, index) => pool[(start + index) % pool.length],
+  );
+}
+
 const prompts = [
   {
     question: "Quais fundamentos são essenciais para atuar com {category}?",
@@ -381,55 +526,78 @@ function buildCards(
   track: "INFRAESTRUTURA" | "CLOUD",
   category: string,
 ): Prisma.ReadyFlashcardCreateManyInput[] {
-  return levels.flatMap((level) =>
-    Array.from({ length: cardsPerLevel }, (_, index) => {
-      const promptSource =
-        level === "INICIANTE" ? beginnerInfraPrompts : prompts;
-      const prompt = promptSource[index % promptSource.length];
+  return levels.flatMap((level) => {
+    const promptSource = level === "INICIANTE" ? beginnerInfraPrompts : prompts;
+    const focuses = infraFocusesByCategory[
+      category as (typeof infraCategories)[number]
+    ] ?? ["boas práticas operacionais"];
 
-      return {
-        track,
-        category,
-        level,
-        question: prompt.question.replaceAll("{category}", category),
-        answer: cleanAnswerForButton(
-          prompt.answer.replaceAll("{category}", category),
-        ),
-      };
-    }),
-  );
+    const promptPool = promptSource.flatMap((prompt) =>
+      focuses.flatMap((focus) =>
+        contextAngles.map((angle) => ({
+          question: `${prompt.question} Foco: ${focus}. Cenário: ${angle}.`,
+          answer: `${prompt.answer} Foco prático: ${focus}. Contexto: ${angle}.`,
+        })),
+      ),
+    );
+
+    return selectRotatingPrompts(
+      promptPool,
+      cardsPerLevel,
+      `${track}:${category}:${level}`,
+    ).map((prompt) => ({
+      track,
+      category,
+      level,
+      question: prompt.question.replaceAll("{category}", category),
+      answer: cleanAnswerForButton(
+        prompt.answer.replaceAll("{category}", category),
+      ),
+    }));
+  });
 }
 
 function buildCloudCards(
   category: (typeof cloudCategories)[number],
 ): Prisma.ReadyFlashcardCreateManyInput[] {
-  return levels.flatMap((level) =>
-    Array.from({ length: cardsPerLevel }, (_, index) => {
-      const theme = cloudThemes[index % cloudThemes.length];
-      const questionSource =
-        level === "INICIANTE" ? beginnerCloudQuestionStems : cloudQuestionStems;
-      const answerSource =
-        level === "INICIANTE"
-          ? beginnerCloudAnswerTemplates
-          : cloudAnswerTemplates;
-      const questionStem = questionSource[index % questionSource.length];
-      const answerTemplate = answerSource[index % answerSource.length];
+  return levels.flatMap((level) => {
+    const focuses = cloudFocusesByCategory[category];
+    const questionSource =
+      level === "INICIANTE" ? beginnerCloudQuestionStems : cloudQuestionStems;
+    const answerSource =
+      level === "INICIANTE"
+        ? beginnerCloudAnswerTemplates
+        : cloudAnswerTemplates;
 
-      return {
-        track: "CLOUD",
-        category,
-        level,
-        question: questionStem
-          .replaceAll("{theme}", theme)
-          .replaceAll("{category}", category),
-        answer: cleanAnswerForButton(
-          answerTemplate
-            .replaceAll("{theme}", theme)
-            .replaceAll("{category}", category),
+    const promptPool = questionSource.flatMap((questionStem) =>
+      answerSource.flatMap((answerTemplate) =>
+        cloudThemes.flatMap((theme) =>
+          focuses.flatMap((focus) =>
+            contextAngles.map((angle) => ({
+              question: `${questionStem
+                .replaceAll("{theme}", theme)
+                .replaceAll("{category}", category)} Foco: ${focus}. Cenário: ${angle}.`,
+              answer: `${answerTemplate
+                .replaceAll("{theme}", theme)
+                .replaceAll("{category}", category)} Foco prático: ${focus}. Contexto: ${angle}.`,
+            })),
+          ),
         ),
-      };
-    }),
-  );
+      ),
+    );
+
+    return selectRotatingPrompts(
+      promptPool,
+      cardsPerLevel,
+      `CLOUD:${category}:${level}`,
+    ).map((prompt) => ({
+      track: "CLOUD",
+      category,
+      level,
+      question: prompt.question,
+      answer: cleanAnswerForButton(prompt.answer),
+    }));
+  });
 }
 
 async function main() {

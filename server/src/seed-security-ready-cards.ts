@@ -131,8 +131,9 @@ function selectRotatingPrompts(
 
   const start = (hashString(key) + rotationSeed()) % pool.length;
 
-  return Array.from({ length: count }, (_, index) =>
-    pool[(start + index) % pool.length],
+  return Array.from(
+    { length: count },
+    (_, index) => pool[(start + index) % pool.length],
   );
 }
 
