@@ -11,7 +11,8 @@ type Track =
   | "INFRAESTRUTURA"
   | "CLOUD"
   | "MACHINE_LEARNING"
-  | "SEGURANCA_INFORMACAO";
+  | "SEGURANCA_INFORMACAO"
+  | "MATEMATICA";
 
 const seniorityLevels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
 const tracks = [
@@ -20,6 +21,7 @@ const tracks = [
   "CLOUD",
   "MACHINE_LEARNING",
   "SEGURANCA_INFORMACAO",
+  "MATEMATICA",
 ] as const;
 const orderedLevels: SeniorityLevel[] = [
   "INICIANTE",
@@ -97,6 +99,8 @@ const trackContext: Record<Track, string> = {
     "soluções de IA/ML com ciclo de dados, treinamento, avaliação e operação em produção",
   SEGURANCA_INFORMACAO:
     "proteção de ativos digitais, gestão de riscos, conformidade e resposta a incidentes",
+  MATEMATICA:
+    "matemática aplicada à tecnologia com aritmética, lógica, álgebra linear e análise de algoritmos",
 };
 
 type CategoryInsightProfile = {
@@ -1246,6 +1250,11 @@ router.get("/ready-cards", async (req, res) => {
 });
 
 const SESSION_SIZE = 30;
+const MATH_SESSION_SIZE = 10;
+
+function getSessionSize(track: Track): number {
+  return track === "MATEMATICA" ? MATH_SESSION_SIZE : SESSION_SIZE;
+}
 
 router.get(
   "/ready-cards/session",
@@ -1346,7 +1355,9 @@ router.get(
 
     scored.sort((a, b) => b.priority - a.priority);
 
-    const sessionCards = scored.slice(0, SESSION_SIZE).map((s) => s.card);
+    const sessionCards = scored
+      .slice(0, getSessionSize(track))
+      .map((s) => s.card);
 
     for (let i = sessionCards.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));

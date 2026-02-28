@@ -5,7 +5,8 @@ export type Track =
   | "INFRAESTRUTURA"
   | "CLOUD"
   | "MACHINE_LEARNING"
-  | "SEGURANCA_INFORMACAO";
+  | "SEGURANCA_INFORMACAO"
+  | "MATEMATICA";
 
 export type ReadyFlashcard = {
   id: string;
@@ -67,5 +68,10 @@ export const tracks = {
     "Regulação Rígida",
     "Preparação Pós-Quântica (PQC)",
     "Segurança em IoT/OT (Cidades Conectadas)",
+  ],
+  MATEMATICA: [
+    "Matemática Básica e Aritmética",
+    "Raciocínio Lógico e Matemática Discreta",
+    "Matemática para TI",
   ],
 };

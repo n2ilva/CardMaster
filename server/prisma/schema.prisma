@@ -20,6 +20,7 @@ enum Track {
   CLOUD
   MACHINE_LEARNING
   SEGURANCA_INFORMACAO
+  MATEMATICA
 }
 
 model User {
@@ -46,6 +47,7 @@ model ReadyFlashcard {
   questionDescription String?
   answer    String
   answerDescription String?
+  wrongOptions String[]
   createdAt DateTime       @default(now())
 }
 

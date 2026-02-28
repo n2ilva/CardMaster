@@ -17,6 +17,7 @@ type ReadyCard = {
   questionDescription?: string;
   answer: string;
   answerDescription?: string;
+  wrongOptions?: string[];
   track: Track;
 };
 
@@ -263,6 +264,23 @@ function chooseBalancedCorrectIndex(recentHistory: number[], optionCount: number
 }
 
 function buildOptions(cards: ReadyCard[], card: ReadyCard, recentCorrectIndexes: number[]): string[] {
+  // Se o card tem wrongOptions pré-definidas (ex: Matemática), usa-las diretamente
+  if (card.wrongOptions && card.wrongOptions.length >= 3) {
+    const targetCorrectIndex = chooseBalancedCorrectIndex(recentCorrectIndexes, 4);
+    const shuffledWrong = shuffleArray(card.wrongOptions.slice(0, 3));
+    const finalOptions: string[] = [];
+    let wrongPointer = 0;
+    for (let i = 0; i < 4; i++) {
+      if (i === targetCorrectIndex) {
+        finalOptions.push(card.answer);
+      } else {
+        finalOptions.push(shuffledWrong[wrongPointer]);
+        wrongPointer++;
+      }
+    }
+    return finalOptions;
+  }
+
   const sameCategoryAndLevel = cards
     .filter(
       (item) =>
