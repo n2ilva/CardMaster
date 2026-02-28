@@ -6,7 +6,45 @@ import { prisma } from "./prisma.js";
 dotenv.config();
 
 const levels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
-const cardsPerLevel = 30;
+const cardsPerLevel = 60;
+
+const contestBoards = [
+  "CESPE/CEBRASPE",
+  "FGV",
+  "FCC",
+  "VUNESP",
+  "IBFC",
+  "Quadrix",
+  "AOCP",
+  "IDECAN",
+  "IADES",
+  "FUNDATEC",
+  "CESGRANRIO",
+] as const;
+
+function expandQuestionStemsToTarget(
+  baseStems: readonly string[],
+  target: number,
+): string[] {
+  if (baseStems.length >= target) {
+    return [...baseStems];
+  }
+
+  const variants: string[] = [];
+  let pointer = 0;
+
+  while (baseStems.length + variants.length < target) {
+    const stem = baseStems[pointer % baseStems.length];
+    const board =
+      contestBoards[
+        Math.floor(pointer / baseStems.length) % contestBoards.length
+      ];
+    variants.push(`[${board}] ${stem}`);
+    pointer += 1;
+  }
+
+  return [...baseStems, ...variants];
+}
 
 const infraCategories = [
   "Cabeamento Estruturado",
@@ -208,6 +246,25 @@ const beginnerCloudAnswerTemplates = [
   "No início de {theme}, monitore uso e custos para evitar surpresas no ambiente.",
   "Para iniciantes, {theme} fica mais fácil com exemplos práticos e passos curtos.",
 ] as const;
+
+const contestBeginnerInfraPrompts = beginnerInfraPrompts.map(
+  (prompt, index) => {
+    const board = contestBoards[index % contestBoards.length];
+    return {
+      question: `[${board}] Noções básicas de concurso: ${prompt.question}`,
+      answer: `${prompt.answer} Conceito frequente em avaliações de ${board}.`,
+    };
+  },
+);
+
+const expandedCloudQuestionStems = expandQuestionStemsToTarget(
+  cloudQuestionStems,
+  cardsPerLevel,
+);
+const expandedBeginnerCloudQuestionStems = expandQuestionStemsToTarget(
+  beginnerCloudQuestionStems,
+  cardsPerLevel,
+);
 
 const infraFocusesByCategory: Record<
   (typeof infraCategories)[number],
@@ -626,6 +683,14 @@ const prompts = [
   },
 ] as const;
 
+const contestInfraPrompts = prompts.map((prompt, index) => {
+  const board = contestBoards[index % contestBoards.length];
+  return {
+    question: `[${board}] Questão de concurso: ${prompt.question}`,
+    answer: `${prompt.answer} Esse padrão costuma aparecer em provas de ${board}.`,
+  };
+});
+
 function stripMetadata(text: string): string {
   return text
     .replace(/\s*Foco\s*(?:prático)?\s*:[^.]*\./gi, "")
@@ -652,7 +717,10 @@ function buildCards(
   category: string,
 ): Prisma.ReadyFlashcardCreateManyInput[] {
   return levels.flatMap((level) => {
-    const promptSource = level === "INICIANTE" ? beginnerInfraPrompts : prompts;
+    const promptSource =
+      level === "INICIANTE"
+        ? [...beginnerInfraPrompts, ...contestBeginnerInfraPrompts]
+        : [...prompts, ...contestInfraPrompts];
     const focuses = infraFocusesByCategory[
       category as (typeof infraCategories)[number]
     ] ?? ["boas práticas operacionais"];
@@ -664,8 +732,10 @@ function buildCards(
           answer: `${prompt.answer} Foco prático: ${focus}. Contexto: ${angle}.`,
           answerDescription:
             level === "INICIANTE"
-              ? beginnerInfraDescriptions[idx]
-              : infraPromptDescriptions[idx],
+              ? beginnerInfraDescriptions[
+                  idx % beginnerInfraDescriptions.length
+                ]
+              : infraPromptDescriptions[idx % infraPromptDescriptions.length],
         })),
       ),
     );
@@ -700,7 +770,9 @@ function buildCloudCards(
   return levels.flatMap((level) => {
     const focuses = cloudFocusesByCategory[category];
     const questionSource =
-      level === "INICIANTE" ? beginnerCloudQuestionStems : cloudQuestionStems;
+      level === "INICIANTE"
+        ? expandedBeginnerCloudQuestionStems
+        : expandedCloudQuestionStems;
     const answerSource =
       level === "INICIANTE"
         ? beginnerCloudAnswerTemplates
@@ -728,7 +800,7 @@ function buildCloudCards(
                   "{category}",
                   category,
                 )} Foco prático: ${focus}. Contexto: ${angle}.`,
-              answerDescription: descSource[stemIdx],
+              answerDescription: descSource[stemIdx % descSource.length],
             })),
           ),
         ),

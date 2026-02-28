@@ -94,8 +94,9 @@ export default function HomeScreen() {
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Como estudar aqui</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            1) Escolha tema e categoria. 2) Selecione o nível (Iniciante → Sênior). 3) Responda e revise a
-            justificativa de cada resposta correta. Você também pode criar seus próprios cards personalizados!
+            1) Escolha tema e categoria. 2) Selecione qualquer nível (Iniciante, Júnior, Pleno ou Sênior).
+            3) Faça uma sequência de 30 cards no nível escolhido. Com 80%+ de acerto, você é considerado
+            naquele nível. Você também pode criar seus próprios cards personalizados!
           </Text>
         </View>
 
@@ -103,8 +104,8 @@ export default function HomeScreen() {
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Recursos do app</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
             • Explicação contextual por resposta{`\n`}• Tipo da pergunta no card (Lógica, Arquitetura,
-            Segurança...){`\n`}• Progresso por nível (80% libera, 100% conclui){`\n`}• Tempo médio por
-            tentativa e sequência de estudos
+            Segurança...){`\n`}• Progresso por nível na janela de 30 tentativas (80% libera, 100%
+            conclui){`\n`}• Tempo médio por tentativa e sequência de estudos
           </Text>
         </View>
 

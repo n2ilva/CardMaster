@@ -6,6 +6,7 @@ dotenv.config({
 });
 
 const prisma = new PrismaClient();
+const expectedCardsPerLevel = 60;
 
 async function main() {
   const rows = await prisma.readyFlashcard.groupBy({
@@ -32,7 +33,7 @@ async function main() {
 
     for (const level of expectedLevels) {
       const count = levelMap.get(level);
-      if (count !== 30) {
+      if (count !== expectedCardsPerLevel) {
         issues.push({ key, level, count: count ?? 0 });
       }
     }
@@ -45,7 +46,7 @@ async function main() {
 
   if (issues.length === 0) {
     console.log(
-      "✅ Todas as categorias possuem INICIANTE/JUNIOR/PLENO/SENIOR com 30 cards cada.",
+      `✅ Todas as categorias possuem INICIANTE/JUNIOR/PLENO/SENIOR com ${expectedCardsPerLevel} cards cada.`,
     );
   } else {
     console.log(`❌ Inconsistências encontradas: ${issues.length}`);

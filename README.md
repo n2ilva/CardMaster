@@ -33,11 +33,16 @@ Cinco temas com milhares de questões geradas por seed, cada um com categorias e
 
 ### Níveis progressivos
 
-Cada categoria possui 4 níveis desbloqueáveis por desempenho:
+Cada categoria possui 4 níveis avaliáveis por desempenho:
 
 **Iniciante → Júnior → Pleno → Sênior**
 
-O próximo nível é liberado ao atingir desempenho suficiente no anterior.
+Regra de nivelamento atual:
+
+- Você pode iniciar diretamente em qualquer nível
+- A avaliação usa uma janela de **30 tentativas** no nível escolhido
+- Com **80% ou mais de acerto** (24/30), o nível é liberado
+- Com **100%** (30/30), o nível é marcado como concluído
 
 ### Modo de estudo
 
@@ -57,7 +62,7 @@ O próximo nível é liberado ao atingir desempenho suficiente no anterior.
 - Painel com total de tentativas, acertos, taxa de acerto e tempo médio
 - Sequência de dias consecutivos (streak)
 - Badges desbloqueáveis por marcos atingidos
-- Barra de progresso por nível em cada categoria
+- Barra de progresso por nível em cada categoria (janela de 30 tentativas)
 - Reset de progresso disponível
 
 ### Pesquisa de temas

@@ -26,7 +26,45 @@ const categories = [
 ] as const;
 
 const levels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
-const cardsPerLevel = 30;
+const cardsPerLevel = 60;
+
+const contestBoards = [
+  "CESPE/CEBRASPE",
+  "FGV",
+  "FCC",
+  "VUNESP",
+  "IBFC",
+  "Quadrix",
+  "AOCP",
+  "IDECAN",
+  "IADES",
+  "FUNDATEC",
+  "CESGRANRIO",
+] as const;
+
+function expandQuestionStemsToTarget(
+  baseStems: readonly string[],
+  target: number,
+): string[] {
+  if (baseStems.length >= target) {
+    return [...baseStems];
+  }
+
+  const variants: string[] = [];
+  let pointer = 0;
+
+  while (baseStems.length + variants.length < target) {
+    const stem = baseStems[pointer % baseStems.length];
+    const board =
+      contestBoards[
+        Math.floor(pointer / baseStems.length) % contestBoards.length
+      ];
+    variants.push(`[${board}] ${stem}`);
+    pointer += 1;
+  }
+
+  return [...baseStems, ...variants];
+}
 
 const beginnerQuestionStems = [
   "Qual o objetivo principal de {category} em um produto digital?",
@@ -111,6 +149,15 @@ const advancedMLDescriptions: string[] = [
   "Alinhar métricas: conecte accuracy/F1 a métricas de produto (conversão, NPS, receita).\n\nAplicação: Dashboard compartilhado entre ML e produto.",
 ];
 
+const expandedBeginnerQuestionStems = expandQuestionStemsToTarget(
+  beginnerQuestionStems,
+  cardsPerLevel,
+);
+const expandedAdvancedQuestionStems = expandQuestionStemsToTarget(
+  advancedQuestionStems,
+  cardsPerLevel,
+);
+
 type PromptPair = {
   question: string;
   answer: string;
@@ -135,7 +182,7 @@ function buildPromptPool(
       contextAngles.map((angle) => ({
         question: `${questionStem} Cenário: ${angle}.`,
         answer: `${answerTemplate} Contexto aplicado: ${angle}.`,
-        answerDescription: descriptions?.[stemIdx],
+        answerDescription: descriptions?.[stemIdx % descriptions.length],
       })),
     ),
   );
@@ -214,7 +261,7 @@ function buildCardsForCategory(
   return levels.flatMap((level) => {
     const beginner = level === "INICIANTE";
     const promptPool = buildPromptPool(
-      beginner ? beginnerQuestionStems : advancedQuestionStems,
+      beginner ? expandedBeginnerQuestionStems : expandedAdvancedQuestionStems,
       beginner ? beginnerAnswerTemplates : advancedAnswerTemplates,
       beginner ? beginnerMLDescriptions : advancedMLDescriptions,
     );

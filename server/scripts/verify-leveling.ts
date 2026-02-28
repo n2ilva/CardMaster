@@ -76,24 +76,24 @@ async function main() {
   const password = "123456";
   const name = `Teste Nivelamento ${timestamp}`;
 
-  const register = await request<{  string }>("/auth/re[]ister", {
+  const register = await request<{ token: string }>("/auth/register", {
     method: "POST",
     body: { name, email, password },
   });
 
   const token = register.token;
 
-  const categories = await request<Array<{ category: string }>>(
+  const categories = await request<{ category: string }[]>(
     `/ready-cards/categories?track=${track}`,
   );
-[]
+
   const selectedCategory = forcedCategory || categories[0]?.category;
 
   if (!selectedCategory) {
     throw new Error(`Nenhuma categoria encontrada para track=${track}.`);
   }
 
-  const cards = await request<Array<{ id: string }>>(
+  const cards = await request<{ id: string }[]>(
     `/ready-cards?track=${track}&category=${encodeURIComponent(selectedCategory)}&level=${level}`,
   );
 

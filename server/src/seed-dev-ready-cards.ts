@@ -14,7 +14,16 @@ const categories = [
   "Python",
 ] as const;
 const levels = ["INICIANTE", "JUNIOR", "PLENO", "SENIOR"] as const;
-const cardsPerLevel = 30;
+const cardsPerLevel = 60;
+
+const contestBoards = [
+  "CESPE/CEBRASPE",
+  "FGV",
+  "FCC",
+  "VUNESP",
+  "IBFC",
+  "Quadrix",
+] as const;
 
 const prompts = [
   {
@@ -327,6 +336,23 @@ const beginnerPrompts = [
   },
 ] as const;
 
+const contestPrompts = prompts.map((prompt, index) => {
+  const board = contestBoards[index % contestBoards.length];
+  return {
+    topic: prompt.topic,
+    question: `[${board}] Em prova de concurso sobre {lang}, ${prompt.question.toLowerCase()}`,
+    answer: `${prompt.answer} Esse padrão é recorrente em questões objetivas de ${board}.`,
+  };
+});
+
+const contestBeginnerPrompts = beginnerPrompts.map((prompt, index) => {
+  const board = contestBoards[index % contestBoards.length];
+  return {
+    question: `[${board}] Versão concurso: ${prompt.question}`,
+    answer: `${prompt.answer} Este conceito é cobrado com frequência em provas de ${board}.`,
+  };
+});
+
 const categoryFocuses: Record<(typeof categories)[number], readonly string[]> =
   {
     JavaScript: [
@@ -596,7 +622,10 @@ function buildCardsForCategory(
   category: (typeof categories)[number],
 ): Prisma.ReadyFlashcardCreateManyInput[] {
   return levels.flatMap((level) => {
-    const promptSource = level === "INICIANTE" ? beginnerPrompts : prompts;
+    const promptSource =
+      level === "INICIANTE"
+        ? [...beginnerPrompts, ...contestBeginnerPrompts]
+        : [...prompts, ...contestPrompts];
     const focuses = categoryFocuses[category];
 
     const promptPool = promptSource.flatMap((prompt, idx) =>
@@ -606,8 +635,12 @@ function buildCardsForCategory(
           answer: `${prompt.answer} Foco prático: ${focus}. Contexto: ${angle}.`,
           answerDescription:
             level === "INICIANTE"
-              ? beginnerAnswerDescriptions[idx]
-              : promptAnswerDescriptions[prompts[idx].topic],
+              ? beginnerAnswerDescriptions[
+                  idx % beginnerAnswerDescriptions.length
+                ]
+              : "topic" in prompt
+                ? promptAnswerDescriptions[prompt.topic]
+                : undefined,
         })),
       ),
     );
