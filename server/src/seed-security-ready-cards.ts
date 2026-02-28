@@ -161,9 +161,9 @@ type PromptPair = {
 
 function stripMetadata(text: string): string {
   return text
-    .replace(/\s*Foco\s*(?:prático)?\s*:[^.]*\./gi, "")
-    .replace(/\s*Cenário\s*:[^.]*\./gi, "")
-    .replace(/\s*Contexto\s*(?:aplicado)?\s*:[^.]*\./gi, "")
+    .replace(/\s+Foco\s*(?:prático)?\s*:[\s\S]*$/i, "")
+    .replace(/\s+Cenário\s*:[\s\S]*$/i, "")
+    .replace(/\s+Contexto\s*(?:aplicado)?\s*:[\s\S]*$/i, "")
     .trim();
 }
 
