@@ -1,6 +1,6 @@
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { SeniorityLevel, Track } from '@/data/flashcards';
 import { apiRequest } from '@/lib/api';
@@ -25,9 +25,14 @@ export default function ReadyTrackCategoriesScreen() {
   const { token } = useAuth();
   const { track } = useLocalSearchParams<{ track: Track }>();
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevels, setSelectedLevels] = useState<Record<string, SeniorityLevel>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const filteredCategories = categories.filter((item) =>
+    item.category.toLocaleLowerCase('pt-BR').includes(searchTerm.trim().toLocaleLowerCase('pt-BR')),
+  );
 
   useEffect(() => {
     async function loadCategories() {
@@ -61,10 +66,23 @@ export default function ReadyTrackCategoriesScreen() {
         Tema selecionado: {track}. Escolha categoria, nível e inicie direto.
       </Text>
 
+      <TextInput
+        value={searchTerm}
+        onChangeText={setSearchTerm}
+        placeholder="Pesquisar categoria"
+        placeholderTextColor="#9BA1A6"
+        className="mt-4 rounded-xl border border-[#E6E8EB] bg-white px-3 py-2 text-[#11181C] dark:border-[#30363D] dark:bg-[#1C1F24] dark:text-[#ECEDEE]"
+      />
+
       <View className="mt-5 gap-3 pb-8">
         {loading ? <Text className="text-[#687076] dark:text-[#9BA1A6]">Carregando...</Text> : null}
         {error ? <Text className="text-[#C92A2A]">{error}</Text> : null}
-        {categories.map((item) => {
+        {!loading && !error && filteredCategories.length === 0 ? (
+          <Text className="text-[#687076] dark:text-[#9BA1A6]">
+            Nenhuma categoria encontrada para "{searchTerm}".
+          </Text>
+        ) : null}
+        {filteredCategories.map((item) => {
           const selectedLevel = selectedLevels[item.category] ?? 'INICIANTE';
 
           return (
@@ -111,6 +129,14 @@ export default function ReadyTrackCategoriesScreen() {
                 asChild>
                 <Pressable className="mt-4 rounded-xl bg-[#3F51B5] px-4 py-3">
                   <Text className="text-center text-sm font-semibold text-white">Começar</Text>
+                </Pressable>
+              </Link>
+
+              <Link
+                href={`/ready/theme-info?track=${track}&category=${encodeURIComponent(item.category)}`}
+                asChild>
+                <Pressable className="mt-2 rounded-xl border border-[#3F51B5] px-4 py-3">
+                  <Text className="text-center text-sm font-semibold text-[#3F51B5]">Ver resumo da tecnologia</Text>
                 </Pressable>
               </Link>
             </View>

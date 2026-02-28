@@ -78,6 +78,108 @@ function toPercent(value: number, total: number): number {
   return Math.round((value / total) * 100);
 }
 
+type CategoryInsight = {
+  category: string;
+  track: Track;
+  summary: string;
+  applications: string[];
+  basicExample: string;
+};
+
+const trackContext: Record<Track, string> = {
+  DESENVOLVIMENTO:
+    "engenharia de software com foco em código limpo, testes, APIs e arquitetura",
+  INFRAESTRUTURA:
+    "operação e sustentação de ambientes com confiabilidade, redes e observabilidade",
+  CLOUD:
+    "arquitetura em nuvem com escalabilidade, segurança, automação e controle de custos",
+  MACHINE_LEARNING:
+    "soluções de IA/ML com ciclo de dados, treinamento, avaliação e operação em produção",
+  SEGURANCA_INFORMACAO:
+    "proteção de ativos digitais, gestão de riscos, conformidade e resposta a incidentes",
+};
+
+function generateCategoryInsight(
+  track: Track,
+  category: string,
+): CategoryInsight {
+  const normalized = category.trim();
+  const baseSummary = `${normalized} é um tópico de ${trackContext[track]}, frequentemente cobrado em mercado e concursos por impactar decisões técnicas e operacionais.`;
+
+  const baseApplications = [
+    `Aplicar ${normalized} no desenho de soluções com critérios de qualidade e risco.`,
+    `Usar ${normalized} para melhorar confiabilidade, desempenho e governança no dia a dia.`,
+    `Avaliar ${normalized} em cenários práticos de prova, produção e troubleshooting.`,
+  ];
+
+  const lower = normalized.toLocaleLowerCase("pt-BR");
+
+  if (
+    lower.includes("aws") ||
+    lower.includes("azure") ||
+    lower.includes("google")
+  ) {
+    return {
+      category: normalized,
+      track,
+      summary: `${normalized} representa uma plataforma cloud estratégica para provisionar serviços com alta disponibilidade, segurança e escalabilidade sob demanda.`,
+      applications: [
+        "Provisionamento de infraestrutura e serviços gerenciados para aplicações web/API.",
+        "Implementação de segurança com identidade, redes privadas e políticas de acesso.",
+        "Automação de deploy e operação com observabilidade e controle de custos.",
+      ],
+      basicExample:
+        "Exemplo básico: publicar uma API em serviço gerenciado, armazenar arquivos em object storage e monitorar métricas de disponibilidade.",
+    };
+  }
+
+  if (
+    lower.includes("phishing") ||
+    lower.includes("ransomware") ||
+    lower.includes("deepfake")
+  ) {
+    return {
+      category: normalized,
+      track,
+      summary: `${normalized} é um vetor de ameaça relevante que exige prevenção, detecção e resposta coordenada entre tecnologia, processo e pessoas.`,
+      applications: [
+        "Treinamento contínuo de usuários e simulações controladas para reduzir engenharia social.",
+        "Monitoramento de comportamento suspeito e contenção rápida de incidentes.",
+        "Planos de continuidade, backup testado e recuperação para minimizar impacto. ",
+      ],
+      basicExample:
+        "Exemplo básico: criar campanha interna anti-phishing com métricas de clique e reforço educacional por área.",
+    };
+  }
+
+  if (
+    lower.includes("mlops") ||
+    lower.includes("llmops") ||
+    lower.includes("automl")
+  ) {
+    return {
+      category: normalized,
+      track,
+      summary: `${normalized} organiza o ciclo de vida de modelos de IA com versionamento, automação, monitoramento e governança contínua.`,
+      applications: [
+        "Automatizar treino, validação e deploy de modelos com pipelines reproduzíveis.",
+        "Monitorar drift e qualidade para evitar degradação em produção.",
+        "Rastrear dados, modelos e prompts para auditoria e melhoria contínua.",
+      ],
+      basicExample:
+        "Exemplo básico: pipeline que treina modelo semanalmente, valida métricas e publica nova versão apenas se superar baseline.",
+    };
+  }
+
+  return {
+    category: normalized,
+    track,
+    summary: baseSummary,
+    applications: baseApplications,
+    basicExample: `Exemplo básico: montar um mini-caso de ${normalized} com objetivo, métrica de sucesso e uma ação prática de implementação.`,
+  };
+}
+
 type LevelProgressStats = {
   totalCards: number;
   studiedCards: number;
@@ -520,6 +622,27 @@ router.get("/ready-themes", async (req, res) => {
   });
 
   return res.json(themes.map((theme) => ({ category: theme.name })));
+});
+
+router.get("/ready-themes/insight", async (req, res) => {
+  const querySchema = z.object({
+    track: z.enum(tracks),
+    category: z.string().min(2),
+  });
+
+  const parsedQuery = querySchema.safeParse(req.query);
+  if (!parsedQuery.success) {
+    return res.status(400).json({
+      message: "Parâmetros inválidos.",
+      issues: parsedQuery.error.issues,
+    });
+  }
+
+  const insight = generateCategoryInsight(
+    parsedQuery.data.track,
+    parsedQuery.data.category,
+  );
+  return res.json(insight);
 });
 
 router.post(

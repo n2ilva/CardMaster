@@ -54,6 +54,13 @@ function RootNavigator() {
             headerBackTitle: 'Voltar',
           }}
         />
+        <Stack.Screen
+          name="ready/theme-info"
+          options={{
+            title: 'Pesquisa',
+            headerBackTitle: 'Voltar',
+          }}
+        />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
