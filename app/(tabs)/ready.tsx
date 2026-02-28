@@ -1,39 +1,36 @@
 import { Link } from 'expo-router';
-import { ScrollView, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
 import { Track } from '@/data/flashcards';
 import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
+import { apiRequest } from '@/lib/api';
+import { useAuth } from '@/providers/auth-provider';
 
-const studyTracks: { key: Track; label: string; description: string }[] = [
-  {
-    key: 'DESENVOLVIMENTO',
-    label: 'Desenvolvimento',
-    description: 'Linguagens, frameworks e boas práticas de engenharia de software.',
-  },
-  {
-    key: 'INFRAESTRUTURA',
-    label: 'Infraestrutura',
-    description: 'Cabeamento, redes, arquitetura de computadores e operação de ambientes.',
-  },
-  {
-    key: 'CLOUD',
-    label: 'Cloud',
-    description: 'AWS, Azure e Google Cloud com foco em cenários de prova.',
-  },
-  {
-    key: 'MACHINE_LEARNING',
-    label: 'Machine Learning',
-    description: 'IA aplicada, modelos modernos, MLOps/LLMOps e governança de ML.',
-  },
-  {
-    key: 'SEGURANCA_INFORMACAO',
-    label: 'Segurança da Informação',
-    description: 'Cibersegurança moderna, identidade, nuvem segura, resiliência e regulação.',
-  },
-];
+type StudyTrack = { key: Track; label: string; description: string };
 
 export default function ReadyCardsScreen() {
   const bottomPadding = useTabContentPadding();
+  const { token } = useAuth();
+  const [studyTracks, setStudyTracks] = useState<StudyTrack[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadTracks() {
+      try {
+        setLoading(true);
+        setError(null);
+        const payload = await apiRequest<StudyTrack[]>('/ready-cards/tracks', { token: token ?? undefined });
+        setStudyTracks(payload);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao carregar temas.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadTracks();
+  }, [token]);
 
   return (
     <ScrollView
@@ -46,16 +43,24 @@ export default function ReadyCardsScreen() {
       </Text>
 
       <View className="mt-5 gap-3">
-        {studyTracks.map((studyTrack) => (
-          <Link key={studyTrack.key} href={`/ready/${studyTrack.key}`} asChild>
-            <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
-              <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
-                {studyTrack.label}
-              </Text>
-              <Text className="mt-1 text-[#687076] dark:text-[#9BA1A6]">{studyTrack.description}</Text>
-            </View>
-          </Link>
-        ))}
+        {loading ? (
+          <ActivityIndicator size="large" className="mt-8" />
+        ) : error ? (
+          <Text className="text-[#C92A2A]">{error}</Text>
+        ) : studyTracks.length === 0 ? (
+          <Text className="text-[#687076] dark:text-[#9BA1A6]">Nenhum tema disponível.</Text>
+        ) : (
+          studyTracks.map((studyTrack) => (
+            <Link key={studyTrack.key} href={`/ready/${studyTrack.key}`} asChild>
+              <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+                <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
+                  {studyTrack.label}
+                </Text>
+                <Text className="mt-1 text-[#687076] dark:text-[#9BA1A6]">{studyTrack.description}</Text>
+              </View>
+            </Link>
+          ))
+        )}
       </View>
     </ScrollView>
   );

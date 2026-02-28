@@ -23,6 +23,7 @@ const tracks = [
   "MACHINE_LEARNING",
   "SEGURANCA_INFORMACAO",
   "MATEMATICA",
+  "PORTUGUES",
 ] as const;
 const orderedLevels: SeniorityLevel[] = [
   "INICIANTE",
@@ -1254,6 +1255,61 @@ router.get("/ready-cards", async (req, res) => {
 
 const SESSION_SIZE = 30;
 const SMALL_SESSION_SIZE = 10;
+
+const trackLabels: Record<Track, { label: string; description: string }> = {
+  DESENVOLVIMENTO: {
+    label: "Desenvolvimento",
+    description:
+      "Linguagens, frameworks e boas práticas de engenharia de software.",
+  },
+  INFRAESTRUTURA: {
+    label: "Infraestrutura",
+    description:
+      "Cabeamento, redes, arquitetura de computadores e operação de ambientes.",
+  },
+  CLOUD: {
+    label: "Cloud",
+    description: "AWS, Azure e Google Cloud com foco em cenários de prova.",
+  },
+  MACHINE_LEARNING: {
+    label: "Machine Learning",
+    description:
+      "IA aplicada, modelos modernos, MLOps/LLMOps e governança de ML.",
+  },
+  SEGURANCA_INFORMACAO: {
+    label: "Segurança da Informação",
+    description:
+      "Cibersegurança moderna, identidade, nuvem segura, resiliência e regulação.",
+  },
+  MATEMATICA: {
+    label: "Matemática",
+    description:
+      "Aritmética, lógica, álgebra e matemática aplicada à tecnologia.",
+  },
+  PORTUGUES: {
+    label: "Português",
+    description:
+      "Compreensão de textos, sintaxe, morfologia, ortografia e semântica.",
+  },
+};
+
+router.get("/ready-cards/tracks", async (_req, res) => {
+  const distinctTracks = await prisma.readyFlashcard.findMany({
+    distinct: ["track"],
+    select: { track: true },
+  });
+
+  const result = distinctTracks
+    .map((row) => {
+      const key = row.track as Track;
+      const meta = trackLabels[key];
+      if (!meta) return null;
+      return { key, label: meta.label, description: meta.description };
+    })
+    .filter(Boolean);
+
+  return res.json(result);
+});
 
 function getSessionSize(track: Track): number {
   if (track === "MATEMATICA" || track === "PORTUGUES")
