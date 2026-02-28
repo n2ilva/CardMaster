@@ -636,16 +636,14 @@ export default function StudySessionScreen() {
           level,
         });
 
-        const [payload] = await Promise.all([
-          apiRequest<ReadyCard[]>(`/ready-cards?${params.toString()}`),
-        ]);
+        const payload = await apiRequest<ReadyCard[]>(
+          `/ready-cards/session?${params.toString()}`,
+          { token },
+        );
 
-        const shuffledPayload = shuffleArray(payload);
-        const uniqueCards = dedupeCardsByQuestion(shuffledPayload);
-        const minimumUniqueToUse = Math.max(5, Math.ceil(shuffledPayload.length * 0.3));
-        const shouldUseUniqueDeck = uniqueCards.length >= minimumUniqueToUse;
+        const uniqueCards = dedupeCardsByQuestion(payload);
 
-        setCards(shouldUseUniqueDeck ? uniqueCards : shuffledPayload);
+        setCards(uniqueCards);
         setCurrentIndex(0);
         setSelectedOption(null);
         setFeedback(null);
@@ -662,7 +660,7 @@ export default function StudySessionScreen() {
     }
 
     void loadCards();
-  }, [decodedCategory, level, track]);
+  }, [decodedCategory, level, token, track]);
 
   const currentCard = cards[currentIndex];
   const completedCards = Math.min(currentIndex, cards.length);

@@ -1245,6 +1245,113 @@ router.get("/ready-cards", async (req, res) => {
   return res.json(cards);
 });
 
+const SESSION_SIZE = 30;
+
+router.get(
+  "/ready-cards/session",
+  requireAuth,
+  async (req: AuthenticatedRequest, res) => {
+    const querySchema = z.object({
+      track: z.enum(tracks),
+      level: z.enum(seniorityLevels),
+      category: z.string().min(1),
+    });
+
+    const parsedQuery = querySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      return res.status(400).json({
+        message: "Parâmetros inválidos.",
+        issues: parsedQuery.error.issues,
+      });
+    }
+
+    const { track, level, category } = parsedQuery.data;
+
+    const allCards = await prisma.readyFlashcard.findMany({
+      where: { track, level, category },
+    });
+
+    if (allCards.length === 0) {
+      return res.json([]);
+    }
+
+    const cardIds = allCards.map((card) => card.id);
+
+    const attempts = await prisma.sessionAttempt.findMany({
+      where: {
+        userId: req.userId!,
+        readyCardId: { in: cardIds },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        readyCardId: true,
+        isCorrect: true,
+        createdAt: true,
+      },
+    });
+
+    const now = Date.now();
+    const cardStats = new Map<
+      string,
+      { totalAttempts: number; wrongCount: number; lastAttemptAt: number; lastCorrect: boolean }
+    >();
+
+    for (const attempt of attempts) {
+      if (!attempt.readyCardId) continue;
+      const existing = cardStats.get(attempt.readyCardId);
+      if (!existing) {
+        cardStats.set(attempt.readyCardId, {
+          totalAttempts: 1,
+          wrongCount: attempt.isCorrect ? 0 : 1,
+          lastAttemptAt: attempt.createdAt.getTime(),
+          lastCorrect: attempt.isCorrect,
+        });
+      } else {
+        existing.totalAttempts += 1;
+        if (!attempt.isCorrect) existing.wrongCount += 1;
+      }
+    }
+
+    type ScoredCard = { card: (typeof allCards)[number]; priority: number };
+
+    const scored: ScoredCard[] = allCards.map((card) => {
+      const stats = cardStats.get(card.id);
+
+      if (!stats) {
+        return { card, priority: 50 };
+      }
+
+      const hoursSinceLast = (now - stats.lastAttemptAt) / 3600000;
+      const errorRate = stats.wrongCount / stats.totalAttempts;
+
+      let priority: number;
+      if (stats.lastCorrect) {
+        const cooldown = Math.min(errorRate > 0.4 ? 4 : 12, 48);
+        priority = hoursSinceLast >= cooldown ? 20 + errorRate * 30 : 5;
+      } else {
+        priority = 80 + errorRate * 20;
+      }
+
+      if (hoursSinceLast < 1 && stats.lastCorrect) {
+        priority = 1;
+      }
+
+      return { card, priority };
+    });
+
+    scored.sort((a, b) => b.priority - a.priority);
+
+    const sessionCards = scored.slice(0, SESSION_SIZE).map((s) => s.card);
+
+    for (let i = sessionCards.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sessionCards[i], sessionCards[j]] = [sessionCards[j], sessionCards[i]];
+    }
+
+    return res.json(sessionCards);
+  },
+);
+
 router.get("/ready-cards/categories", async (req, res) => {
   const querySchema = z.object({
     track: z.enum(tracks),
