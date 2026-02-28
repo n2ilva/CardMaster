@@ -311,9 +311,97 @@ const contextAngles = [
   "escala nacional",
 ] as const;
 
+const beginnerInfraDescriptions: string[] = [
+  "Infraestrutura de TI é o conjunto de hardware, software, redes e serviços que suportam a operação dos sistemas.\n\nAplicação: Compreender essa base é essencial para diagnosticar problemas e planejar melhorias.",
+  "Documentação registra configurações, procedimentos e decisões. Qualquer membro consegue entender e operar o sistema.\n\nAplicação: Mantenha diagramas, configurações e senhas em ferramenta acessível ao time.",
+  "Incidente é evento que prejudica ou interrompe a operação normal. Pode ser simples (lentidão) ou crítico (indisponibilidade).\n\nAplicação: Classifique por severidade e siga fluxo de atendimento padronizado.",
+  "Monitoramento detecta falhas antes que afetem usuários. CPU, memória, disco e latência são indicadores básicos.\n\nAplicação: Configure alertas automáticos e dashboards para análise rápida.",
+  "Backup é cópia de segurança. Sem backup testado, qualquer falha pode causar perda irreversível.\n\nAplicação: Defina frequência, armazenamento seguro e teste restauração periodicamente.",
+  "Checklist padroniza tarefas repetitivas, garantindo que nenhum passo seja esquecido em mudanças e deploys.\n\nAplicação: Crie checklists para deploy, manutenção e resposta a incidentes.",
+  "Disponibilidade (uptime) é o percentual de tempo acessível. Ex: 99.9% = 8.7h de parada por ano.\n\nAplicação: Defina SLA e monitore com ferramentas de uptime.",
+  "Senhas fortes dificultam ataques de força bruta. Use gerenciador de senhas e MFA.\n\nAplicação: Exija complexidade mínima e habilite autenticação multifator.",
+  "Menor privilégio: cada usuário ou sistema recebe apenas as permissões necessárias para sua função.\n\nAplicação: Revise permissões regularmente e remova acessos desnecessários.",
+  "Atualização aplica correções de segurança e melhorias. Sistemas desatualizados são alvos fáceis.\n\nAplicação: Teste em homologação antes de aplicar em produção.",
+  "Registrar mudanças cria trilha de auditoria. Quando algo falha, o registro ajuda a reverter.\n\nAplicação: Use tickets ou versionamento para toda alteração.",
+  "Redundância é ter componentes duplicados para que o serviço continue se um falhar.\n\nAplicação: Identifique pontos únicos de falha (SPOF) e adicione redundância nos críticos.",
+  "Alertas notificam quando indicadores ultrapassam limites (ex: CPU > 90%).\n\nAplicação: Configure thresholds adequados para evitar falso-positivos.",
+  "Latência é tempo entre requisição e resposta. Alta latência degrada experiência do usuário.\n\nAplicação: Meça latência de serviços críticos e investigue quando ultrapassar o esperado.",
+  "Perfis de acesso agrupam permissões por papel (admin, operador, leitor).\n\nAplicação: Associe usuários a perfis em vez de permissões individuais.",
+  "Capacidade é o limite máximo de carga (conexões, requisições, armazenamento).\n\nAplicação: Monitore uso atual vs. capacidade total para planejar expansão.",
+  "Ambiente de teste (staging) valida mudanças sem risco ao ambiente de produção.\n\nAplicação: Configure staging espelhando produção para testes representativos.",
+  "Restauração recupera dados de cópia salva. Backup que não funciona quando preciso não é backup.\n\nAplicação: Teste restauração regularmente.",
+  "Padronizar nomes facilita localização, operação e troubleshooting no dia a dia.\n\nAplicação: Defina convenção (prefixo-ambiente-função-número) e documente.",
+  "Logs registram eventos com data, hora e detalhes. Essenciais para auditoria e investigação.\n\nAplicação: Centralize logs e defina tempo de retenção adequado.",
+  "Inventário mapeia todos os ativos (servidores, switches, licenças) com configurações.\n\nAplicação: Mantenha atualizado para saber exatamente o que existe e onde.",
+  "Manutenção preventiva realiza ações periódicas para evitar falhas maiores.\n\nAplicação: Agende em janelas de baixo impacto e documente.",
+  "Testar contingência garante que recuperação funcione quando realmente necessário.\n\nAplicação: Simule cenários de falha semestralmente e documente lições.",
+  "Escalabilidade é crescer (vertical/horizontal) conforme demanda sem perder desempenho.\n\nAplicação: Projete arquitetura que permita adicionar recursos sem reestruturação completa.",
+  "Segmentação de rede isola áreas (produção, gestão, DMZ) para limitar propagação de falhas.\n\nAplicação: Use VLANs, firewalls e ACLs para separar tráfego.",
+  "Comunicação de incidente mantém stakeholders informados sobre status e previsão.\n\nAplicação: Use template (O que, Impacto, Ação atual, Próximo update).",
+  "Revisão de permissões remove acessos antigos e ajusta desatualizados.\n\nAplicação: Faça revisão trimestral e automatize revogação na saída de colaboradores.",
+  "Diagnóstico inicial verifica logs, status e conectividade para identificar causa provável.\n\nAplicação: Descarte problemas simples antes de investigar causas complexas.",
+  "Runbook é guia passo a passo para procedimentos operacionais e problemas recorrentes.\n\nAplicação: Crie para incidentes frequentes e mantenha atualizados.",
+  "Melhoria contínua ajusta processos baseando-se em métricas, incidentes e feedback.\n\nAplicação: Após cada incidente, registre causa raiz e ação corretiva.",
+];
+
+const infraPromptDescriptions: string[] = [
+  "Fundamentos: conceitos de rede, sistemas operacionais, segurança básica e cultura operacional.\n\nAplicação: Invista em capacitação contínua e certificações relevantes.",
+  "Erros comuns: configurar sem validar, não monitorar após mudanças e documentar insuficientemente.\n\nAplicação: Use checklists pré e pós-mudança.",
+  "Diagnóstico rápido: checklist de sintomas, métricas-chave e histórico de mudanças recentes.\n\nAplicação: Monte fluxograma para os problemas mais frequentes.",
+  "Segurança: menor privilégio, segmentação de rede, auditoria contínua e patches em dia.\n\nAplicação: Trate segurança como requisito, não como projeto separado.",
+  "Indicadores: disponibilidade, MTTR, MTBF e taxa de incidentes.\n\nAplicação: Acompanhe tendências mensais para identificar melhorias e regressões.",
+  "Reduzir indisponibilidade: redundância, automação de rollback e testes de contingência.\n\nAplicação: Priorize redundância nos serviços mais impactantes.",
+  "Documentação reduz dependência de pessoas-chave (bus factor) e acelera troubleshooting.\n\nAplicação: Documente arquitetura, configurações e procedimentos atualizados.",
+  "Padronizar: templates versionados, revisão por pares e automação (Ansible, Puppet).\n\nAplicação: Ambientes divergentes causam bugs difíceis de reproduzir.",
+  "Mudanças seguras: janela controlada, plano de teste e reversão definidos, comunicação prévia.\n\nAplicação: Nunca aplique mudança sem plano de rollback testado.",
+  "Observabilidade: logs, métricas e alertas centralizados com correlação para causa raiz.\n\nAplicação: Prometheus + Grafana + ELK para visão completa.",
+  "Critérios para ferramentas: compatibilidade, custo total, curva de aprendizado e suporte.\n\nAplicação: PoC antes de adotar em produção.",
+  "Automação segura: validações, logs detalhados, execução idempotente e testes.\n\nAplicação: Comece pelas tarefas mais frequentes e de menor risco.",
+  "Incidentes críticos: contenção, comunicação objetiva, correção incremental e post-mortem.\n\nAplicação: Defina escalação clara e pratique cenários de crise.",
+  "Capacity planning previne saturação e custos emergenciais não planejados.\n\nAplicação: Projete crescimento com base em tendências históricas.",
+  "Teste de resiliência: simule falhas reais e valide recuperação e degradação controlada.\n\nAplicação: Comece com falhas simples e evolua para cenários complexos.",
+  "Compliance: mapeie dados sensíveis, trilhas de auditoria, políticas de retenção e acesso.\n\nAplicação: Alinhe com LGPD, SOX, ISO 27001 conforme o setor.",
+  "Equilíbrio custo-desempenho: monitore consumo real, right-sizing e elimine recursos ociosos.\n\nAplicação: Revisão mensal de utilização encontra desperdícios.",
+  "Troubleshooting por hipóteses: formule, teste uma variável por vez e registre resultados.\n\nAplicação: Evite alterar múltiplas coisas simultaneamente.",
+  "Manutenção preventiva: atualização controlada, revisão de alertas e análise de tendência.\n\nAplicação: Programe no calendário operacional.",
+  "Homologação: espelhe requisitos críticos de produção com dados anonimizados.\n\nAplicação: Configurações similares à produção validam mudanças com menor risco.",
+  "SLOs refletem impacto real no usuário e guiam prioridades de melhoria.\n\nAplicação: Defina SLOs claros (ex: p99 latência < 200ms) e monitore com error budgets.",
+  "SPOF: distribua componentes críticos e valide failover regularmente.\n\nAplicação: Para cada SPOF, implante redundância ou degradação controlada.",
+  "Backup e recuperação: backup frequente (RPO), teste restauração (RTO) e armazene off-site.\n\nAplicação: Valide que o backup atende RPO e RTO definidos por serviço.",
+  "Onboarding: runbooks, exemplos práticos, trilha progressiva e mentoria.\n\nAplicação: Novo membro produtivo em semanas acelera o time.",
+  "Versionamento facilita auditoria, rollback coordenado e rastreabilidade.\n\nAplicação: Use Git para IaC e controle de mudanças em configurações.",
+  "Crescimento: escalabilidade horizontal/vertical e monitore limites operacionais.\n\nAplicação: Auto-scaling quando possível; capacity planning quando manual.",
+  "Confiabilidade: padronize procedimentos, automatize validações e aprenda com incidentes.\n\nAplicação: Post-mortems bem feitos são a melhor ferramenta de melhoria.",
+  "Decisões de acoplamento, redundância e observabilidade determinam estabilidade de longo prazo.\n\nAplicação: Documente com ADRs para contexto futuro.",
+  "Checklist de produção: segurança, capacidade, monitoramento, rollback e critérios de aceitação.\n\nAplicação: Use como gate obrigatório antes de promover para produção.",
+  "Competências sênior: visão sistêmica, decisão orientada por dados e liderança em incidentes.\n\nAplicação: Sênior multiplica capacidade do time, não apenas resolve tickets.",
+];
+
+const cloudStemDescriptions: string[] = [
+  "Identificar a melhor prática requer avaliar maturidade do time, criticidade e compliance.\n\nAplicação: Priorize segurança e confiabilidade antes de otimizar custo.",
+  "Erros recorrentes em cloud: recursos sem tags, permissões excessivas e ausência de monitoramento.\n\nAplicação: Policies preventivas e revisão automatizada de configuração.",
+  "Plano inicial: escopo mínimo, critérios de sucesso, riscos conhecidos e etapas incrementais.\n\nAplicação: Comece com PoC controlada antes de escalar.",
+  "Métricas: disponibilidade, latência, custo por transação e taxa de erros.\n\nAplicação: Correlacione métricas técnicas com impacto no negócio.",
+  "Riscos operacionais: falha de região, perda de dados, acesso indevido e estouro de custos.\n\nAplicação: Multi-AZ, backup cross-region, IAM rigoroso e alertas de billing.",
+  "Decisões: managed vs. self-hosted, serverless vs. containers, single vs. multi-region.\n\nAplicação: Cada decisão impacta custo, complexidade e disponibilidade.",
+  "Escalar com governança: naming, tagging, budgets e compliance como código (OPA, Sentinel).\n\nAplicação: Governança automatizada escala melhor que processos manuais.",
+  "Controles mínimos: IAM menor privilégio, criptografia, logging centralizado e alertas.\n\nAplicação: Ative desde o primeiro recurso, não como retrofit.",
+  "Otimizar custo: right-sizing, spot/reservas, cache e arquitetura event-driven.\n\nAplicação: Revisão mensal de custos com identificação de recursos ociosos.",
+  "Troubleshooting: status do provedor, logs, métricas e configuração de rede.\n\nAplicação: Descarte problemas do provedor antes de investigar configuração própria.",
+];
+
+const beginnerCloudStemDescriptions: string[] = [
+  "Conceito fundamental que organiza como recursos de nuvem funcionam e são gerenciados.\n\nAplicação: Entender antes de configurar evita erros básicos.",
+  "A utilidade prática determina em quais cenários o recurso resolve problemas reais.\n\nAplicação: Antes de usar qualquer serviço, entenda o problema que ele resolve.",
+  "Práticas simples: configuração documentada, naming consistente e revisão de custos.\n\nAplicação: Bons hábitos desde o início evitam dívida técnica.",
+  "Cuidados: não usar chaves root, habilitar MFA e monitorar custos desde o primeiro dia.\n\nAplicação: Segurança e controle de custos são prioridade para iniciantes.",
+  "Cloud é como alugar infraestrutura sob demanda em vez de comprar e manter própria.\n\nAplicação: Analogias simples ajudam não-técnicos a entender os conceitos.",
+];
+
 type PromptPair = {
   question: string;
   answer: string;
+  answerDescription?: string;
 };
 
 function hashString(value: string): number {
@@ -569,11 +657,15 @@ function buildCards(
       category as (typeof infraCategories)[number]
     ] ?? ["boas práticas operacionais"];
 
-    const promptPool = promptSource.flatMap((prompt) =>
+    const promptPool = promptSource.flatMap((prompt, idx) =>
       focuses.flatMap((focus) =>
         contextAngles.map((angle) => ({
           question: `${prompt.question} Foco: ${focus}. Cenário: ${angle}.`,
           answer: `${prompt.answer} Foco prático: ${focus}. Contexto: ${angle}.`,
+          answerDescription:
+            level === "INICIANTE"
+              ? beginnerInfraDescriptions[idx]
+              : infraPromptDescriptions[idx],
         })),
       ),
     );
@@ -592,6 +684,12 @@ function buildCards(
       answer: cleanAnswerForButton(
         stripMetadata(prompt.answer.replaceAll("{category}", category)),
       ),
+      ...(prompt.answerDescription && {
+        answerDescription: prompt.answerDescription.replaceAll(
+          "{category}",
+          category,
+        ),
+      }),
     }));
   });
 }
@@ -608,7 +706,12 @@ function buildCloudCards(
         ? beginnerCloudAnswerTemplates
         : cloudAnswerTemplates;
 
-    const promptPool = questionSource.flatMap((questionStem) =>
+    const descSource =
+      level === "INICIANTE"
+        ? beginnerCloudStemDescriptions
+        : cloudStemDescriptions;
+
+    const promptPool = questionSource.flatMap((questionStem, stemIdx) =>
       answerSource.flatMap((answerTemplate) =>
         cloudThemes.flatMap((theme) =>
           focuses.flatMap((focus) =>
@@ -625,6 +728,7 @@ function buildCloudCards(
                   "{category}",
                   category,
                 )} Foco prático: ${focus}. Contexto: ${angle}.`,
+              answerDescription: descSource[stemIdx],
             })),
           ),
         ),
@@ -641,6 +745,9 @@ function buildCloudCards(
       level,
       question: stripMetadata(prompt.question),
       answer: cleanAnswerForButton(stripMetadata(prompt.answer)),
+      ...(prompt.answerDescription && {
+        answerDescription: prompt.answerDescription,
+      }),
     }));
   });
 }

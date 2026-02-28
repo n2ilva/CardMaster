@@ -85,9 +85,36 @@ const contextAngles = [
   "expansão internacional",
 ] as const;
 
+const beginnerMLDescriptions: string[] = [
+  "O objetivo é resolver um problema claro do produto com métricas objetivas. ML deve gerar valor mensurável.\n\nAplicação: Defina o problema de negócio antes de escolher abordagem técnica.",
+  "Traz mais valor quando há dados suficientes, problema bem definido e métrica clara de sucesso.\n\nAplicação: Comece por problemas onde a solução manual é cara ou lenta.",
+  "Indicadores: taxa de acerto, latência da predição, custo por inferência e satisfação do usuário.\n\nAplicação: Defina baseline humano para comparar com o modelo.",
+  "Erros comuns: pular validação de dados, treinar sem baseline, ignorar custos e não medir drift.\n\nAplicação: Comece simples, meça resultados e evolua incrementalmente.",
+  "Explique em termos de impacto: 'reduz tempo de X para Y' ou 'automatiza com Z% de acerto'.\n\nAplicação: Use métricas de negócio ao comunicar com stakeholders.",
+  "Pré-requisitos: dados representativos, problema definido, infra mínima e equipe com conhecimento básico.\n\nAplicação: Sem dados de qualidade, nenhum modelo produzirá bons resultados.",
+  "Validação rápida: protótipo com dados reais, métricas claras e feedback de usuários em ciclo curto.\n\nAplicação: PoC/notebook para validar hipótese antes de pipeline completo.",
+  "Riscos: modelo com resultados errados em produção, custos inesperados e dados sensíveis mal protegidos.\n\nAplicação: Monitore saída em produção e tenha fallback manual.",
+  "Dados essenciais: representativos, em volume suficiente, com qualidade verificada e labels confiáveis.\n\nAplicação: Invista em qualidade de dados antes de sofisticar o modelo.",
+  "Abordagem simples é melhor quando dados são poucos, interpretabilidade é crítica ou prazo é curto.\n\nAplicação: Regressão logística pode superar redes neurais em cenários simples.",
+];
+
+const advancedMLDescriptions: string[] = [
+  "Arquitetura escalável: desacople treinamento de inferência, cache de predições, auto-scaling e monitoramento.\n\nAplicação: Versione modelos com registro central e separe serving de training.",
+  "Trade-offs: modelo maior = melhor qualidade mas mais custo e latência. Avalie o que o produto tolera.\n\nAplicação: Defina SLOs para latência e custo por predição.",
+  "Drift: monitore distribuição de features e target, métricas de performance e dados fora do domínio.\n\nAplicação: Alertas para degradação e retreino periódico.",
+  "Segurança: controle de acesso a dados/modelos, rastreabilidade de predições e políticas de uso.\n\nAplicação: LGPD e regulações exigem explicabilidade e controle sobre dados pessoais.",
+  "Offline: holdout, cross-validation, métricas por segmento. Online: A/B test, canary, métricas de negócio.\n\nAplicação: Offline valida o modelo; online valida o impacto no produto.",
+  "Reduzir alucinação: grounding com dados reais, RAG, guardrails de saída e human-in-the-loop.\n\nAplicação: Nunca confie em saída de LLM sem verificação para decisões críticas.",
+  "Híbrida: combine regras, modelos clássicos e deep learning conforme complexidade de cada sub-problema.\n\nAplicação: Ensemble ou pipeline simples + complexo reduz custo e risco.",
+  "Rollout: canary com % pequeno, métricas de impacto e rollback automático se degradar.\n\nAplicação: Feature flags para modelos permitem rollback instantâneo.",
+  "Reprodutibilidade: versione dados, código, configuração e ambiente. Seeds fixos e artefatos armazenados.\n\nAplicação: MLflow, DVC ou W&B para rastreabilidade completa.",
+  "Alinhar métricas: conecte accuracy/F1 a métricas de produto (conversão, NPS, receita).\n\nAplicação: Dashboard compartilhado entre ML e produto.",
+];
+
 type PromptPair = {
   question: string;
   answer: string;
+  answerDescription?: string;
 };
 
 function stripMetadata(text: string): string {
@@ -101,12 +128,14 @@ function stripMetadata(text: string): string {
 function buildPromptPool(
   questionStems: readonly string[],
   answerTemplates: readonly string[],
+  descriptions?: readonly string[],
 ): PromptPair[] {
-  return questionStems.flatMap((questionStem) =>
+  return questionStems.flatMap((questionStem, stemIdx) =>
     answerTemplates.flatMap((answerTemplate) =>
       contextAngles.map((angle) => ({
         question: `${questionStem} Cenário: ${angle}.`,
         answer: `${answerTemplate} Contexto aplicado: ${angle}.`,
+        answerDescription: descriptions?.[stemIdx],
       })),
     ),
   );
@@ -187,6 +216,7 @@ function buildCardsForCategory(
     const promptPool = buildPromptPool(
       beginner ? beginnerQuestionStems : advancedQuestionStems,
       beginner ? beginnerAnswerTemplates : advancedAnswerTemplates,
+      beginner ? beginnerMLDescriptions : advancedMLDescriptions,
     );
 
     return selectRotatingPrompts(
@@ -201,6 +231,12 @@ function buildCardsForCategory(
         prompt.question.replaceAll("{category}", category),
       ),
       answer: stripMetadata(prompt.answer.replaceAll("{category}", category)),
+      ...(prompt.answerDescription && {
+        answerDescription: prompt.answerDescription.replaceAll(
+          "{category}",
+          category,
+        ),
+      }),
     }));
   });
 }

@@ -80,9 +80,36 @@ const contextAngles = [
   "serviços digitais para cidadãos",
 ] as const;
 
+const beginnerSecurityDescriptions: string[] = [
+  "Identifique o risco principal: qual ativo está exposto, qual a probabilidade e qual o impacto se explorado.\n\nAplicação: Mapeie ativos críticos e classifique riscos por probabilidade x impacto.",
+  "Resposta imediata: quando há evidência de comprometimento ativo, vazamento de dados ou indisponibilidade crítica.\n\nAplicação: Defina critérios claros de severidade e fluxo de escalação.",
+  "Controles básicos: autenticação forte, menor privilégio, patches em dia e monitoramento de acessos.\n\nAplicação: Esses controles cobrem a maioria das vulnerabilidades mais exploradas.",
+  "Priorize por impacto no negócio: dados sensíveis expostos > indisponibilidade > degradação de serviço.\n\nAplicação: Use matriz de severidade alinhada com áreas de negócio.",
+  "Métricas iniciais: tempo médio de detecção (MTTD), tempo de resposta (MTTR) e número de incidentes por tipo.\n\nAplicação: Acompanhe tendências mensais para avaliar evolução da maturidade.",
+  "Comunique risco em termos de negócio: impacto financeiro, reputacional e regulatório.\n\nAplicação: Use cenários concretos para que gestão entenda a necessidade de investimento.",
+  "Evidências: logs de acesso, trilhas de auditoria, registros de mudança e capturas de tela.\n\nAplicação: Preserve evidências intactas para investigação forense e compliance.",
+  "Política simples: defina o que é proibido, quem é responsável e qual a consequência de violação.\n\nAplicação: Políticas curtas e claras têm mais adesão que documentos extensos.",
+  "Erro comum: confiar apenas em perímetro, ignorar ameaças internas e não testar controles.\n\nAplicação: Segurança em camadas (defense in depth) é essencial.",
+  "Ação preventiva mais efetiva: conscientização do usuário + controles técnicos automáticos.\n\nAplicação: Treinamento regular + automação reduz superfície de ataque significativamente.",
+];
+
+const advancedSecurityDescriptions: string[] = [
+  "Estratégia resiliente: defesa em profundidade, zero trust, monitoramento contínuo e resposta automatizada.\n\nAplicação: Arquitetura que assume comprometimento e limita raio de explosão.",
+  "Equilíbrio usabilidade-segurança: use autenticação adaptativa, SSO e MFA contextuais.\n\nAplicação: Frição excessiva leva usuários a burlar controles — calibre por risco do ativo.",
+  "Detecção contínua: SIEM, EDR, NDR integrados com threat intelligence e correlação de eventos.\n\nAplicação: Automatize detecção de IOCs conhecidos e investigue anomalias.",
+  "Governança: políticas versionadas, trilha de auditoria completa, métricas executivas e revisão periódica.\n\nAplicação: Compliance é resultado de governança operacional, não apenas checklist.",
+  "Validar controles: pentests, red team, tabletop exercises e revisão de configuração automatizada.\n\nAplicação: Controles não testados são apenas hipóteses de segurança.",
+  "Automatizar vs. humano: automatize detecção e resposta para eventos conhecidos. Mantenha humano para contexto.\n\nAplicação: SOAR para playbooks repetitivos; analista para investigação e decisões críticas.",
+  "Contenção rápida: isolar sistema comprometido, revogar credenciais, preservar evidência e comunicar.\n\nAplicação: Playbooks pré-definidos e testados reduzem MTTR significativamente.",
+  "Integrar telemetria: enriquecer alertas com threat intel, contexto de negócio e histórico.\n\nAplicação: Alert fatigue reduz quando alertas têm contexto e priorização clara.",
+  "Evitar regressão: baseline de segurança, testes automatizados de configuração e revisão em code review.\n\nAplicação: Pipeline CI com checagens de segurança bloqueia vulnerabilidades antes de produção.",
+  "Alinhar segurança e continuidade: RPO/RTO por criticidade, planos testados e comunicação de crise.\n\nAplicação: Continuidade não é só backup — inclui pessoas, processos e tecnologia.",
+];
+
 type PromptPair = {
   question: string;
   answer: string;
+  answerDescription?: string;
 };
 
 function stripMetadata(text: string): string {
@@ -96,12 +123,14 @@ function stripMetadata(text: string): string {
 function buildPromptPool(
   questionStems: readonly string[],
   answerTemplates: readonly string[],
+  descriptions?: readonly string[],
 ): PromptPair[] {
-  return questionStems.flatMap((questionStem) =>
+  return questionStems.flatMap((questionStem, stemIdx) =>
     answerTemplates.flatMap((answerTemplate) =>
       contextAngles.map((angle) => ({
         question: `${questionStem} Cenário: ${angle}.`,
         answer: `${answerTemplate} Contexto aplicado: ${angle}.`,
+        answerDescription: descriptions?.[stemIdx],
       })),
     ),
   );
@@ -182,6 +211,7 @@ function buildCardsForCategory(
     const promptPool = buildPromptPool(
       beginner ? beginnerQuestionStems : advancedQuestionStems,
       beginner ? beginnerAnswerTemplates : advancedAnswerTemplates,
+      beginner ? beginnerSecurityDescriptions : advancedSecurityDescriptions,
     );
 
     return selectRotatingPrompts(
@@ -196,6 +226,12 @@ function buildCardsForCategory(
         prompt.question.replaceAll("{category}", category),
       ),
       answer: stripMetadata(prompt.answer.replaceAll("{category}", category)),
+      ...(prompt.answerDescription && {
+        answerDescription: prompt.answerDescription.replaceAll(
+          "{category}",
+          category,
+        ),
+      }),
     }));
   });
 }
