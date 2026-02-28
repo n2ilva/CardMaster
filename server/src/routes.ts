@@ -1293,7 +1293,12 @@ router.get(
     const now = Date.now();
     const cardStats = new Map<
       string,
-      { totalAttempts: number; wrongCount: number; lastAttemptAt: number; lastCorrect: boolean }
+      {
+        totalAttempts: number;
+        wrongCount: number;
+        lastAttemptAt: number;
+        lastCorrect: boolean;
+      }
     >();
 
     for (const attempt of attempts) {
@@ -1832,4 +1837,3 @@ router.post(
 );
 
 export { router };
-
