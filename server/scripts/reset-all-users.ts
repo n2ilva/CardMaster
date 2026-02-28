@@ -17,7 +17,7 @@ async function main() {
       prisma.userRewardProgress.count(),
     ]);
 
-  console.log("=== RESET ALL USERS (DRY-RUN) ===");
+  console.log("=== RESET GLOBAL DE PROGRESSO (DRY-RUN) ===");
   console.log(`Users: ${usersCount}`);
   console.log(`SessionAttempt: ${attemptsCount}`);
   console.log(`CustomFlashcard: ${customCardsCount}`);
@@ -25,27 +25,32 @@ async function main() {
 
   if (process.env.CONFIRM_RESET_ALL_USERS !== CONFIRM_VALUE) {
     console.log("");
-    console.log("Nenhuma exclusão foi executada.");
+    console.log("Nenhuma limpeza foi executada.");
     console.log(
       `Para executar de verdade, rode: CONFIRM_RESET_ALL_USERS=${CONFIRM_VALUE} npm run users:reset-all`,
     );
     return;
   }
 
-  const [deletedAttempts, deletedCustomCards, deletedRewards, deletedUsers] =
+  const [deletedAttempts, deletedCustomCards, deletedRewards, updatedUsers] =
     await prisma.$transaction([
       prisma.sessionAttempt.deleteMany({}),
       prisma.customFlashcard.deleteMany({}),
       prisma.userRewardProgress.deleteMany({}),
-      prisma.user.deleteMany({}),
+      prisma.user.updateMany({
+        data: {
+          totalPoints: 0,
+          streakDays: 0,
+        },
+      }),
     ]);
 
   console.log("");
-  console.log("=== RESET ALL USERS (EXECUTADO) ===");
+  console.log("=== RESET GLOBAL DE PROGRESSO (EXECUTADO) ===");
   console.log(`SessionAttempt removidos: ${deletedAttempts.count}`);
   console.log(`CustomFlashcard removidos: ${deletedCustomCards.count}`);
   console.log(`UserRewardProgress removidos: ${deletedRewards.count}`);
-  console.log(`Users removidos: ${deletedUsers.count}`);
+  console.log(`Users resetados (sem excluir conta): ${updatedUsers.count}`);
 }
 
 main()
