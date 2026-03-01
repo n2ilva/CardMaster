@@ -1,13 +1,14 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { trackLabels } from '@/data/tracks';
 import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
 import {
-    type CategoryProgress,
-    fetchUserProgress,
-    formatDuration,
+  type CategoryProgress,
+  fetchUserProgress,
+  formatDuration,
+  resetUserProgress,
 } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -32,6 +33,7 @@ export default function ProgressScreen() {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
   const [level, setLevel] = useState<SummaryLevel>('Iniciante');
   const [accuracy, setAccuracy] = useState(0);
   const [avgTime, setAvgTime] = useState(0);
@@ -60,6 +62,37 @@ export default function ProgressScreen() {
       void loadProgress();
     }, [loadProgress])
   );
+
+  const handleReset = useCallback(() => {
+    Alert.alert(
+      'Resetar progresso',
+      'Tem certeza? Todas as suas lições completadas e em andamento serão deletadas permanentemente.',
+      [
+        {
+          text: 'Cancelar',
+          onPress: () => {},
+          style: 'cancel',
+        },
+        {
+          text: 'Resetar',
+          onPress: async () => {
+            if (!user) return;
+            try {
+              setResetting(true);
+              await resetUserProgress(user.id);
+              // Reload data after reset
+              void loadProgress();
+            } catch (error) {
+              Alert.alert('Erro', 'Falha ao resetar progresso. Tente novamente.');
+            } finally {
+              setResetting(false);
+            }
+          },
+          style: 'destructive',
+        },
+      ],
+    );
+  }, [user, loadProgress]);
 
   if (loading) {
     return (
@@ -152,6 +185,18 @@ export default function ProgressScreen() {
           </View>
         )}
       </View>
+
+      {/* Reset button */}
+      {totalLessons > 0 && (
+        <Pressable
+          onPress={handleReset}
+          disabled={resetting}
+          className="mt-6 mb-4 rounded-lg border border-[#EF4444] bg-[#EF4444]/10 px-4 py-3 active:opacity-70">
+          <Text className="text-center text-sm font-semibold text-[#EF4444]">
+            {resetting ? 'Resetando...' : 'Resetar progresso'}
+          </Text>
+        </Pressable>
+      )}
     </ScrollView>
   );
 }

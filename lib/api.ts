@@ -562,3 +562,16 @@ export async function saveLesson(
     createdAt: serverTimestamp(),
   });
 }
+
+/** Reset all user progress by deleting lessons and in-progress lessons. */
+export async function resetUserProgress(uid: string): Promise<void> {
+  // Delete all lessons
+  const lessonsRef = collection(db, "users", uid, "lessons");
+  const lessonsSnapshot = await getDocs(lessonsRef);
+  await Promise.all(lessonsSnapshot.docs.map((doc) => deleteDoc(doc.ref)));
+
+  // Delete all in-progress lessons
+  const inProgressRef = collection(db, "users", uid, "inProgressLessons");
+  const inProgressSnapshot = await getDocs(inProgressRef);
+  await Promise.all(inProgressSnapshot.docs.map((doc) => deleteDoc(doc.ref)));
+}
