@@ -97,7 +97,7 @@ export default function CommunityScreen() {
 
       {/* Ranking Info */}
       {currentUserRank && (
-        <View className="mt-5 rounded-2xl bg-gradient-to-r from-[#3F51B5] to-[#5C6BC0] p-4">
+        <View className="mt-5 rounded-2xl bg-[#F59E0B] p-4">
           <Text className="text-sm text-white/80">Sua posição no ranking</Text>
           <Text className="mt-1 text-3xl font-bold text-white">#{currentUserRank}</Text>
           <Text className="mt-1 text-sm text-white/70">de {users.length} usuários</Text>
@@ -118,12 +118,12 @@ export default function CommunityScreen() {
                 key={userProfile.userId}
                 className={`flex-row items-center gap-3 rounded-xl border p-3 ${
                   isCurrentUser
-                    ? 'border-[#3F51B5] bg-[#3F51B5]/10'
+                    ? 'border-[#F59E0B] bg-[#F59E0B]/15'
                     : 'border-[#E6E8EB] dark:border-[#30363D]'
                 }`}>
                 {/* Rank */}
                 <View className={`h-10 w-10 items-center justify-center rounded-full ${
-                  isCurrentUser ? 'bg-gradient-to-r from-[#3F51B5] to-[#5C6BC0]' : 'bg-[#3F51B5]'
+                  isCurrentUser ? 'bg-[#F59E0B]' : 'bg-[#3F51B5]'
                 }`}>
                   <Text className="text-sm font-bold text-white">#{index + 1}</Text>
                 </View>
@@ -132,12 +132,12 @@ export default function CommunityScreen() {
                 <View className="flex-1">
                   <Text className={`text-sm font-semibold ${
                     isCurrentUser
-                      ? 'text-[#3F51B5] dark:text-[#ECEDEE]'
+                      ? 'text-[#D97706] dark:text-[#FBBF24]'
                       : 'text-[#11181C] dark:text-[#ECEDEE]'
                   }`}>
                     {userProfile.name}
                     {isCurrentUser && (
-                      <Text className="ml-2 text-xs text-[#3F51B5]"> (você)</Text>
+                      <Text className="ml-2 text-xs text-[#D97706] dark:text-[#FBBF24]"> (você)</Text>
                     )}
                   </Text>
                   <View className="mt-1 flex-row gap-2">
@@ -154,7 +154,7 @@ export default function CommunityScreen() {
                 {/* Score & Medal */}
                 <View className="items-end gap-2">
                   <View className="flex-row items-center gap-2">
-                    <Text className="text-lg font-bold text-[#3F51B5]">
+                    <Text className={`text-lg font-bold ${isCurrentUser ? 'text-[#D97706] dark:text-[#FBBF24]' : 'text-[#3F51B5]'}`}>
                       {userProfile.score}
                     </Text>
                     <Text className="text-2xl">
