@@ -287,6 +287,10 @@ export async function fetchUserProgress(uid: string): Promise<ProgressSummary> {
   }
 
   for (const inProgress of inProgressLessons) {
+    totalCorrect += inProgress.correctCount;
+    totalQuestions += inProgress.answeredCount;
+    totalDuration += inProgress.elapsedMs;
+
     const key = `${inProgress.track}__${inProgress.category}`;
     const existing = grouped.get(key);
     if (existing) {
