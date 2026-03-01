@@ -5,12 +5,12 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { trackLabels } from '@/data/tracks';
 import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
 import {
-  type CategoryProgress,
-  fetchUserProgress,
-  formatDuration,
-  getScoreLevel,
-  resetUserProgress,
-  type ScoreLevel
+    type CategoryProgress,
+    fetchUserProgress,
+    formatDuration,
+    getScoreLevel,
+    resetUserProgress,
+    type ScoreLevel
 } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
