@@ -2,7 +2,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { type Flashcard, type UserLevel, fetchCards, fetchUserProgress, saveLesson } from '@/lib/api';
+import {
+    clearInProgressLesson,
+    fetchCards,
+    fetchInProgressLesson,
+    fetchUserProgress,
+    saveLesson,
+    upsertInProgressLesson,
+    type Flashcard,
+    type UserLevel,
+} from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'] as const;
@@ -13,9 +22,10 @@ type AnswerState = {
 };
 
 export default function StudySessionScreen() {
-  const { track, category } = useLocalSearchParams<{
+  const { track, category, difficulty: difficultyParam } = useLocalSearchParams<{
     track: string;
     category: string;
+    difficulty?: string;
   }>();
   const router = useRouter();
   const { user } = useAuth();
@@ -36,8 +46,10 @@ export default function StudySessionScreen() {
   const [finished, setFinished] = useState(false);
   const [saving, setSaving] = useState(false);
   const [difficulty, setDifficulty] = useState<UserLevel>('Fácil');
+  const [questionElapsedSeconds, setQuestionElapsedSeconds] = useState(0);
 
   const startTimeRef = useRef(Date.now());
+  const questionStartTimeRef = useRef(Date.now());
 
   // ---- Load cards ----
   useEffect(() => {
@@ -45,16 +57,39 @@ export default function StudySessionScreen() {
     (async () => {
       try {
         setLoading(true);
-        // Determine user difficulty level
+        // Determine difficulty level: use URL param if provided, otherwise use user's progress level
         let level: UserLevel = 'Fácil';
-        if (user) {
+        
+        if (difficultyParam && ['Fácil', 'Médio', 'Difícil'].includes(difficultyParam)) {
+          level = difficultyParam as UserLevel;
+        } else if (user) {
           const progress = await fetchUserProgress(user.id);
           level = progress.level;
         }
+        
         if (cancelled) return;
         setDifficulty(level);
         const data = await fetchCards(decodedTrack, decodedCategory, level);
-        if (!cancelled) setCards(data);
+        if (!cancelled) {
+          setCards(data);
+          if (user && data.length > 0) {
+            const inProgress = await fetchInProgressLesson(
+              user.id,
+              decodedTrack,
+              decodedCategory,
+              level,
+            );
+            if (!cancelled && inProgress && inProgress.answeredCount > 0) {
+              const resumedIndex = Math.min(
+                inProgress.answeredCount,
+                Math.max(0, data.length - 1),
+              );
+              setCurrentIndex(resumedIndex);
+              setCorrectCount(Math.max(0, inProgress.correctCount));
+              startTimeRef.current = Date.now() - Math.max(0, inProgress.elapsedMs);
+            }
+          }
+        }
       } catch {
         // silently fail
       } finally {
@@ -64,7 +99,21 @@ export default function StudySessionScreen() {
     return () => {
       cancelled = true;
     };
-  }, [decodedTrack, decodedCategory, user]);
+  }, [decodedTrack, decodedCategory, difficultyParam, user]);
+
+  // ---- Question timer ----
+  useEffect(() => {
+    // Reset timer when question changes
+    questionStartTimeRef.current = Date.now();
+    setQuestionElapsedSeconds(0);
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+      setQuestionElapsedSeconds(elapsed);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
 
   const totalCards = cards.length;
   const currentCard = cards[currentIndex] as Flashcard | undefined;
@@ -75,10 +124,33 @@ export default function StudySessionScreen() {
     (optionIndex: number) => {
       if (answer.revealed || !currentCard) return;
       const isCorrect = optionIndex === currentCard.correctIndex;
+      const newCorrectCount = isCorrect ? correctCount + 1 : correctCount;
       if (isCorrect) setCorrectCount((c) => c + 1);
       setAnswer({ selectedIndex: optionIndex, revealed: true });
+
+      if (user) {
+        void upsertInProgressLesson(user.id, {
+          track: decodedTrack,
+          category: decodedCategory,
+          difficulty,
+          answeredCount: currentIndex + 1,
+          correctCount: newCorrectCount,
+          totalCount: totalCards,
+          elapsedMs: Date.now() - startTimeRef.current,
+        });
+      }
     },
-    [answer.revealed, currentCard],
+    [
+      answer.revealed,
+      correctCount,
+      currentCard,
+      currentIndex,
+      decodedCategory,
+      decodedTrack,
+      difficulty,
+      totalCards,
+      user,
+    ],
   );
 
   const handleNext = useCallback(async () => {
@@ -94,9 +166,15 @@ export default function StudySessionScreen() {
           await saveLesson(user.id, {
             category: decodedCategory,
             track: decodedTrack,
+            difficulty,
             correctCount,
             totalCount: totalCards,
             durationMs: Date.now() - startTimeRef.current,
+          });
+          await clearInProgressLesson(user.id, {
+            track: decodedTrack,
+            category: decodedCategory,
+            difficulty,
           });
         } catch {
           // silently fail
@@ -105,7 +183,7 @@ export default function StudySessionScreen() {
         }
       }
     }
-  }, [currentIndex, totalCards, user, decodedCategory, decodedTrack, correctCount]);
+  }, [currentIndex, totalCards, user, decodedCategory, decodedTrack, difficulty, correctCount]);
 
   const accuracyPercent = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
 
@@ -192,6 +270,8 @@ export default function StudySessionScreen() {
                   setCorrectCount(0);
                   setFinished(false);
                   startTimeRef.current = Date.now();
+                  questionStartTimeRef.current = Date.now();
+                  setQuestionElapsedSeconds(0);
                 }}
                 className="rounded-xl bg-[#3F51B5] py-3 active:opacity-70">
                 <Text className="text-center font-semibold text-white">Tentar novamente</Text>
@@ -228,8 +308,15 @@ export default function StudySessionScreen() {
 
       {/* Counter + Difficulty */}
       <View className="mt-2 flex-row items-center justify-between">
-        <View className="rounded-full bg-[#3F51B5]/10 px-2.5 py-0.5">
-          <Text className="text-xs font-semibold text-[#3F51B5]">{difficulty}</Text>
+        <View className="flex-row items-center gap-2">
+          <View className="rounded-full bg-[#3F51B5]/10 px-2.5 py-0.5">
+            <Text className="text-xs font-semibold text-[#3F51B5]">{difficulty}</Text>
+          </View>
+          <View className="rounded-full bg-[#F59E0B]/10 px-2.5 py-0.5">
+            <Text className="text-xs font-semibold text-[#F59E0B]">
+              {Math.floor(questionElapsedSeconds / 60)}:{(questionElapsedSeconds % 60).toString().padStart(2, '0')}
+            </Text>
+          </View>
         </View>
         <Text className="text-xs font-semibold text-[#687076] dark:text-[#9BA1A6]">
           {currentIndex + 1} / {totalCards}

@@ -1,3 +1,4 @@
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -25,7 +26,7 @@ export default function ReadyTrackCategoriesScreen() {
       setLoadingStats(true);
       const results = await Promise.all(
         categories.map(async (cat) => {
-          const stats = await fetchCategoryStats(user.id, cat);
+          const stats = await fetchCategoryStats(user.id, track ?? '', cat);
           return [cat, stats] as const;
         }),
       );
@@ -77,8 +78,11 @@ export default function ReadyTrackCategoriesScreen() {
           ) : (
             filtered.map((cat) => {
               const stats = statsMap[cat];
-              const studied = stats?.cardsStudied ?? 0;
+              const studied = stats?.totalAnswered ?? 0;
               const accuracy = stats?.accuracyPercent ?? 0;
+              const inProgressAnswered = stats?.inProgressAnswered ?? 0;
+              const hasInProgressLesson = stats?.hasInProgressLesson ?? false;
+              const inProgressDifficulty = stats?.inProgressDifficulty;
 
               return (
                 <View
@@ -103,6 +107,26 @@ export default function ReadyTrackCategoriesScreen() {
                     </View>
                   </View>
 
+                  {hasInProgressLesson ? (
+                    <View className="mt-2 rounded-lg border border-[#F59E0B] bg-[#F59E0B]/10 px-3 py-2.5">
+                      <Text className="text-xs font-medium text-[#B45309] dark:text-[#FBBF24]">
+                        Em andamento: {inProgressAnswered} {inProgressAnswered === 1 ? 'pergunta respondida' : 'perguntas respondidas'}
+                      </Text>
+                      {inProgressDifficulty ? (
+                        <Link
+                          href={`/ready/study?track=${encodeURIComponent(track ?? '')}&category=${encodeURIComponent(cat)}&difficulty=${encodeURIComponent(inProgressDifficulty)}`}
+                          asChild>
+                          <Pressable className="mt-2 flex-row items-center justify-center gap-1 rounded-lg bg-[#3F51B5] px-3 py-1.5 active:opacity-80">
+                            <MaterialIcons name="play-arrow" size={16} color="#FFFFFF" />
+                            <Text className="text-xs font-semibold text-white">
+                              Continuar • {inProgressDifficulty}
+                            </Text>
+                          </Pressable>
+                        </Link>
+                      ) : null}
+                    </View>
+                  ) : null}
+
                   {/* Accuracy bar */}
                   <View className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#E6E8EB] dark:bg-[#2A2F36]">
                     <View
@@ -114,13 +138,35 @@ export default function ReadyTrackCategoriesScreen() {
                     />
                   </View>
 
-                  <Link
-                    href={`/ready/study?track=${encodeURIComponent(track ?? '')}&category=${encodeURIComponent(cat)}`}
-                    asChild>
-                    <Pressable className="mt-3 rounded-xl bg-[#3F51B5] px-4 py-2.5 active:opacity-70">
-                      <Text className="text-center text-sm font-semibold text-white">Começar</Text>
-                    </Pressable>
-                  </Link>
+                  <View className="mt-3 flex-row gap-2">
+                    <Link
+                      href={`/ready/study?track=${encodeURIComponent(track ?? '')}&category=${encodeURIComponent(cat)}&difficulty=Fácil`}
+                      asChild
+                      className="flex-1">
+                      <Pressable className="flex-row items-center justify-center gap-1 rounded-lg border border-[#22C55E] bg-transparent px-3 py-2 active:opacity-70">
+                        <MaterialIcons name="play-arrow" size={14} color="#22C55E" />
+                        <Text className="text-xs font-medium text-[#22C55E]">Fácil</Text>
+                      </Pressable>
+                    </Link>
+                    <Link
+                      href={`/ready/study?track=${encodeURIComponent(track ?? '')}&category=${encodeURIComponent(cat)}&difficulty=Médio`}
+                      asChild
+                      className="flex-1">
+                      <Pressable className="flex-row items-center justify-center gap-1 rounded-lg border border-[#F59E0B] bg-transparent px-3 py-2 active:opacity-70">
+                        <MaterialIcons name="play-arrow" size={14} color="#F59E0B" />
+                        <Text className="text-xs font-medium text-[#F59E0B]">Médio</Text>
+                      </Pressable>
+                    </Link>
+                    <Link
+                      href={`/ready/study?track=${encodeURIComponent(track ?? '')}&category=${encodeURIComponent(cat)}&difficulty=Difícil`}
+                      asChild
+                      className="flex-1">
+                      <Pressable className="flex-row items-center justify-center gap-1 rounded-lg border border-[#EF4444] bg-transparent px-3 py-2 active:opacity-70">
+                        <MaterialIcons name="play-arrow" size={14} color="#EF4444" />
+                        <Text className="text-xs font-medium text-[#EF4444]">Difícil</Text>
+                      </Pressable>
+                    </Link>
+                  </View>
                 </View>
               );
             })

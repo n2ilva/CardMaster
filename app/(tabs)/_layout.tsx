@@ -38,15 +38,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="create"
-        options={{
-          title: 'Pesquisar',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="magnifyingglass" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="progress"
         options={{
           title: 'Progresso',

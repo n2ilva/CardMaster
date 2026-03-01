@@ -8,14 +8,14 @@
 import { trackCategories } from "@/data/tracks";
 import type { UserLevel } from "@/lib/api";
 
-import { cloudBank }           from "./banks/cloud";
+import { cloudBank } from "./banks/cloud";
 import { desenvolvimentoBank } from "./banks/desenvolvimento";
-import { linguagensBank }      from "./banks/linguagens";
+import { linguagensBank } from "./banks/linguagens";
 import { machineLearningBank } from "./banks/machine-learning";
-import { matematicaBank }      from "./banks/matematica";
-import { portuguesBank }       from "./banks/portugues";
-import { redesBank }           from "./banks/redes";
-import { segurancaBank }       from "./banks/seguranca";
+import { matematicaBank } from "./banks/matematica";
+import { portuguesBank } from "./banks/portugues";
+import { redesBank } from "./banks/redes";
+import { segurancaBank } from "./banks/seguranca";
 
 // ---------------------------------------------------------------------------
 // Tipos publicos
@@ -46,14 +46,14 @@ export type GeneratedCard = {
 // ---------------------------------------------------------------------------
 
 const BANKS: Record<string, Record<string, Record<UserLevel, SeedCard[]>>> = {
-  "cloud":                     cloudBank,
-  "desenvolvimento":           desenvolvimentoBank,
+  cloud: cloudBank,
+  desenvolvimento: desenvolvimentoBank,
   "linguagens-de-programacao": linguagensBank,
-  "machine-learning-e-ia":     machineLearningBank,
-  "matematica":                matematicaBank,
-  "portugues":                 portuguesBank,
-  "rede-de-computadores":      redesBank,
-  "seguranca-da-informacao":   segurancaBank,
+  "machine-learning-e-ia": machineLearningBank,
+  matematica: matematicaBank,
+  portugues: portuguesBank,
+  "rede-de-computadores": redesBank,
+  "seguranca-da-informacao": segurancaBank,
 };
 
 const DIFFICULTIES: UserLevel[] = ["Fácil", "Médio", "Difícil"] as UserLevel[];
@@ -70,15 +70,15 @@ export function generateCardsForCategory(
   const trackBank = BANKS[track];
   const cards: SeedCard[] = trackBank?.[category]?.[difficulty] ?? [];
   return cards.map((card, i) => ({
-    id:           `${track}__${category}__${difficulty}__${i + 1}`,
+    id: `${track}__${category}__${difficulty}__${i + 1}`,
     track,
     category,
     difficulty,
-    question:     card.q,
-    options:      card.o,
+    question: card.q,
+    options: card.o,
     correctIndex: card.c,
-    explanation:  card.e,
-    example:      card.x,
+    explanation: card.e,
+    example: card.x,
   }));
 }
 
@@ -91,10 +91,28 @@ export function generateCardsForCategoryAllDifficulties(
   );
 }
 
+export function getTotalCardsForCategory(
+  track: string,
+  category: string,
+): number {
+  return generateCardsForCategoryAllDifficulties(track, category).length;
+}
+
 export function generateAllCards(): GeneratedCard[] {
   return Object.entries(trackCategories).flatMap(([track, categories]) =>
     categories.flatMap((category) =>
       generateCardsForCategoryAllDifficulties(track, category),
     ),
   );
+}
+
+export function getDatabaseStats() {
+  const allCards = generateAllCards();
+  const totalCards = allCards.length;
+  const activeTracks = Object.keys(BANKS).length;
+
+  return {
+    totalCards,
+    activeTracks,
+  };
 }
