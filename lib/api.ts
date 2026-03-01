@@ -114,6 +114,15 @@ export type CategoryStats = {
   accuracyPercent: number;
 };
 
+/** Histórico individual de um card para o usuário */
+export type CardHistory = {
+  cardId: string;
+  timesShown: number;
+  timesCorrect: number;
+  timesWrong: number;
+  lastSeenAt: unknown;
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -552,10 +561,156 @@ export type Flashcard = {
   example: string;
 };
 
+/** Quantidade de cards por lição */
+const CARDS_PER_LESSON = 10;
+
+/**
+ * Busca o histórico de cards do usuário para uma lista de card IDs.
+ */
+export async function fetchCardHistory(
+  uid: string,
+  cardIds: string[],
+): Promise<Map<string, CardHistory>> {
+  const result = new Map<string, CardHistory>();
+  if (cardIds.length === 0) return result;
+
+  // Firestore 'in' aceita no máximo 30 valores por query
+  const chunks: string[][] = [];
+  for (let i = 0; i < cardIds.length; i += 30) {
+    chunks.push(cardIds.slice(i, i + 30));
+  }
+
+  const histRef = collection(db, "users", uid, "cardHistory");
+
+  for (const chunk of chunks) {
+    const q = query(histRef, where("cardId", "in", chunk));
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      const data = d.data() as CardHistory;
+      result.set(data.cardId, data);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Salva o resultado de um card individual no histórico do usuário.
+ * Incrementa contadores de acerto/erro e atualiza lastSeenAt.
+ */
+export async function saveCardResult(
+  uid: string,
+  cardId: string,
+  correct: boolean,
+): Promise<void> {
+  const histRef = doc(db, "users", uid, "cardHistory", cardId);
+
+  // Busca o documento existente para fazer incremento manual
+  const histCollection = collection(db, "users", uid, "cardHistory");
+  const q = query(histCollection, where("cardId", "==", cardId));
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    // Primeiro registro
+    await setDoc(histRef, {
+      cardId,
+      timesShown: 1,
+      timesCorrect: correct ? 1 : 0,
+      timesWrong: correct ? 0 : 1,
+      lastSeenAt: serverTimestamp(),
+    });
+  } else {
+    const existing = snap.docs[0].data() as CardHistory;
+    await setDoc(snap.docs[0].ref, {
+      cardId,
+      timesShown: (existing.timesShown ?? 0) + 1,
+      timesCorrect: (existing.timesCorrect ?? 0) + (correct ? 1 : 0),
+      timesWrong: (existing.timesWrong ?? 0) + (correct ? 0 : 1),
+      lastSeenAt: serverTimestamp(),
+    });
+  }
+}
+
+/**
+ * Seleção ponderada de cards com base no histórico de erros.
+ *
+ * Pesos:
+ * - Card nunca visto: peso 3 (prioridade média-alta para entrar na rotação)
+ * - Card com taxa de erro > 50%: peso 5 (maior prioridade — precisa revisar)
+ * - Card com taxa de erro 25–50%: peso 3
+ * - Card com taxa de erro < 25%: peso 1 (já domina)
+ *
+ * Isso garante que:
+ * 1. Cards errados voltam com mais frequência
+ * 2. Cards novos entram na rotação naturalmente
+ * 3. Cards já dominados aparecem menos, mas não desaparecem
+ */
+function weightedSelectCards(
+  cards: Flashcard[],
+  history: Map<string, CardHistory>,
+  limit: number,
+): Flashcard[] {
+  if (cards.length <= limit) {
+    // Embaralha se há menos cards que o limite
+    const result = [...cards];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  }
+
+  // Calcula pesos
+  const weighted = cards.map((card) => {
+    const hist = history.get(card.id);
+    let weight: number;
+
+    if (!hist || hist.timesShown === 0) {
+      // Nunca visto — prioridade média-alta
+      weight = 3;
+    } else {
+      const errorRate = hist.timesWrong / hist.timesShown;
+      if (errorRate > 0.5) {
+        weight = 5; // Erra muito — precisa revisar
+      } else if (errorRate > 0.25) {
+        weight = 3; // Erro moderado
+      } else {
+        weight = 1; // Já domina
+      }
+    }
+
+    return { card, weight };
+  });
+
+  // Seleção ponderada sem reposição
+  const selected: Flashcard[] = [];
+  const remaining = [...weighted];
+
+  for (let i = 0; i < limit && remaining.length > 0; i++) {
+    const totalWeight = remaining.reduce((sum, w) => sum + w.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    let chosenIdx = 0;
+    for (let j = 0; j < remaining.length; j++) {
+      random -= remaining[j].weight;
+      if (random <= 0) {
+        chosenIdx = j;
+        break;
+      }
+    }
+
+    selected.push(remaining[chosenIdx].card);
+    remaining.splice(chosenIdx, 1);
+  }
+
+  return selected;
+}
+
 export async function fetchCards(
   track: string,
   category: string,
   difficulty?: UserLevel,
+  uid?: string,
 ): Promise<Flashcard[]> {
   const cardsRef = collection(db, "cards");
   const q = difficulty
@@ -590,8 +745,15 @@ export async function fetchCards(
     return shuffleCardOptions(card);
   });
 
-  // Limita a 15 questões aleatórias e embaralhadas
-  return selectRandomCards(allCards, 15);
+  // Se temos um uid, usamos seleção ponderada baseada no histórico
+  if (uid && allCards.length > 0) {
+    const cardIds = allCards.map((c) => c.id);
+    const history = await fetchCardHistory(uid, cardIds);
+    return weightedSelectCards(allCards, history, CARDS_PER_LESSON);
+  }
+
+  // Fallback: seleção aleatória simples
+  return selectRandomCards(allCards, CARDS_PER_LESSON);
 }
 
 export async function fetchCategoryStats(

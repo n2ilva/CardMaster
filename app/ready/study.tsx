@@ -6,6 +6,7 @@ import {
     clearInProgressLesson,
     fetchCards,
     fetchInProgressLesson,
+    saveCardResult,
     saveLesson,
     updateUserProfile,
     upsertInProgressLesson,
@@ -66,7 +67,7 @@ export default function StudySessionScreen() {
         
         if (cancelled) return;
         setDifficulty(level);
-        const data = await fetchCards(decodedTrack, decodedCategory, level);
+        const data = await fetchCards(decodedTrack, decodedCategory, level, user?.id);
         if (!cancelled) {
           setCards(data);
           if (user && data.length > 0) {
@@ -124,6 +125,11 @@ export default function StudySessionScreen() {
       const newCorrectCount = isCorrect ? correctCount + 1 : correctCount;
       if (isCorrect) setCorrectCount((c) => c + 1);
       setAnswer({ selectedIndex: optionIndex, revealed: true });
+
+      // Salva resultado individual do card no histórico de rotação
+      if (user && currentCard.id) {
+        void saveCardResult(user.id, currentCard.id, isCorrect);
+      }
 
       if (user) {
         void upsertInProgressLesson(user.id, {
