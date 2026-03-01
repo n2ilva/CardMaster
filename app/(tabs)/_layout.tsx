@@ -48,7 +48,7 @@ export default function TabLayout() {
         name="community"
         options={{
           title: 'Comunidade',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.2.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.sequence.fill" color={color} />,
         }}
       />
     </Tabs>
