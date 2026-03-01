@@ -4,7 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Linguagens de Programação · 10 categorias × 3 níveis × 7 questões (rodada 4/30) ───
 
-export const linguagensBank: Record<string, Record<UserLevel, SeedCard[]>> = {
+const linguagensBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── C ──
   C: {
     Fácil: [
@@ -2600,3 +2600,478 @@ export const linguagensBank: Record<string, Record<UserLevel, SeedCard[]>> = {
     ],
   },
 };
+
+// ─── Round 1 · +1 questão por nível por categoria ───
+
+const linguagensRound1Extras: Record<string, Record<UserLevel, SeedCard[]>> = {
+  C: {
+    Fácil: [
+      {
+        q: "O que são ponteiros em C e qual o operador para obter o endereço de uma variável?",
+        o: [
+          "Ponteiro armazena o endereço de memória de outra variável; '&' obtém o endereço e '*' acessa o valor apontado (dereference)",
+          "Ponteiro é um array de bytes que armazena o valor de outra variável",
+          "'@' obtém endereço e '->' acessa o valor em C padrão",
+          "Ponteiros em C são iguais a referências em Java, sem aritmeticá de endereços",
+        ],
+        c: 0,
+        e: "int x = 10; int *p = &x; *p = 20; // x agora vale 20. '&x' retorna o endereço de x na memória. '*p' acessa o valor naquele endereço (54321 por exemplo). Aritmética de ponteiros: p+1 avança sizeof(int) bytes. Ponteiros nulos: NULL; dereferenciar NULL causa segfault.",
+        x: "Trocar dois valores sem retorno: void swap(int *a, int *b) { int tmp=*a; *a=*b; *b=tmp; }. Chamar: swap(&x, &y). Sem ponteiro: swap(x,y) receberia cópias, original não mudaria (pass by value). Ponteiro para ponteiro: int **pp = &p; — usado em allocações de matrizes dinâmicas.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é undefined behavior em C e cite dois exemplos clássicos que o causam?",
+        o: [
+          "Comportamento não definido pela norma C; exemplos: acessar array fora dos limites e ler variável não inicializada — compilador pode gerar qualquer resultado",
+          "Resultado sempre previsível mas não especificado; ponteiros nulos causam UB por definição",
+          "Erro de compilação gerado quando o compilador detecta comportamento indefinido",
+          "Apenas overflow de inteiro signed é UB; outros casos são implementation-defined",
+        ],
+        c: 0,
+        e: "Undefined Behavior (UB): a norma C não especifica o resultado. O compilador pode: crash, resultado incorreto, remover o código completamente (otimização). Exemplos: int arr[3]; arr[5]=1 (buffer overflow), int x; printf('%d', x) (leitura de lixo), signed integer overflow i=INT_MAX; i++, dereferenciar NULL. Ferramentas: Valgrind, AddressSanitizer (-fsanitize=address) detectam em runtime.",
+        x: "arr[10] em array de 5: pode 'funcionar' em debug (memória válida ali por acaso), crash em release (otimização muda layout). UB permite GCC assumir que ponteiros não são nulos e remover checks de nulidade. 'Nasal demons': expressão da comunidade C para UB que faz qualquer coisa. Compile com -Wall -Wextra -fsanitize=address para detectar.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funcionam as funções variadic em C (tipo printf) usando stdarg.h?",
+        o: [
+          "Usam va_list, va_start, va_arg, va_end para acessar argumentos extras em runtime; o número e tipo dos args deve ser inferido de outro argumento (ex: string de formato)",
+          "Recebem array explícito com tamanho e ponteiro; stdarg.h apenas documenta a interface",
+          "Compilador empacota todos os args em struct automático acessível por índice",
+          "Somente o compilador usa va_list internamente; programadores usam `...` sem stdarg.h",
+        ],
+        c: 0,
+        e: "Variadic: int soma(int n, ...) { va_list args; va_start(args, n); int tot=0; for(int i=0;i<n;i++) tot+=va_arg(args,int); va_end(args); return tot; }. va_start inicializa após o último parâmetro fixo. va_arg extrai próximo arg com o tipo especificado. va_end limpa. Sem informação de tipo em runtime: printf usa format string para saber tipos. Type mismatch = UB.",
+        x: "soma(3, 10, 20, 30) = 60. printf utiliza format string '%d %s %f' para extrair int, char*, double nessa ordem. Dar tipo errado: printf('%d', 3.14) — UB (doubles passam diferente de ints na ABI x86-64). __attribute__((format(printf, 1, 2))) no GCC valida a format string em compile-time. C23 introduz typeof para variadic mais seguro.",
+      },
+    ],
+  },
+  "C++": {
+    Fácil: [
+      {
+        q: "O que é RAII (Resource Acquisition Is Initialization) em C++ e como evita memory leaks?",
+        o: [
+          "Padrão onde recurso é adquirido no construtor e liberado no destrutor automaticamente ao sair do escopo; smart pointers (unique_ptr, shared_ptr) implementam RAII",
+          "Inicializar todas as variáveis antes de usadas para evitar UB e memory leak",
+          "Alocar memória somente na inicialização do programa para evitar fragmentação",
+          "Padrão de código que exige construtor e destrutor em toda classe que usa heap",
+        ],
+        c: 0,
+        e: "RAII: ligar ciclo de vida do recurso ao ciclo de vida do objeto. Construtor: open file / alloc memory. Destrutor: close file / free memory. Destrutor é chamado automaticamente ao sair do escopo (stack unwinding), mesmo em exceções. unique_ptr<T>: destrutor chama delete. shared_ptr<T>: contagem de referências, delete quando chega a 0. Elimina new/delete explícito.",
+        x: "Sem RAII: int *p = new int[100]; if(erro) return; // LEAK! delete[] p; Com RAII: auto p = std::make_unique<int[]>(100); if(erro) return; // destrutor chama delete[] automaticamente. std::ifstream file('dados.txt'); // fecha automaticamente no destrutor. lock_guard<mutex> lk(mtx); // libera mutex ao sair do escopo, mesmo com exceção.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são templates em C++ e como o compilador realiza template instantiation?",
+        o: [
+          "Código genérico parametrizado por tipo; o compilador gera código específico para cada tipo usado (monomorfização em compile-time), sem overhead de runtime",
+          "Macros de pré-processador tipadas que geram código com substituição textual",
+          "Interfaces genéricas que o linker resolve dinamicamente com virtual dispatch",
+          "Apenas templates de classe existem; funções genéricas usam virtual functions",
+        ],
+        c: 0,
+        e: "Templates: template<typename T> T max(T a, T b) { return a>b?a:b; }. Compiler: ao ver max(3,4) gera max<int>; ao ver max(3.0,4.0) gera max<double>. Cada instanciação é código separado. Template specialization: implementação específica para tipo concreto. Concepts (C++20): restringem o tipo (requires Comparable). SFINAE: substituição que falha silenciosamente para seleção de overload.",
+        x: "std::vector<int> e std::vector<string>: dois conjuntos de código separados gerados. Vantagem: sem overhead de boxin/unboxing como Java generics (erasure). Desvantagem: tempos de compilação maiores, binários maiores (code bloat). Concepts C++20: template<Numeric T> elimina erros de template cripíticos de N páginas de SFINAE.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é move semantics em C++11 e como rvalue references (&& ) e std::move otimizam transferência de recursos?",
+        o: [
+          "Move semantics transfere propriedade de recursos (sem cópia profunda) via rvalue reference; std::move converte lvalue em rvalue; destrutor do original fica em estado válido mas indeterminado",
+          "std::move copia o objeto e libera a memória do original imediatamente",
+          "Move semantics é otimização do compilador que elimina cópias; o programador não tem controle",
+          "Rvalue references são ponteiros temporários sem dono que o GC libera após o uso",
+        ],
+        c: 0,
+        e: "Sem move: vector<string> b = a; copia todos os bytes de cada string. Com move: vector<string> b = std::move(a); transfere ponteiro interno de a para b, a fica em estado válido mas vazio. Construtor de move: String(String&& src) { data=src.data; src.data=nullptr; }. RVO/NRVO: compilador elide cópias em retornos. Perfect forwarding: template<T&&> forward<T>(t) preserva lvalue/rvalue.",
+        x: "std::vector<std::string> v; v.push_back(std::string(10000, 'x')); // rvalue: move, não copia. std::string s(10000,'z'); v.push_back(std::move(s)); // s virou rvalue, move ocorre. Benchmark: mover vector com 100k strings: 10μs. Copiar: 500ms. emplace_back(args...) constrói diretamente no lugar — ainda melhor que move.",
+      },
+    ],
+  },
+  "C#": {
+    Fácil: [
+      {
+        q: "O que é LINQ (Language Integrated Query) em C# e quais são os dois estilos de sintaxe?",
+        o: [
+          "LINQ permite consultas tipadas em coleões e fontes de dados usando sintaxe de query (SQL-like) ou sintaxe de método (fluent com lambda), integrada na linguagem com verificação de tipos em compile-time",
+          "Biblioteca para acesso a banco de dados SQL sem ORM, integrada no compilador",
+          "Apenas sintaxe de query existe; métodos LINQ são apenas wrappers internos",
+          "LINQ só funciona com IList e Array; para outras coleções requer adapters externos",
+        ],
+        c: 0,
+        e: "LINQ (Language Integrated Query): opera sobre IEnumerable<T> / IQueryable<T>. Query syntax: from p in products where p.Price > 100 select p.Name. Method syntax: products.Where(p => p.Price > 100).Select(p => p.Name). Query syntax é convertida pelo compilador para method syntax. Providers: LINQ to Objects (memória), EF Core (SQL gerado), LINQ to XML.",
+        x: "var nomes = from p in pessoas where p.Idade >= 18 orderby p.Nome select p.Nome; // query syntax. var nomes2 = pessoas.Where(p => p.Idade >= 18).OrderBy(p => p.Nome).Select(p => p.Nome); // fluent. EF Core: Where() gera WHERE em SQL (deferred execution). ToList() executa a query. AsNoTracking() para queries read-only.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é async/await em C# e como difere de Task.Run para operações I/O-bound vs CPU-bound?",
+        o: [
+          "async/await libera thread durante I/O-bound (sem thread ocupada); Task.Run delega trabalho CPU-bound para thread pool; não usar Task.Run para I/O pois desperdiça thread",
+          "async/await cria novas threads para cada operação; Task.Run reutiliza threads do pool",
+          "São equivalentes; escolha é apenas estilística para qualquer tipo de operação",
+          "Task.Run deve ser usado para I/O; async/await é apenas para CPU para não bloquear a UI",
+        ],
+        c: 0,
+        e: "await HttpClient.GetAsync(): thread retorna ao pool enquanto aguarda rede. Sem thread bloqueada. Task.Run(() => PesadoCalculo()): envia para thread do pool para cálculo pesado (não bloquear main thread/UI). Anti-pattern: await Task.Run(async () => await httpClient.GetAsync()) — ocupa thread do pool esperando I/O. ConfigureAwait(false): não captura SynchronizationContext (libs).",
+        x: "ASP.NET Core: public async Task<IActionResult> Get() { var data = await _db.Usuarios.ToListAsync(); return Ok(data); } — thread liberada durante query ao banco, suporta mais requisições simultâneas. Blazor/WinForms: Task.Run(() => calcularHash(bytes)) move CPU-bound para background, não trava UI. CancellationToken: cancela operação assíncrona em andamento.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funcionam os Channels em C# (.NET 5+) para comunicação entre producers e consumers assíncronos?",
+        o: [
+          "Channel<T> é fila assíncrona thread-safe; ChannelWriter.WriteAsync produz; ChannelReader.ReadAsync consume; suporta bounded (backpressure) e unbounded; mais eficiente que BlockingCollection",
+          "Channels são streams de rede TCP encapsulados para comunicação entre processos",
+          "Equivalente a ConcurrentQueue com await; possui exatamente os mesmos trade-offs",
+          "Channels exigem lock explícito; WriteAsync e ReadAsync não são thread-safe por padrão",
+        ],
+        c: 0,
+        e: "Channel<T>: pipeline assíncrono eficiente. Bounded: Channel.CreateBounded<T>(capacity) — WriteAsync faz await se cheio (backpressure automático). Unbounded: nunca bloqueia escrita. ReadAsync: await se vazio. IAsyncEnumerable<T>: reader.ReadAllAsync() itera com await foreach. Cancelamento: CancellationToken em todas as operações. Multiple consumers: cada reader recebe item único (fan-out via múltiplos channels).",
+        x: "var ch = Channel.CreateBounded<string>(100); // producer Task.Run(async () => { await ch.Writer.WriteAsync('item'); ch.Writer.Complete(); }); // consumer await foreach (var item in ch.Reader.ReadAllAsync()) { Process(item); }. Backpressure: producer pausa quando ch cheio até consumer consumir. Pipeline de processamento de imagens: decode → channel → resize → channel → encode.",
+      },
+    ],
+  },
+  Go: {
+    Fácil: [
+      {
+        q: "O que são goroutines em Go e como diferem de threads do sistema operacional?",
+        o: [
+          "Goroutines são tarefas leves gerenciadas pelo runtime Go com stack inicial de 2KB; milhares podem coexistir; mapeadas em poucas threads do OS via scheduler M:N",
+          "Goroutines são aliases para threads POSIX com sintaxe simplificada",
+          "Cada goroutine tem uma thread do OS dedicada, ideal para paralelismo CPU",
+          "Goroutines são callbacks assíncronos sem stack próprio executados no event loop",
+        ],
+        c: 0,
+        e: "Goroutine: go func() {}(). Stack: começa em 2KB, cresce dinamicamente até 1GB. Thread OS: 1-8MB de stack fixo. Scheduler Go (GMP): G=goroutines, M=OS threads, P=processors (GOMAXPROCS). M:N multiplexing: N goroutines em M threads. Context switch goroutine: ~100ns; thread OS: ~10μs. 1 milhão de goroutines: factível (2TB de stack total máx).",
+        x: "Servidor HTTP com 10k conexões simultâneas: Go → 10k goroutines (~20MB stack total). Node.js: event loop single-thread. Java (virtual threads Java 21: semelhante). go func() { http.Serve(conn) }(); // nova goroutine por conexão. GOMAXPROCS: default = número de CPUs. runtime.NumGoroutine() inspeciona goroutines ativas.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como channels em Go implementam comunicação entre goroutines e o que é select?",
+        o: [
+          "Channel: fila tipada thread-safe; unbuffered bloqueia sender/receiver até ambos prontos; buffered não bloqueia até encher; select aguarda múltiplos channels simultaneamente",
+          "Channels são shared memory com mutex embutido; select é switch para tipos de channel",
+          "Channels só transmitem ponteiros; valores primitivos requerem sync.Mutex",
+          "select executa todos os cases simultaneamente em goroutines separadas",
+        ],
+        c: 0,
+        e: "Unbuffered: ch := make(chan int) — send bloqueia até receive, synchronization ponto a ponto. Buffered: ch := make(chan int, 10) — send não bloqueia até buffer cheio. Direcionais: chan<- (send only), <-chan (receive only). select: como switch para channels — executa o case cujo channel está pronto; se mútiplos prontos, escolhe aleatoriamente. default: não bloqueia.",
+        x: "select { case msg := <-ch1: fmt.Println(msg) case ch2 <- 'ok': // enviou case <-time.After(1*time.Second): fmt.Println('timeout') }. Pipeline: producer → ch1 → transformer → ch2 → consumer. close(ch): receiver recebe zero value + ok=false. for v := range ch { } lê até fechar. Fan-out: várias goroutines lendo do mesmo channel.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o modelo de concorrência de Go e como defer, panic e recover formam o mecanismo de tratamento de erros?",
+        o: [
+          "defer: executa função ao retornar (LIFO); panic: interrompe execução normal e desempilha defers; recover: captura o panic dentro de defer e permite recuperação graceful",
+          "panic é equivalente a throw; recover é catch; defer é finally; modelo igual a try-catch-finally Java",
+          "recover pode ser chamado em qualquer ponto para capturar panics pendentes",
+          "defer executa imediatamente antes da linha que o segue; não ao retornar",
+        ],
+        c: 0,
+        e: "defer: empilha função para executar quando função atual retorna. LIFO: múltiplos defers em ordem inversa. Captura variáveis por referência. panic: como throw mas raramente usado — preferível retornar error. stack unwinding executa defers. recover(): só válido dentro de defer; captura o valor do panic e interrompe unwinding. Idioma: Go usa retorno de error explícito para fluxo normal, panic/recover para invariantes violadas.",
+        x: "func safeDiv(a, b int) (result int, err error) { defer func() { if r := recover(); r != nil { err = fmt.Errorf('panic: %v', r) } }(); return a/b, nil }. safeDiv(10, 0): division by zero → panic → recover captura → retorna err='panic: runtime error: integer divide by zero'. Cleanup com defer: defer file.Close(); defer mu.Unlock(); ordem reversa garantida mesmo com panic.",
+      },
+    ],
+  },
+  Java: {
+    Fácil: [
+      {
+        q: "O que é o Java Garbage Collector e quais as gerações (Young, Old, Metaspace)?",
+        o: [
+          "GC gerencia memória automaticamente; Young generation (objetos novos, GC frequente e rápido); Old generation (objetos longevos, GC menos frequente); Metaspace (metadados de classes)",
+          "GC usa contagem de referências como Python; Young/Old são níveis de prioridade de coleta",
+          "Java não tem gerações; todo GC varre toda a heap uniformemente",
+          "Young generation só para arrays; Old generation para objetos com campos de instância",
+        ],
+        c: 0,
+        e: "Heap generacional: Young (Eden + S0 + S1) — objetos novos alocados em Eden, Minor GC rápido (stop-the-world ms). Objetos que sobrevivem vaó para Survivor spaces, depois promovidos para Old gen. Old gen (Tenured): Major GC/Full GC mais lento. Metaspace (Java 8+, substitui PermGen): bytecode de classes, crescimento dinâmico.",
+        x: "G1GC (default Java 9+): divide heap em regiões, GC incremental. ZGC (Java 11+): pause < 1ms mesmo em heaps de TB. GraalVM: ahead-of-time compilation elimina GC de JVM em native image. -Xms512m -Xmx4g: heap mínimo e máximo. jstat -gcutil PID: monitorar GC em runtime. OOM Error: heap esgotada após GC.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são Optional<T> e Stream<T> em Java 8+ e como compostos resolvem null checks e iterações verbosas?",
+        o: [
+          "Optional evita NullPointerException encapsulando valor possivelmente ausente com map/flatMap/orElse; Stream processa coleções de forma declarativa com operações encadeadas lazy",
+          "Optional e Stream são wrappers de sincronização para thread-safety",
+          "Stream substitui for loops mas executa ansiosamente (eagerly) gerando lista imediata",
+          "Optional é apenas para retorno de métodos; usar null internamente ainda é correto",
+        ],
+        c: 0,
+        e: "Optional.of/ofNullable/empty. map(): transforma valor se presente. flatMap(): evita Optional<Optional<T>>. orElse(default): valor alternativo. orElseGet(supplier): lazy. orElseThrow(): exceção se vazio. Stream: lazy (operações intermediárias: filter, map, sorted) + eager (terminais: collect, count, findFirst). Parallel streams: .parallelStream() para CPU-bound com Fork/Join pool.",
+        x: "Verboso: String cidade = null; if(user != null && user.getAddress() != null) cidade = user.getAddress().getCidade(); Com Optional: String cidade = Optional.ofNullable(user).map(User::getAddress).map(Address::getCidade).orElse('N/D'). Stream: lista.stream().filter(p -> p.getAtivo()).mapToInt(Pedido::getValor).average().orElse(0.0).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como o Java Virtual Threads (Project Loom, Java 21) altera o modelo de concorrência e qual o impacto para servidores web?",
+        o: [
+          "Virtual threads são threads leves gerenciadas pela JVM montadas sobre carrier threads; operacoess bloqueantes (I/O, sleep) desmontam o carrier; permite thread-per-request sem overhead de 10k+ threads OS",
+          "Virtual threads são apenas coroutines Kotlin compiladas para JVM",
+          "Substituem CompletableFuture; código assíncrono com async/await é eliminado",
+          "Cada virtual thread tem JVM própria isolada, similar a processos OS",
+        ],
+        c: 0,
+        e: "Project Loom (Java 21 LTS): Thread.ofVirtual().start(() -> ...). Stack: KB vs MB de platform thread. JVM scheduler: ao encontrar op. bloqueante (socket read, sleep), desmonta a virtual thread do carrier thread, carrier continua com outra virtual thread. Nenhuma mudança de código: JDBC, HttpURLConnection, bloqueantes funcionam sem callback. Throughput: 10k conexões HTTP simultâneas com 10k virtual threads vs 200 platform threads (limite prático).",
+        x: "Servlet com virtual threads: cada requisição em Thread.ofVirtual(). db.query() bloqueia → carrier segue outra virtual thread. Spring Boot 3.2: virtual threads por default em Tomcat com Loom. Antes: CompletableFuture.supplyAsync() necessário para não bloquear. Agora: código síncrono simples com throughput assíncrono. Pinning: synchronized block prende virtual thread ao carrier (evitar em hot paths).",
+      },
+    ],
+  },
+  JavaScript: {
+    Fácil: [
+      {
+        q: "O que é o operador de optional chaining (?.) e o nullish coalescing (??) em JavaScript moderno?",
+        o: [
+          "?. acessa propriedade sem lancar erro se o objeto é null/undefined (retorna undefined); ?? retorna lado direito somente se lado esquerdo é null/undefined (diferente de || que considera 0 e string vazia falsy)",
+          "?. é o operador ternário curto; ?? é o operador de coalescência OR lógico",
+          "Ambos são equivalentes ao operador || com checagem de tipo explícita",
+          "?. é usado somente com métodos; ?? somente com primitivos",
+        ],
+        c: 0,
+        e: "Optional chaining: user?.address?.city — curto-circuito se null/undefined, retorna undefined sem TypeError. ?. com método: arr?.map(fn). ?. com índice: arr?.[0]. Nullish coalescing: a ?? b — retorna b só se a é null ou undefined. || retorna b para qualquer falsy (0, '', false) o que pode ser indesejado. Combinação: user?.settings?.theme ?? 'dark'.",
+        x: "const cidade = usuario?.endereço?.cidade; // undefined se usuario ou endereço for null, sem crash. const port = config.port ?? 3000; // 3000 somente se config.port for null/undefined. config.port = 0: ?? retorna 0 (correto); || retornaria 3000 (bug!). Logical assignment: x ??= 'default'; x ||= 'fallback'; x &&= transform(x).",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são WeakMap e WeakSet em JavaScript e quando usar ao invés de Map e Set?",
+        o: [
+          "WeakMap/WeakSet mantm referências fracas (não impedem GC); chave/elemento deve ser objeto; útil para metadados privados e caches sem memory leak quando objetos são removidos",
+          "WeakMap tem performance melhor que Map para qualquer uso; preferível sempre",
+          "São versões thread-safe de Map/Set para ambientes com Web Workers",
+          "WeakMap permite chaves primitivas; WeakSet permite valores mistos com GC",
+        ],
+        c: 0,
+        e: "WeakMap: chaves = objetos, valores = qualquer. Se não há outra referência ao objeto-chave, o GC pode coletar a entrada. Não é iterável (sem .keys(), não tem size). WeakSet: colecção de objetos sem duplicatas, GC pode coletar. Uso: armazenar metadados privados de objetos, cache por objeto, marcar objetos processados sem impedir GC.",
+        x: "Cache por DOM element: const cache = new WeakMap(); function getMetadata(el) { if(!cache.has(el)) cache.set(el, computeExpensive(el)); return cache.get(el); }. Quando el é removido do DOM (sem outra referência), GC coleta automaticamente a entrada. Map guardé el como chave — memory leak. WeakRef (ES2021): referência fraca com deref() explicit.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funcionam os Iterators e Generators em JavaScript e qual a relação com o protocolo Symbol.iterator?",
+        o: [
+          "Iterator: objeto com next() que retorna {value, done}; Generator: função* que produz valores lazy via yield; Symbol.iterator torna qualquer objeto iterável com for...of e spread",
+          "Generators criam threads assíncronas; Symbol.iterator é apenas para arrays nativas",
+          "Iterator é igual a Promise; yield é equivalente a await em funções generator",
+          "Symbol.iterator só funciona com classes ES6; funcões factory não podem ser iteráveis",
+        ],
+        c: 0,
+        e: "Iterator protocol: { next() { return {value: T, done: boolean} } }. Iterable: objeto com [Symbol.iterator]() retornando iterator. for...of, spread [...], destructuring usam Symbol.iterator. Generator: function* gen() { yield 1; yield 2; }. Lazy: valores calculados sob demanda. Infinite sequence: function* naturais() { let n=0; while(true) yield n++; }. Async generator: async function* para streams assíncronos.",
+        x: "Sequencia de fibonacci lazy: function* fib() { let [a,b]=[0,1]; while(true) { yield a; [a,b]=[b,a+b]; } }. [...take(fib(), 10)] → primeiros 10. Custom iterable: class Range { [Symbol.iterator]() { let i=this.start; return { next: () => i<=this.end ? {value:i++,done:false} : {done:true} }; } }. for(const n of new Range(1,5)) — itera 1,2,3,4,5.",
+      },
+    ],
+  },
+  Kotlin: {
+    Fácil: [
+      {
+        q: "O que são data classes em Kotlin e quais métodos são gerados automaticamente?",
+        o: [
+          "Classes para guardar dados; geram automaticamente equals, hashCode, toString, copy e componentN (destructuring) baseados nas propriedades do construtor primário",
+          "Classes imutáveis sem métodos gerados; apenas síntaxe compacta de declaração",
+          "Geram somente toString() e hashCode(); os demais precisam ser implementados",
+          "São exclusivas para modelos de banco de dados com Room; não úteis em geral",
+        ],
+        c: 0,
+        e: "data class Person(val name: String, val age: Int). Gerado: equals() (compara por valor dos campos), hashCode() (consistente com equals), toString() 'Person(name=Ana, age=25)', copy(age=26) (cria cópia com campos alterados), component1() retorna name, component2() retorna age. Destructuring: val (nome, idade) = person.",
+        x: "val p1 = Person('Ana', 25); val p2 = Person('Ana', 25); p1 == p2 // true (valor, não referência). val p3 = p1.copy(age=26); // p3.name='Ana', p3.age=26. val (n, i) = p1; // destructuring. Kotlin sealed class + data class: ADT (algebraic data types) para when expressions exaustivas. Ideal para DTOs, eventos de domínio, estados de UI.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funcionam as coroutines em Kotlin e qual a diferença entre launch, async e runBlocking?",
+        o: [
+          "Coroutines: concorrência leve; launch: fire-and-forget (retorna Job); async: retorna Deferred<T> para resultado futuro com await(); runBlocking: bloqueia thread atual para testes ou main()",
+          "launch e async são idênticos; runBlocking cria nova thread OS",
+          "Coroutines Kotlin são alias de threads; suspend apenas documenta que a função é lenta",
+          "async é fire-and-forget; launch retorna Deferred<T>; são trocados na documentação",
+        ],
+        c: 0,
+        e: "Coroutine builders precisam de CoroutineScope. launch { ... } retorna Job (cancel, join). async { ... } retorna Deferred<T>; val r = async { calc() }; r.await() obtém resultado (suspende até pronto). Dispatchers: Main (UI), IO (I/O-bound), Default (CPU-bound). Structured concurrency: child coroutines são canceladas quando scope pai é cancelado. suspend fun: pode suspender sem bloquear thread.",
+        x: "val job = launch(Dispatchers.IO) { fetchData() }. val deferred = async { calcularTotal() }; val total = deferred.await(). coroutineScope { val a = async { fetch('A') }; val b = async { fetch('B') }; a.await() + b.await() } // paralelo. viewModelScope.launch {}: lifecycle-aware. withContext(Dispatchers.IO) { ... } dentro de suspend fun para troca de dispatcher.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é Kotlin Flow e como difere de LiveData e RxJava para streams reativos no Android?",
+        o: [
+          "Flow é stream frio (lazy, só executa com coletor), integrado com coroutines, cancelamento automático, backpressure por suspensão; LiveData: lifecycle-aware mas limitado; RxJava: poderoso mas complexo sem coroutines",
+          "Flow é hot por padrão; LiveData é cold; ambos requerem Disposable para cancelamento",
+          "Flow substitui todas as coroutines; launch e async tornam-se obsoletos",
+          "LiveData suporta backpressure nativo via subscription; Flow não tem backpressure",
+        ],
+        c: 0,
+        e: "Cold Flow: flow { emit(1); delay(100); emit(2) } — execução só ao coletar. SharedFlow: hot, múltiplos coletores. StateFlow: hot, tem valor atual (substitui LiveData sem lifecycle coupling). Operators: map, filter, debounce, flatMapLatest (cancela upstream ao novo evento). collectAsState() em Compose. Cancelamento: flowCollect cancela ao sair do scope. Backpressure: collector suspende emitter implicitamente.",
+        x: "Search autocomplete: searchFlow.debounce(300).filter { it.length > 2 }.flatMapLatest { query -> flow { emit(api.search(query)) } }.collect { updateUI(it) }. flatMapLatest cancela requisição anterior ao digitar novo caractere. StateFlow para UI state: val uiState = MutableStateFlow<UiState>(Loading). viewModel.uiState.collectAsStateWithLifecycle() no Compose. Room retorna Flow<List<T>> diretamente.",
+      },
+    ],
+  },
+  PHP: {
+    Fácil: [
+      {
+        q: "O que são arrays associativos em PHP e como diferem de arrays indexados?",
+        o: [
+          "Arrays associativos usam chaves string definidas pelo usuário como índice; arrays indexados usam inteiros automáticos; PHP unifica os dois no mesmo tipo array",
+          "Arrays associativos são objetos stdClass; arrays indexados são o tipo array nativo",
+          "PHP distingue array e hashmap como tipos distintos na engine",
+          "Arrays associativos só aceitam chaves string; não pode misturar com índices numéricos",
+        ],
+        c: 0,
+        e: "PHP array é ordenado, misto: $a = ['nome' => 'Ana', 'idade' => 25]; $a['nome'] retorna 'Ana'. Indexado: $b = [10, 20, 30]; $b[0] = 10. Misturado: ['a', 'chave' => 'valor', 1]. array_keys(), array_values(), foreach($arr as $k => $v). list() / [] para destructuring. array_merge(), array_combine(), array_flip(). Arrays PHP são sempre HashMap+OrderedMap internamente.",
+        x: "$config = ['db_host' => 'localhost', 'db_port' => 3306, 'debug' => true]; echo $config['db_host']; foreach($config as $key => $val) echo '$key=$val\n'. in_array('debug', array_keys($config)): verifica existência de chave. array_key_exists() mais preciso (distingue null). compact() e extract() para trabalhar com escopo.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o Composer em PHP e como o autoloading PSR-4 funciona?",
+        o: [
+          "Composer é o gerenciador de dependências PHP; PSR-4 mapeia namespace para diretório automaticamente (App\\Models\\User → src/Models/User.php) via autoloader gerado no vendor/",
+          "Composer é um framework PHP; PSR-4 é bundle de segurança",
+          "PSR-4 exige que todas as classes tenham o mesmo namespace independente do diretório",
+          "Autoloading só funciona com classes estáticas; instâncias requerem require explícito",
+        ],
+        c: 0,
+        e: 'composer.json: {"require": {"monolog/monolog": "^3.0"}, "autoload": {"psr-4": {"App\\\\": "src/"}}}. composer install: baixa dependências e gera vendor/autoload.php. PSR-4: App\\Controllers\\UserController mapeia para src/Controllers/UserController.php. Lazy loading: como não carregada até ser usada. composer update (atualiza semver), composer require, composer dump-autoload (regenera map).',
+        x: "require 'vendor/autoload.php'; use App\\Models\\User; $u = new User(); // autoloader inclui src/Models/User.php automaticamente. spl_autoload_register(): mecanismo interno que Composer usa. Sem Composer: require_once em cada arquivo. Semantic versioning: ^3.0 aceita 3.x.x mas não 4.0. composer.lock: versões exatas para reprodução do ambiente.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como PHP 8.x Fibers implementam concorrência cooperativa e como diferem de goroutines e coroutines?",
+        o: [
+          "Fibers: pausam/retomam execução manualmente com Fiber::suspend/resume; concorrência cooperativa single-thread; base para async em PHP (ReactPHP, Revolt); goroutines têm scheduling automático",
+          "Fibers criam threads reais no OS; goroutines são apenas corotinas de usuário",
+          "Fibers e coroutines são idênticos; goroutines têm scheduling preemptivo como threads OS",
+          "PHP Fibers são descontinuadas em PHP 8.2; async/await nativo foi introduzido",
+        ],
+        c: 0,
+        e: "Fiber (PHP 8.1): $fiber = new Fiber(function() { $val = Fiber::suspend('primeiro'); echo 'segundo: ' . $val; }); $r1 = $fiber->start(); // 'primeiro'. $fiber->resume('hello'); // 'segundo: hello'. Stack própria. Não multithreading. Event loop (Revolt): Fiber::suspend cede controle ao loop que processa I/O (sockets, timers) e retoma fiber quando pronto. ampersand PHP diferente de Go go-routine scheduler.",
+        x: "ReactPHP + Fibers: $response = Fiber::suspend($deferredRequest); event loop processa outros reqs enquanto aguarda I/O. Revolt event loop (base de Amp v3): readStream/writeStream, addTimer. $conn->query('SELECT...') retorna Promise que Fiber aguarda com suspend. Comparação: Go goroutines scheduler M:N automático; PHP Fibers = manual + event loop externo; ambas resolvêm I/O-bound sem threads.",
+      },
+    ],
+  },
+  Python: {
+    Fácil: [
+      {
+        q: "O que são list comprehensions em Python e como diferem de generator expressions?",
+        o: [
+          "List comprehension cria lista em memória imediatamente [x*2 for x in range(10)]; generator expression é lazy (x*2 for x in range(10)) gerando valores sob demanda, mais eficiente em memória",
+          "List comprehensions são mais rápidas que generator expressions em todas as situações",
+          "Generator expressions criam listas internamente; a diferença é apenas sintática",
+          "List comprehensions não aceitam condições (if); apenas loops for simples",
+        ],
+        c: 0,
+        e: "List comp: [expr for item in iter if cond] — cria lista completa na memória. Set comp: {expr for ...}. Dict comp: {k:v for ...}. Generator: (expr for ...) — objeto gerador, lógica executada ao iterar. sum(x**2 for x in range(1000000)): usa gen, não aloca lista de 1M. Nested: [y for x in matrix for y in x]. Condição: [x for x in lst if x > 0].",
+        x: "Lista: quadrados = [x**2 for x in range(10000)] — aloca 10k ints em memória. Generator: gen = (x**2 for x in range(10000)) — usa ~100 bytes. sum(gen) consome sob demanda. Para processar arquivo grande: (linha.strip() for linha in open('big.csv') if linha.startswith('2025')). any()/all()/sum() com gen expression são idiomáticos e memória-eficientes.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são decorators em Python e como implementar um decorator com argumentos?",
+        o: [
+          "Decorator: função de ordem superior que envolve outra função adicionando comportamento; decorator com argumentos requer três níveis de função (outer, wrapper, decorated)",
+          "Decorators são classes especiais que herdam de type para modificar métodos",
+          "Decorator com argumentos usa apenas dois níveis; o parâmetro vai no @decorator(arg)",
+          "Decorators só são válidos para funções de módulo; não para métodos de classe",
+        ],
+        c: 0,
+        e: "@dec equivale a func = dec(func). Decorator com args: @dec(n) → func = dec(n)(func). def retry(times): def decorator(func): @functools.wraps(func) def wrapper(*args, **kwargs): for _ in range(times): try: return func(*args, **kwargs) except: pass return wrapper return decorator. functools.wraps preserva __name__, __doc__ da função original. Class decorator: __call__.",
+        x: "@retry(times=3) def call_api(): requests.get(url). Equivale a: call_api = retry(3)(call_api). @lru_cache(maxsize=128): memoização com LRU. @dataclass: gera __init__, __repr__, __eq__. @property: getter/setter. @staticmethod, @classmethod. Stacking: @login_required @cache_page(300): executa de baixo para cima (login_required(cache_page(view))).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como o GIL (Global Interpreter Lock) do CPython afeta multithread e quando usar multiprocessing ou asyncio?",
+        o: [
+          "GIL: um lock por processo CPython que impede execução paralela de bytecode Python; threads funcionam para I/O-bound (GIL liberado durante I/O); multiprocessing para CPU-bound (processos separados = GIL separado)",
+          "GIL foi removido no Python 3.10; threads CPython são totalmente paralelas",
+          "GIL afeta multiprocessing e asyncio igualmente; não há alternativa sem trocar o interpretador",
+          "asyncio usa múltiplas threads internamente para paralelismo real de I/O",
+        ],
+        c: 0,
+        e: "GIL garante que apenas uma thread execute bytecode Python por vez por processo. I/O-bound (network, disco): C extensions liberam GIL durante I/O — threads realmente paralelas. CPU-bound (cálculo puro): threads não ajudam (GIL serializa). Soluções: multiprocessing (processos com memoória separada), concurrent.futures.ProcessPoolExecutor. asyncio: event loop single-thread para I/O-bound com async/await. NumPy/Pandas: liberam GIL em operações C. Python 3.13 (experimental): no-GIL build.",
+        x: "CPU benchmark: 4 cores, 4 threads Python = ~1x (GIL). 4 processes = ~3.8x. I/O: 100 requests HTTP, 4 threads = ~100x vs 1 thread. asyncio + aiohttp: lógica single-thread, alta concorrência. ProcessPoolExecutor: from concurrent.futures import ProcessPoolExecutor; with PPE(4) as ex: results = list(ex.map(cpu_task, data)). Celery: distribute tasks entre workers (processos diferentes).",
+      },
+    ],
+  },
+  TypeScript: {
+    Fácil: [
+      {
+        q: "O que são union types e intersection types em TypeScript e quando usar cada um?",
+        o: [
+          "Union (A | B): valor pode ser A OU B; intersection (A & B): valor deve satisfazer A E B simultaneamente; union para variantes, intersection para composição de tipos",
+          "Union combina todos os campos de A e B; intersection restringe a campos comuns",
+          "São pré-condicionais; TypeScript seleciona automaticamente com base no contexto",
+          "Union é somente para tipos primitivos; intersection somente para objetos",
+        ],
+        c: 0,
+        e: "Union: type ID = string | number — função aceita string ou number. Narrowing: typeof, instanceof para tratar cada caso. Intersection: type AdminUser = User & Admin — deve ter todos os campos de User E Admin. Discriminated union: { type: 'circle', radius: number } | { type: 'square', side: number } — switch em 'type' faz narrowing exaustivo. never em default garante exaustividade.",
+        x: "type Result<T> = { status: 'ok'; data: T } | { status: 'error'; message: string }. Narrowing: if(r.status === 'ok') r.data; else r.message. Intersection: type PaginatedResponse<T> = ApiResponse & { items: T[]; total: number }. Utility types: Partial<T> (todos opcionais), Required<T>, Pick<T, 'a'|'b'>, Omit<T, 'senha'>.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são template literal types em TypeScript e quais padrões permitem expressar?",
+        o: [
+          "Tipos construídos combinando string literals com interpolacão de tipos em compile-time; permitem expressar padrões como EventNames, CSS properties e API routes com type-safety total",
+          "Strings de template com tipos genéricos usadas somente em runtime",
+          "Funções que retornam strings de template; equivalem a template literals do JS com tipos",
+          "Apenas documentam o formato esperado sem verificacão de tipo efetiva",
+        ],
+        c: 0,
+        e: "type EventName = `on${Capitalize<string>}`; // onLoad, onClick... type CSSunit = `${number}px` | `${number}%` | `${number}rem`. Combinação: type Direction = 'left'|'right'|'top'|'bottom'; type Padding = `padding-${Direction}` — 4 strings. Inferrência com infer: type ExtractId<T> = T extends `${infer K}_id` ? K : never. Mapped + template: { [K in `get${string}`]: ... }.",
+        x: "API type-safe: type Route = '/users' | '/users/:id' | '/posts'. type ApiGet = `GET ${Route}`. Emit events type-safe: type Emitter<T extends string> = { on(event: `${T}Changed`, cb: () => void): void }. Prisma usa template literal types para gerar tipos de queries. Deriveção automática: type GettersFor<T> = { [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K] }.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o TypeScript type system sound vs unsound e por que ele aceita algumas inseguranças por design?",
+        o: [
+          "TypeScript é unsound por design (prioriza ergonomia): bivariance de métodos de classe, type assertions, any, enums não nominais; troca soundness total por usabilidade prática em codebases JS existentes",
+          "TypeScript é completamente sound; qualquer erro de runtime indica bug no programa, não no type system",
+          "Soundness é garantida pelo strict mode; sem strict o sistema é unsound por omissão",
+          "Unsound apenas para tipos primitivos; objetos e classes são sempre sound",
+        ],
+        c: 0,
+        e: "Sound type system: se compila sem erros, nenhum runtime type error. TypeScript documentou escolher unsoundness em alguns pontos: bivariant method parameters (para compatibilidade com callbacks), type assertion (as T) bypassa checks, any disabilita tudo, function parameter bivariance em métodos de classe. Razão: JS é dinâmico; 100% soundness tornaria muitos padrões JS impossíveis de tipar. Haskell, Elm: sound. Typescript, Flow: unsound por design.",
+        x: "Bivariance de método: class Animal { speak(a: Animal) {} } class Dog extends Animal { speak(d: Dog) {} }. TypeScript aceita (unsound): Dog pode ser atribuído a Animal mesmo que speak espere Dog mais restrito. strictFunctionTypes (strict): corrige para types de função mas não para métodos de classe (retrocompat). (x as any as OutroType): force cast total. Esses pontos geram runtime errors reais.",
+      },
+    ],
+  },
+};
+
+function mergeLangBankRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  ...extras: Record<string, Record<UserLevel, SeedCard[]>>[]
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const result: Record<string, Record<UserLevel, SeedCard[]>> = {};
+  for (const cat of Object.keys(base)) {
+    result[cat] = {} as Record<UserLevel, SeedCard[]>;
+    for (const level of ["Fácil", "Médio", "Difícil"] as UserLevel[]) {
+      const baseCards = base[cat]?.[level] ?? [];
+      const seen = new Set(baseCards.map((c) => c.q.trim().toLowerCase()));
+      const merged = [...baseCards];
+      for (const extra of extras) {
+        for (const card of extra[cat]?.[level] ?? []) {
+          if (!seen.has(card.q.trim().toLowerCase())) {
+            seen.add(card.q.trim().toLowerCase());
+            merged.push(card);
+          }
+        }
+      }
+      result[cat][level] = merged;
+    }
+  }
+  return result;
+}
+
+export const linguagensBank = mergeLangBankRounds(
+  linguagensBankBase,
+  linguagensRound1Extras,
+);

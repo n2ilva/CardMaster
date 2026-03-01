@@ -4,7 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Português · 12 categorias × 3 níveis × 7 questões (rodada 4/30) ───
 
-export const portuguesBank: Record<string, Record<UserLevel, SeedCard[]>> = {
+const portuguesBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── Acentuação Gráfica ──
   "Acentuação Gráfica": {
     Fácil: [
@@ -2879,3 +2879,561 @@ export const portuguesBank: Record<string, Record<UserLevel, SeedCard[]>> = {
     ],
   },
 };
+
+// ─── Round 1 · +1 questão por nível por categoria ───
+
+const portuguesRound1Extras: Record<string, Record<UserLevel, SeedCard[]>> = {
+  "Acentuação Gráfica": {
+    Fácil: [
+      {
+        q: "Por que a palavra 'herói' perde o acento no novo Acordo Ortográfico?",
+        o: [
+          "Pela regra do hiato: encontros vocálicos 'oi', 'ei' tônicos em palavras paroxítonas deixam de ser acentuados após o Acordo de 1990/2009",
+          "Porque 'herói' passou a ser palavra oxítona",
+          "Porque ditongos nunca são acentuados no português",
+          "O h inicial suprime o acento por regra especial",
+        ],
+        c: 0,
+        e: "Acordo Ortográfico de 1990 (vigente no Brasil desde 2009): ditongos abertos 'éi', 'ói' em palavras paroxítonas (acento na penúltima sílaba) perderam o acento. Herói (oxítona) manteve. Assembléia, ideia, jiboia — sem acento. Herói: oxitona, é conservado pois regra só suprime em paroxítonas.",
+        x: "Antes: assembléia, ideia, plateia, heróis (paroxítona). Após 2009: assembleia, ideia, plateia — sem acento. Herói (oxítona) e país (hiato) mantiveram acento. Regra geral: acento diferencial também eliminou: pôr/por, pêle/pele, pêlo/pelo — acento diferencial suprimido.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual das palavras a seguir está acentuada corretamente segundo a norma vigente?",
+        o: ["idôneo", "Idôneo", "idôneo", "idóeno"],
+        c: 0,
+        e: "'Idôneo' está correta. Palavra proparoxítona (acento na antepenúltima sílaba): i-DÔ-ne-o. Todas as proparoxítonas são acentuadas obrigatoriamente. 'ô' é a vogal tônica correta; 'idoeno' incorreto.",
+        x: "Proparoxítonas: sempre acentuadas. Idôneo, médico, equívoco, índice. Paroxítonas terminadas em L, N, R, X, PS, ã(s), ão(s), ditongo: acentuadas. Oxítonas terminadas em A(s), E(s), O(s), EM, ENS: acentuadas.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Em qual das alternativas todos os vocábulos são acentuados por regras diferentes?",
+        o: [
+          "Café (oxítona), árido (proparoxítona), lápis (paroxítona term. 's')",
+          "Café (oxítona), líder (oxítona), médico (proparoxítona)",
+          "éramos (proparoxítona), pensão (ditongo), árido (proparoxítona)",
+          "Saúde (hiato), pá (oxítona term. a), médico (proparoxítona)",
+        ],
+        c: 0,
+        e: "Café: oxítona terminada em E. Árido: proparoxítona. Lápis: paroxítona terminada em S precedida de vogal. Três regras distintas. Opção B: 'líder' é paroxítona, não oxítona; regra B repete duas oxítonas.",
+        x: "Café: oxítona (acento na última), termina em E. Árido: proparoxítona, sempre acentuada. Lápis: paroxítona terminada em S precedido de vogal — regra de paroxítona. Identificá-las separadamente é fundamental para prova de acentuação.",
+      },
+    ],
+  },
+  "Classes de Palavras": {
+    Fácil: [
+      {
+        q: "Na frase 'Ele correu rapidamente', qual a classe gramatical de 'rapidamente'?",
+        o: [
+          "Advérbio de modo",
+          "Adjetivo",
+          "Locução adverbial",
+          "Predicativo do sujeito",
+        ],
+        c: 0,
+        e: "Advérbios de modo geralmente terminam em '-mente'. Modificam o verbo 'correu' indicando como a ação aconteceu. Adjetivos modificam substantivos; aqui não modifica substantivo.",
+        x: "Rapidamente: advérbio de modo. Outros modos: bem, mal, assim, devagar. 'Correu rápido': rápido como predicativo do sujeito (informal) ou advérbio de modo. '-mente' = morfema de advérbio em português.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Em 'Comprei três livros interessantes', identifique corretamente as classes de 'três' e 'interessantes'.",
+        o: [
+          "Numeral cardinal e adjetivo qualificativo",
+          "Adjetivo e substantivo",
+          "Pronome e adjetivo",
+          "Numeral e substantivo",
+        ],
+        c: 0,
+        e: "'Três': numeral cardinal (quantidade exata). 'Interessantes': adjetivo qualificativo (atribui qualidade ao substantivo 'livros'). Numerais quantificam; adjetivos qualificam ou determinam.",
+        x: "Numerais: um, dois, três... (cardinais); primeiro, segundo... (ordinais); dobro, triplo... (multiplicativos); metade, terço... (fracionários). Adjetivos qualificativos: belo, inteligente, interessante.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual a função sintática de 'que' em 'Não foi ela que disse isso'?",
+        o: [
+          "Pronome relativo exercendo função de sujeito da oração subordinada adjetiva",
+          "Conjunção integrante introduzindo oração substantiva",
+          "Pronome interrogativo",
+          "Partícula de realce (expletivo) sem função sintática",
+        ],
+        c: 0,
+        e: "'que disse isso' é oração subordinada adjetiva restritiva (caracteriza 'ela'). 'que' = pronome relativo retomando 'ela', exercendo função de sujeito de 'disse'. Conjunção integrante 'que' introduz orações substantivas e não tem função sintática própria.",
+        x: "'Não foi ela que disse isso': construção clivada (ênfase). 'ela' = antecedente de 'que'. 'que disse isso' = adjetiva. 'que' = sujeito de 'disse'. Compare: 'Acredito que ela disse' → 'que' = conjunção integrante (subst. objetiva).",
+      },
+    ],
+  },
+  "Coesão e Coerência Textual": {
+    Fácil: [
+      {
+        q: "Qual é a função do conector 'portanto' no texto?",
+        o: [
+          "Indicar conclusão ou consequência do que foi dito anteriormente",
+          "Introduzir uma oposição ou contraste",
+          "Explicar a causa de um evento",
+          "Indicar condição para o evento seguinte",
+        ],
+        c: 0,
+        e: "'Portanto' é conjunção conclusiva: conecta uma conclusão (ou consequência lógica) ao argumento anterior. Oposição: mas, porém, contudo. Causalidade: pois, porque, já que. Condição: se, caso.",
+        x: "'Estudou muito; portanto, passou.' Portanto: logo, assim, consequentemente, por isso. Coerentes no texto: o conector 'portanto' exige que a oração anterior justifique a conclusão. Erro: 'choveu; portanto, fez sol' — incoerente.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que caracteriza a progressão temática referencial como mecanismo de coesão textual?",
+        o: [
+          "Retomada de elementos já mencionados no texto por meio de pronomes, sinônimos ou expressões nominais, garantindo continuação sem repetição caótica",
+          "Introdução de novas informações sem relação com o contexto anterior",
+          "Uso exclusivo de pronomes pessoais para substituir todos os substantivos",
+          "Repetição sistemática do mesmo substantivo para reforçar a coerência",
+        ],
+        c: 0,
+        e: "Coesão referencial: anáfora (retomada) e catáfora (antecipação). 'Pedro chegou. Ele estava cansado.' — 'Ele' retoma 'Pedro' (anáfora pronominal). Expressão nominal: 'O presidente discursou. O líder do governo apontou...' (sinônimo contextual). Sem coesão: repetição excessiva ou ref. ambígua.",
+        x: "Correferentes: pronome, sinônimo, hiperônimo, expressão nominal. 'Ana chegou. A professora (sinônimo contextual) sentou-se.' Coesão sequencial: conectores lógicos (portanto, mas, pois). Coerência: organização lógica do conteúdo. Um texto pode ser coeso mas incoerente.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual é o recurso de coesão em 'Os cientistas estudaram o fenômeno. O estudo revelou...'?",
+        o: [
+          "Encapsulação por substantivo abstrato (nominalização anafórica): 'o estudo' retoma toda a proposição 'estudaram o fenômeno'",
+          "Anáfora pronominal (substituição por pronome)",
+          "Catáfora: 'o estudo' antecipa o que será dito",
+          "Coesão lexical por repetição do mesmo campo semântico",
+        ],
+        c: 0,
+        e: "Encapsulação (Francis, 1994): sintagma nominal que retoma porção anterior do texto transformando-a em entidade. 'os cientistas estudaram' → 'o estudo' nominaliza e encapsula a ação. Difere de anáfora pronominal (pronome substitui substantivo) e repetição lexical.",
+        x: "Outros encapsulamentos: 'A empresa anunciou demissões. A decisão gerou protestos.' ('a decisão' encapsula o anúncio). Nominalização progressiva: condensar argumentos em nomes para depois referenciá-los. Recurso intenso em textos acadêmicos e jornalísticos.",
+      },
+    ],
+  },
+  "Compreensão e Interpretação de Texto": {
+    Fácil: [
+      {
+        q: "O que significa 'inferir' na leitura de um texto?",
+        o: [
+          "Deduzir informações implícitas a partir do contexto e de conhecimento prévio, não dito explicitamente",
+          "Localizar informações explícitas presentes literalmente no texto",
+          "Criticar o ponto de vista do autor",
+          "Identificar a estrutura gramatical das frases",
+        ],
+        c: 0,
+        e: "Inferência: leitura nas entrelinhas. O leitor vai além do que está escrito usando pistas textuais + contexto + conhecimento de mundo. 'João entrou no hospital com gesso no braço.' → inferência: ele quebrou o braço (não dito).",
+        x: "Explicitamente dito: 'O texto trata de clima.' Inferido: tom, atitude do autor, causa e efeito implícito. Níveis de leitura: denotativo (literal), conotativo (figurado), inferencial. Prova distingue: 'de acordo com o texto' (explícito) vs 'conclui-se que' (inferência).",
+      },
+    ],
+    Médio: [
+      {
+        q: "A pressuposi\u00e7\u00e3o em 'Jo\u00e3o parou de fumar' implica que:",
+        o: [
+          "João fumava antes (pressuposto)",
+          "João começou a fumar",
+          "João nunca fumou",
+          "Não há inferência possível",
+        ],
+        c: 0,
+        e: "Pressuposi\u00e7\u00e3o: informa\u00e7\u00e3o dada como verdadeira na frase. 'Parou de fumar' pressupõe 'estava fumando'. Subentendidos são diferentes (interpretados, não garantidos). Teste da negação: 'João não parou de fumar' — pressuposto persiste: ainda implica que fumava.",
+        x: "'João já voltou de Paris' → pressup: esteve em Paris. 'O rei da França é careca' → pressup: existe rei da França (falso — pressuposi\u00e7\u00e3o de exist\u00eancia). Importante em interpretação de textos argumentativos e jur\u00eddicos.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual o recurso argumentativo de um texto que apresenta a tese do adversário antes de refutá-la?",
+        o: [
+          "Concessão: reconhecer o ponto de vista oposto para depois contrastá-lo com argumento mais forte",
+          "Exemplificação: usar caso concreto para ilustrar a tese",
+          "Generalização indevida: aplicar caso particular como regra universal",
+          "Argumento de autoridade: citar especialista para validar a tese",
+        ],
+        c: 0,
+        e: "Concessão argumentativa: 'Embora a tecnologia facilite o isolamento, ela também aproxima pessoas distantes.' Primeiro admite o ponto adversário ('facilita o isolamento') e depois apresenta argumento mais forte ('também aproxima'). Conectores de concessão: embora, ainda que, conquanto.",
+        x: "Estrutura: 'Certamente... No entanto / Todavia... Portanto'. Concessão persuade mais que negação direta pois mostra fairness. Exemplificação: 'Como ocorreu na pandemia...'. Argumento de autoridade: 'Segundo o cientista X...'. Generalização: 'Todo político é corrupto' — falácia.",
+      },
+    ],
+  },
+  "Concordância Nominal e Verbal": {
+    Fácil: [
+      {
+        q: "Qual a forma verbal correta para 'A maioria dos alunos ___ presente'?",
+        o: [
+          "esteve (concordância com o núcleo 'maioria' — singular)",
+          "estiveram (concordância com 'alunos' — plural)",
+          "Ambas são corretas",
+          "Não há forma correta",
+        ],
+        c: 2,
+        e: "Com substantivos coletivos (maioria, parte, metade), a concordância pode ser com o núcleo (singular: 'esteve') ou com o complemento (plural: 'estiveram'). Ambas são aceitas pela gramática normativa.",
+        x: "'A maioria dos alunos faltou.' (singular — com núcleo). 'A maioria dos alunos faltaram.' (plural — com complemento). Banca FCC costuma aceitar ambas; preferência pelo singular em contextos formais.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Em 'São proibidos qualquer tipo de arma', há erro de concordância? Corrija se necessário.",
+        o: [
+          "Sim; correto: 'É proibido qualquer tipo de arma' (VB concorda com 'tipo', núcleo do sujeito)",
+          "Não; 'armas' no plural exige o plural do verbo",
+          "Sim; correto: 'São proibidas quaisquer armas'",
+          "Não; qualquer tipo de pluraliza o verbo",
+        ],
+        c: 0,
+        e: "Sujeito: 'qualquer tipo de arma'. Núcleo do sujeito: 'tipo' (singular). VB concordar com núcleo: é proibido. 'São proibidos' concorda erroneamente com elementos sem essa justificativa gramatical.",
+        x: "'Qualquer tipo de arma é proibido.' Concordância com núcleo 'tipo' (singular). Erro frequente: atrair o verbo para o número do complemento mais próximo. ABN: 'Nenhum tipo de bebida é recomendado.'",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Em 'Você e eu precisamos conversar', o verbo está correto? Por quê?",
+        o: [
+          "Sim; sujeito composto com 'eu' como um dos núcleos exige verbo na 1ª pessoa do plural",
+          "Não; deveria ser 'precisa' concordando com o núcleo mais próximo",
+          "Não; deveria ser 'precisam' pois o sujeito é de 3ª pessoa",
+          "Sim; qualquer pessoa pode ser usada com sujeito composto",
+        ],
+        c: 0,
+        e: "Sujeito composto com diferentes pessoas verbais: quando há 'eu' entre os núcleos, o verbo vai para a 1ª pessoa do plural (nós). 'Você e eu' = nós → 'precisamos'. Regra: 1ª > 2ª > 3ª pessoa.",
+        x: "'Ele, tu e eu iremos' → 'nós iremos'. 'Ela e você foram' → 3ª (sem 1ª nem 2ª). Hierarquia de pessoas: 1ª domina. 'Tu e ela sois/são' → plural da 2ª ou 3ª.",
+      },
+    ],
+  },
+  Crase: {
+    Fácil: [
+      {
+        q: "Ocorre crase em 'Fui ___ escola'?",
+        o: [
+          "Sim: 'Fui à escola' (prepos. 'a' + artigo 'a' = à, pois 'escola' aceita artigo feminino)",
+          "Não: substantivo feminino não exige artigo definido após verbos de movimento",
+          "Depende do contexto; apenas em linguagem formal",
+          "Não: antes de vogal nunca há crase",
+        ],
+        c: 0,
+        e: "Crase: fusão da preposição 'a' com o artigo definido feminino 'a'. Teste: substitua por substantivo masculino. 'Fui ao (a+o) colégio' → 'ao' → crase na feminina. 'Fui à escola' ✓.",
+        x: "Teste pronominal: 'Fui à escola' → 'Fui a ela' — confirma crase. Sem crase: antes de verbo ('começou a correr'), antes de pronome que não admita artigo definido. Facultativo: 'Vou a/à sua casa' (pronome possessivo).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Em qual frase a crase é obrigatória?",
+        o: [
+          "'Cheguei à conclusão certa.' (locução verbal + subst. feminino com artigo)",
+          "'Enviou cartas a diversas empresas.' (plural sem artigo definido)",
+          "'Assistiu a excelente filme.' (sem artigo antes de 'excelente')",
+          "'Correu a perder de vista.' (modo adverbial com artigo fem. opcional)",
+        ],
+        c: 0,
+        e: "'Cheguei à conclusão' = a+a: verbo 'chegar' exige preposição 'a', 'conclusão' admite artigo 'a' → crase obrigatória. 'A diversas empresas': antes de plural com artigo indeterminado — sem crase.",
+        x: "Obrigatória: verbos de movimento/ating. + subst. fem. com artigo. Locuções: às vezes, à medida que, à vista. Facultativa: 'Escrevo a/à Mariana.' Proibida: antes de masculino, antes de verbo, antes de pronome sem artigo.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Em 'À medida que crescia, aprendia mais', a crase ocorre porque:",
+        o: [
+          "'À medida que' é locução conjuntiva proporcional que exige artigo feminino antes de 'medida'; preposição+artigo = à",
+          "'Medida' é substantivo feminino qualquer e o verbo rege preposição 'a'",
+          "Há crase facultativa em locuções adverbiais femininas",
+          "A crase ocorre por eufonia antes de vogal",
+        ],
+        c: 0,
+        e: "'À medida que' é locução conjuntiva proporcional fixa: a + medida + que. 'Medida' recebe artigo definido por ser nome feminino usado com preposição. Não confundir com 'na medida em que' (causa, sem crase).",
+        x: "'À medida que' = proporção simultânea. 'Na medida em que' = causa. São expressões diferentes. Erro usual: 'a medida que' (sem acento) = errado nestas locuções consolidadas.",
+      },
+    ],
+  },
+  "Figuras de Linguagem": {
+    Fácil: [
+      {
+        q: "Em 'As ondas cantavam na praia', qual figura de linguagem está presente?",
+        o: [
+          "Personificação (prosopopeia): atribui ação humana ('cantavam') a ser inanimado (ondas)",
+          "Metáfora: comparação implícita sem 'como'",
+          "Hipérbole: exagero para ênfase",
+          "Eufemismo: suavização de ideia desagradável",
+        ],
+        c: 0,
+        e: "Personificação/Prosopopeia: atribuição de características humanas a seres inanimados, animais ou abstratos. 'Ondas cantavam': ondas não cantam literalmente. Difere da metáfora que apenas compara implicitamente sem atribuir ação humana.",
+        x: "Outros exemplos: 'O vento suspirava.', 'A natureza chora.' Metáfora: 'A vida é uma viagem' (comparação implícita). Símile: 'A vida é como uma viagem'. Hipérbole: 'Tenho um oceano de problemas.' Eufemismo: 'Ele nos deixou' (= morreu).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Identifique a figura de linguagem em 'Comprei o jornal ontem' (quando o leitor interpreta 'li o jornal').",
+        o: [
+          "Metonímia: uso do continente (jornal) pelo conteúdo (notícias/leitura)",
+          "Sinédoque: parte pelo todo",
+          "Metáfora: comparação implícita",
+          "Ironia: sentido contrário ao dito",
+        ],
+        c: 0,
+        e: "Metonímia: substituição por contiguidade (relação lógica: continente/conteúdo, causa/efeito, autor/obra). 'Comprei o jornal' para 'li o jornal': continente pelo conteúdo. 'Ler Machado de Assis' = obra pelo autor. Sinédoque: substituição por inclusão (parte/todo, gênero/espécie).",
+        x: "Metonímia exemplos: 'Beber um copo' (continente), 'Ganhou o pão' (alimento = trabalho). Sinédoque: 'Comprou um Ford' (marca pelo carro). Metáfora: 'Ela é um anjinho.' Ironia: 'Que bela palestra!' (entediante).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "'Não é feio o que é belo; é belo o que é feio' é exemplo de qual figura de construção?",
+        o: [
+          "Quiasmo: inversão simétrica dos elementos numa segunda proposição (padrão A-B / B-A)",
+          "Antítese: oposição de ideias",
+          "Paralelismo: repetição de estruturas sem inversão",
+          "Anacoluto: quebra da estrutura sintática",
+        ],
+        c: 0,
+        e: "Quiasmo: figura de construção em que os termos de uma proposição se repetem na seguinte em ordem invertida (AB|BA). Origem: letra grega Qui (X). 'feio-belo / belo-feio'. Difere da antítese que apenas contrasta sem inverter estrutura.",
+        x: "'Um por todos, todos por um' (quiasmo). Camões usa o quiasmo para criar paralelismo invertido. Quiasmo pode ser sintático, semântico ou fonético. Antítese: 'O Amor é fogo que arde sem ver'; quiasmo = é estruturalmente simétrico e invertido.",
+      },
+    ],
+  },
+  Ortografia: {
+    Fácil: [
+      {
+        q: "Qual a grafia correta: 'encerrar' ou 'inserrar'?",
+        o: [
+          "'Encerrar' — prefixo en- + cerrar; 'inserrar' não existe",
+          "'Inserrar' — prefixo in- + serrar",
+          "Ambas corretas com significados distintos",
+          "'En-serrar' com hífen após prefixo em consoantal",
+        ],
+        c: 0,
+        e: "'Encerrar': en- + cerrar = fechar completamente. Não há 'inserrar'. Prefixo en-/em- antes de b/p: 'embrulhar', 'empapar'. en- antes de outras consoantes: encerrar, encontrar.",
+        x: "Encerrar: fechar (encerrou a reunião). Outros com en-: encher, enriquecer, encontro. Erros comuns: 'incerrar' (errado), 'en-cerrar' (hífen desnecessário). Regra prefixos in-/en-: in- = negação (incapaz); en-/em- = ação (embalar).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual a grafia correta do grupo de palavras apresentado?",
+        o: [
+          "Descreditar, discriminar, desculpa",
+          "Desacreditar, desstampar, descriminar",
+          "Dezacordo, descobrir, descrever",
+          "Descreditar, disscriminar, desculpa",
+        ],
+        c: 0,
+        e: "Descreditar (des+creditar — retirar crédito), discriminar (dis+criminar), desculpa (des+culpa). Dezacordo: incorreto; correto=desacordo. Discriminar = diferenciar; descriminar = retirar criminalização (ambas existem com significados distintos).",
+        x: "Discriminar (dis- + criminare): distinguir, separar com preconceito. Descriminar (des- + criminar): inocentar de crime. Regra: des- antes de vogal = des+; antes de s = dis: 'dissuadir', 'dissabor'.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Após o acordo ortográfico de 2009, quando se usa hífen em palavras formadas com 're-'?",
+        o: [
+          "Não se usa hífen com 're-' quando o elemento seguinte começa por consoante diferente de 'h' ou 'r'; usa-se hífen apenas antes de 'r' (re-resolver) e 'h' (re-hidratar)",
+          "Usa-se sempre hífen após 're-' antes de qualquer vogal",
+          "Nunca se usa hífen com o prefixo 're-'",
+          "Hífen obrigatório quando o radical começa por vogal idêntica ao prefixo",
+        ],
+        c: 0,
+        e: "Regra pós-acordo 2009: hífen com 're-' somente antes de 'h' (re-hidratar) e 'r' (re-resolver, re-regredir). Antes de vogal diferente: reeleger, reeleicão (sem hífen no Brasil). Antes de consoante: retornar (sem hífen).",
+        x: "Reeleição (sem hífen, Brasil). Re-hidratar: hífen antes de 'h' mudo. Re-resolver: hífen antes de r. Regra geral prefixos: hífen antes de r, h; sem hífen antes de vogais e consoantes. Pós-2009 reforma simplificou muitas regras.",
+      },
+    ],
+  },
+  Pontuação: {
+    Fácil: [
+      {
+        q: "Quando deve ser usada a vírgula entre sujeito e predicado?",
+        o: [
+          "Nunca; separar sujeito do predicado com vírgula é erro gramatical",
+          "Sempre que o sujeito for longo",
+          "Quando o predicado começar por verbo de ligação",
+          "Quando há adjunto adverbial antes do predicado",
+        ],
+        c: 0,
+        e: "Regra: NÃO se usa vírgula entre sujeito e verbo (predicado). '* O aluno, estudou muito' — errado. Exceções aparentes: vírgula por intercalação de adjunto adverbial ou aposto entre S e V: 'O aluno, cansado, dormiu.' — as vírgulas delimitam o adjunto/aposto.",
+        x: "Errado: 'O mercado, fechou cedo.' Correto: 'O mercado fechou cedo.' Com adjunto intercalado: 'O mercado, inesperadamente, fechou cedo.' Aposto: 'Paulo, meu amigo, chegou.'",
+      },
+    ],
+    Médio: [
+      {
+        q: "O uso do ponto e vírgula em 'Aprendeu teoria; praticou exercícios; passou na prova' é correto? Por quê?",
+        o: [
+          "Sim; separa orações coordenadas justapostas de conteúdo paralelo, indicando pausa intermediária entre vírgula e ponto",
+          "Não; deveria ser vírgula em todos os casos",
+          "Não; o ponto e vírgula é usado somente em listas de itens numerados",
+          "Sim; obrigatório entre todas as orações coordenadas",
+        ],
+        c: 0,
+        e: "Ponto e vírgula: pausa intermediária entre vírgula e ponto. Separa orações coordenadas longas ou com relação paralela de conteúdo. Também usado em listas com itens complexos. Não obrigatório entre todas as coordenadas.",
+        x: "Paralelo: 'Quem muito fala, muito erra; quem muito erra, muito aprende; quem muito aprende, muito sabe.' Ponto e vírgula em listas: quando cada item tem vírgula interna. Vírgula seria insuficiente para distinguir os níveis.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual o efeito de sentido ao usar reticências em 'Eu ia dizer algo, mas...'?",
+        o: [
+          "Suspensão do pensamento: indica hesitação, incompletude, ideia subentendida ou emoção contida",
+          "Indica citação abreviada de texto original",
+          "Marca o fim de uma enumeração exaustiva",
+          "Corresponde a ponto final em estilo informal",
+        ],
+        c: 0,
+        e: "Reticências: indicam suspensão do pensamento (interrupção), hesitação, ideia implícita (subentendido), emoção (lágrimas, timidez). Também: enumeração incompleta ('Comprei pão, leite, ovos...'). Citação com supressão: [...] usa colchetes em textos acadêmicos.",
+        x: "'Eu ia dizer algo, mas...' — o leitor infere o conteúdo omitido (recurso retórico). Machado de Assis utilizava para subentendidos maliciosos. Ponto final: certeza; reticências: dúvida ou suspensão.",
+      },
+    ],
+  },
+  "Redação Oficial": {
+    Fácil: [
+      {
+        q: "O que é o Manual de Redação da Presidência da República (MRPR) e qual seu papel na comunicação oficial?",
+        o: [
+          "Guia normativo que padroniza a linguagem, formato e tratamento das comunicações oficiais do poder público federal",
+          "Livro de gramática escolar adotado nas repartições públicas",
+          "Coletânea de modelos de contratos adotados pelo governo federal",
+          "Lei que define as penas por má redação oficial",
+        ],
+        c: 0,
+        e: "MRPR (3ª edição, 2018): normatiza comunicação oficial federal. Características: clareza, concisão, impessoalidade, uso do padrão culto, formalidade. Define: ofício, exposição de motivos, mensagem presidencial.",
+        x: "Principal mudança 2018: extingiu o 'memo', unificando em 'ofício' a maioria das comunicações. Tratamentos: 'Vossa Excelência' (Pres. Rep., Congresso, STF), 'Vossa Senhoria' (demais). Impessoalidade: não usar 1ª pessoa do singular.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual tratamento é correto para um documento dirigido a um deputado federal?",
+        o: [
+          "Vossa Excelência (V. Exa.): deputados e senadores recebem esse tratamento por serem membros do Poder Legislativo",
+          "Vossa Senhoria (V. S.): tratamento para cargos de alto escalão",
+          "Ilustríssimo Senhor: tratamento adequado para todos os parlamentares",
+          "Doutor: se ele tiver diploma universitário",
+        ],
+        c: 0,
+        e: "MRPR: Vossa Excelência (V. Exa.) para: Presidente e Vice da República, Ministros, Governadores, Prefeitos, Senadores, Deputados Federais e Estaduais, Presidente e membros do STF, Embaixadores. Vossa Senhoria: demais autoridades.",
+        x: "V. Exa. vs V. S.ª: não há graduação por grau acadêmico. 'Doutor' não é tratamento oficial no MRPR exceto em contextos médicos. 'Ilustríssimo': era usado antes do MRPR atual; hoje não recomendado.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual é a diferença entre ofício, memorando e circular segundo a redação oficial atual?",
+        o: [
+          "Após o MRPR 2018, o memorando foi extinto e o ofício unifica a comunicação inter e extra-órgãos; circular é ofício dirigido a múltiplos destinatários",
+          "Memorando: externo; ofício: interno; circular: confidencial",
+          "Todos são sinônimos; a denominação varia por área",
+          "Memorando persiste para comunicação informal interna",
+        ],
+        c: 0,
+        e: "MRPR 3ª ed. (2018): unificou 'memo' e 'ofício' em 'ofício'. Ofício: comunicação oficial entre órgãos ou com particulares. Circular: ofício com mesmo teor enviado a vários destinatários. Exposição de motivos: Ministro → Presidente. Mensagem: Pres. → Congresso.",
+        x: "Elementos do ofício atual: Identificação da unidade, número, data, destinatário, assunto, texto (intro, desenvolvimento, conclusão), fecho ('Atenciosamente' para autoridades de mesma ou menor patente; 'Respeitosamente' para superiores).",
+      },
+    ],
+  },
+  "Regência Nominal e Verbal": {
+    Fácil: [
+      {
+        q: "Qual a regência correta do verbo 'assistir' no sentido de 'ver'?",
+        o: [
+          "Assistir a algo: exige preposição 'a' (verbo transitivo indireto)",
+          "Assistir algo: transitivo direto sem preposição",
+          "Ambas corretas; a preposição é facultativa",
+          "Assistir com: preposição 'com' no sentido de observar",
+        ],
+        c: 0,
+        e: "'Assistir a' (sentido de ver/presenciar): transitivo indireto. 'Assisti ao jogo / Assisti ao filme.' No sentido de 'prestar assistência': também transitivo indireto. No sentido de 'caber direito': 'Assiste-lhe esse direito.'",
+        x: "'Assisti ao espetáculo.' (correto). '*Assisti o espetáculo.' (errado na norma). Popularmente: 'assisti o filme' é comum; na norma culta requer 'a'. Outros regidos com 'a': obedecer a, responder a, resistir a, aspirar a.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Em 'Ele informou os funcionários sobre as mudanças', 'informou' está correto?",
+        o: [
+          "Sim; 'informar alguém sobre algo' é regência padrão aceita (bitransitivo: OD de pessoa + complemento com 'sobre')",
+          "Não; deveria ser 'informou aos funcionários'",
+          "Não; 'sobre' deve ser substituído por 'a respeito de'",
+          "Sim; qualquer preposição é válida após 'informar'",
+        ],
+        c: 0,
+        e: "'Informar' admite duas construções: (1) 'informar alguém de/sobre algo' — OD de pessoa + adj adv; (2) 'informar algo a alguém' — OD de coisa + OI de pessoa. Ambas são gramaticalmente corretas.",
+        x: "Bitransitividade: 'Informou a diretoria das decisões' (OI + de). 'Informou as decisões à diretoria' (OD + OI). Regência nominal: 'consciente de', 'capaz de', 'compatível com', 'análogo a'. Regência nominal exige a preposição correta.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "'Aonde você vai?' vs 'Onde você estava?': qual a regra para uso de 'aonde' vs 'onde'?",
+        o: [
+          "'Aonde' = a+onde, usado com verbos que indicam movimento/destino (ir, chegar, voltar); 'onde' para verbos de posição/estado (estar, ficar, morar)",
+          "São sinônimos; a escolha é apenas estilística",
+          "'Aonde' para lugares fechados; 'onde' para exteriores",
+          "'Onde' = lugar concreto; 'aonde' = lugar abstrato",
+        ],
+        c: 0,
+        e: "'Aonde' = a + onde: indica destino, movimento. Verbos de movimento pedem preposição 'a' = funde com 'onde'. 'Aonde você vai?'. 'Onde': sem preposição embutida. 'Onde você está?'. Teste: substituir por 'a que lugar' (aonde) vs 'em que lugar' (onde).",
+        x: "'Onde' com verbo de estado: 'Onde está a chave?' = Em que lugar. 'Aonde' com verbo de movimento: 'Aonde você foi?' = A que lugar. Na fala coloquial: 'onde' substitui 'aonde'; na escrita formal, distinguir.",
+      },
+    ],
+  },
+  "Sintaxe do Período Composto": {
+    Fácil: [
+      {
+        q: "O que são orações coordenadas e como se classificam?",
+        o: [
+          "Orações independentes entre si (sem hierarquia); classificadas em: assindéticas (sem conjunção) e sindéticas (com conjunção: aditiva, adversativa, alternativa, conclusiva, explicativa)",
+          "Orações dependentes de uma principal, classificadas em substantivas e adjetivas",
+          "Orações introduzidas sempre por 'que' ou 'se'",
+          "Juntas formam só um sujeito e um predicado compartilhados",
+        ],
+        c: 0,
+        e: "Coordenadas: mesma hierarquia, podem existir independentemente. Assindética: 'Chegou, sentou, calou.' Sindéticas aditiva: 'e', 'nem'; adversativa: 'mas', 'porém'; alternativa: 'ou...ou'; conclusiva: 'logo', 'portanto'; explicativa: 'pois', 'porque'.",
+        x: "'Estudei muito, porém não passei.' (adversativa). 'Estudei e dormi.' (aditiva). 'Não comeu, logo estava cheio.' (conclusiva). 'Não chore, pois tudo passa.' (explicativa). Subordinadas: dependentes de outra.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Classifique a oração subordinada em 'Não sei quando ele vai chegar'.",
+        o: [
+          "Substantiva objetiva direta: objeto direto de 'sei'",
+          "Adverbial temporal: indica tempo",
+          "Adjetiva restritiva: restringe 'ele'",
+          "Substantiva subjetiva: sujeito de 'sei'",
+        ],
+        c: 0,
+        e: "'Quando ele vai chegar' = OD de 'sei' (sei o quê? = quando ele vai chegar). Substantiva objetiva direta. Não é adverbial temporal pois responde 'o quê' (OD), não 'quando'. 'Quando' aqui é conjunção integrante.",
+        x: "'Não sei quando/onde/por quê/se': substantivas OD. 'Vou quando ele chegar': adverbial temporal ('quando chegar' = circunstância de tempo). Teste: 'Não sei isso' → 'isso' = OD → substantiva obj. direta.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual a diferença entre oração subordinada adjetiva restritiva e explicativa?",
+        o: [
+          "Restritiva: delimita (restringe) o antecedente, sem vírgulas; explicativa: acrescenta informação acessória sobre o referente já determinado, entre vírgulas",
+          "Restritiva vem entre vírgulas; explicativa sem vírgulas",
+          "São nomenclaturas diferentes para o mesmo fenômeno",
+          "Restritiva só aparece após pronomes; explicativa após substantivos",
+        ],
+        c: 0,
+        e: "Restritiva: 'Os alunos que estudaram passaram.' (só os que estudaram = delimita o universo). Sem vírgulas. Explicativa: 'Os alunos, que estudaram, passaram.' (todos os alunos estudaram — acréscimo). Com vírgulas. A mudança de vírgula altera radicalmente o sentido.",
+        x: "'Os políticos que são corruptos devem ser afastados.' (restritiva — somente os corruptos). 'Os políticos, que são corruptos, devem ser afastados.' (explicativa — todos são corruptos). Em provas: presença/ausência de vírgulas antes de 'que' = pista da classificação.",
+      },
+    ],
+  },
+};
+
+function mergePortBankRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  ...extras: Record<string, Record<UserLevel, SeedCard[]>>[]
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const result: Record<string, Record<UserLevel, SeedCard[]>> = {};
+  for (const cat of Object.keys(base)) {
+    result[cat] = {} as Record<UserLevel, SeedCard[]>;
+    for (const level of ["Fácil", "Médio", "Difícil"] as UserLevel[]) {
+      const baseCards = base[cat]?.[level] ?? [];
+      const seen = new Set(baseCards.map((c) => c.q.trim().toLowerCase()));
+      const merged = [...baseCards];
+      for (const extra of extras) {
+        for (const card of extra[cat]?.[level] ?? []) {
+          if (!seen.has(card.q.trim().toLowerCase())) {
+            seen.add(card.q.trim().toLowerCase());
+            merged.push(card);
+          }
+        }
+      }
+      result[cat][level] = merged;
+    }
+  }
+  return result;
+}
+
+export const portuguesBank = mergePortBankRounds(
+  portuguesBankBase,
+  portuguesRound1Extras,
+);

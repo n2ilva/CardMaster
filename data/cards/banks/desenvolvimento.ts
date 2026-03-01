@@ -4,10 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Desenvolvimento · 12 categorias × 3 níveis × 7 questões (rodada 4/30) ───
 
-export const desenvolvimentoBank: Record<
-  string,
-  Record<UserLevel, SeedCard[]>
-> = {
+const desenvolvimentoBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── Algoritmos e Estruturas de Dados ──
   "Algoritmos e Estruturas de Dados": {
     Fácil: [
@@ -3052,3 +3049,1965 @@ export const desenvolvimentoBank: Record<
     ],
   },
 };
+
+// ─── Round 1 · +2 questões por nível por categoria ───
+
+const desenvolvimentoRound1Extras: Record<
+  string,
+  Record<UserLevel, SeedCard[]>
+> = {
+  "Algoritmos e Estruturas de Dados": {
+    Fácil: [
+      {
+        q: "O que é uma Tabela Hash (Hash Table) e qual é sua complexidade média de busca?",
+        o: [
+          "Estrutura que mapeia chaves para valores usando função hash; busca em O(1) em média",
+          "Árvore que ordena elementos; busca em O(log n)",
+          "Lista duplamente ligada com acesso indexado; busca em O(n)",
+          "Pilha com função de lookup; busca em O(1) sempre",
+        ],
+        c: 0,
+        e: "Hash Table usa uma função hash para converter a chave em um índice do array, permitindo acesso O(1) em média. Colisões (duas chaves mapeadas ao mesmo índice) são tratadas por encadeamento (linked list no slot) ou endereçamento aberto (probing).",
+        x: "Dicionário do Python é uma hash table. {'nome': 'Ana'} → hash('nome') = índice 42. dict['nome'] em O(1). No pior caso (todas as chaves colidem no mesmo slot) degrada para O(n), mas a função hash bem distribuída evita isso.",
+      },
+      {
+        q: "O que é recursão e qual a condição essencial para evitar stack overflow?",
+        o: [
+          "Função que chama a si mesma com subproblema menor; condição base (base case) interrompe a recursão",
+          "Laço que itera sobre uma coleção usando índice decrescente",
+          "Função que chama outra função em cadeia infinita",
+          "Algoritmo iterativo que usa pilha explícita para simular recursão",
+        ],
+        c: 0,
+        e: "Recursão: função chama a si mesma com um subproblema menor. A condição base é obrigatória — sem ela a função chama infinitamente até estourar a call stack (stack overflow). Cada chamada recursiva cria um novo frame na pilha de execução.",
+        x: "Fatorial: fatorial(0) = 1 (base), fatorial(n) = n * fatorial(n-1). fatorial(3) → 3 * fatorial(2) → 3 * 2 * fatorial(1) → 3 * 2 * 1 * fatorial(0) = 6. Sem a base fatorial(0)=1: chamaria para sempre.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o algoritmo QuickSort e por que seu pior caso é O(n²)?",
+        o: [
+          "Divide array pelo pivô recursivamente; O(n log n) médio mas O(n²) se pivô sempre é o menor/maior elemento (array já ordenado)",
+          "Ordena por inserção com complexidade O(n log n) em todos os casos",
+          "Usa heap para ordenar com O(n log n) garantido no pior caso",
+          "Ordena por contagem de frequências com O(n+k) sempre",
+        ],
+        c: 0,
+        e: "QuickSort escolhe um pivô, particiona o array (menores à esquerda, maiores à direita) e aplica recursão. Pior caso O(n²): pivô sempre é o menor ou maior elemento — partição desbalanceada (n-1 de um lado, 0 do outro). Mitigações: pivô aleatório, mediana de 3, 3-way partition para duplicatas. In-place, sem array extra.",
+        x: "Array já ordenado [1,2,3,4,5] com pivô sempre no início: 5 iterações de n, n-1, n-2... = O(n²). Solução: pivô aleatório; Python usa Timsort (hibrido merge+insertion) para evitar esse cenário. Caso médio: O(n log n) na prática.",
+      },
+      {
+        q: "O que é uma Min-Heap e como funciona a extração do mínimo?",
+        o: [
+          "Árvore binária completa onde cada pai ≤ filhos; raiz é sempre o mínimo; extração remove raiz, sobe último elemento e aplica sift-down em O(log n)",
+          "Array ordenado em ordem crescente com acesso O(1) ao menor",
+          "BST com balanceamento automático que garante mínimo na folha mais à esquerda",
+          "Fila circular onde o menor elemento fica sempre na frente",
+        ],
+        c: 0,
+        e: "Min-Heap: árvore binária completa (armazenada em array) onde pai ≤ filhos: raiz = mínimo global. Inserção: adiciona ao final e sobe (sift-up). Extração do mínimo: remove raiz, coloca último elemento na raiz e desce (sift-down comparando com filhos). Ambas operações: O(log n).",
+        x: "Priority Queue de tarefas urgentes: inserir(pagar_conta, p=1), inserir(tirar_lixo, p=5). extractMin() retorna pagar_conta. Dijkstra usa Min-Heap para sempre processar o vértice de menor distância acumulada. Python: heapq.heappush / heapq.heappop.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o algoritmo de Dijkstra e quais estruturas otimizam sua complexidade?",
+        o: [
+          "Caminho mais curto em grafos com pesos positivos; com Min-Heap (Priority Queue) atinge O((V+E) log V) em vez de O(V²) com array simples",
+          "Ordena grafos topologicamente usando pilha; O(V+E)",
+          "Encontra caminho mais longo em DAG using programação dinâmica; O(V²)",
+          "Busca em largura ponderada com fila simples; O(V+E)",
+        ],
+        c: 0,
+        e: "Dijkstra: inicializa dist[origem]=0, demais=∞. Extrai vértice de menor dist (Min-Heap), relaxa arestas. Arrays simples: O(V²). Min-Heap: O((V+E) log V). Não funciona com pesos negativos (usar Bellman-Ford). Para grafos densos (E≈V²), array simples pode ser tão bom quanto heap.",
+        x: "Mapa: SP→RJ=400, SP→BH=600, RJ→BH=350. Dijkstra de SP: dist[RJ]=400, dist[BH]=600. Processa RJ: SP→RJ→BH=750 > 600, mantém. Resultado: SP→BH direto (600) é mais curto que via RJ (750).",
+      },
+      {
+        q: "O que são árvores AVL e como as rotações garantem balanceamento O(log n)?",
+        o: [
+          "BST auto-balanceada onde |altura(esq)-altura(dir)| ≤ 1 em cada nó; rotações LL, RR, LR e RL reequilibram em O(1) após inserção/remoção",
+          "Árvore B usada em bancos de dados com fator de balanceamento variável",
+          "BST que usa cores vermelho/preto para balanceamento amortizado",
+          "Heap que mantém propriedade de BST com reestruturação por comparação",
+        ],
+        c: 0,
+        e: "AVL: cada nó guarda fator de balanceamento fb = altura(esq) - altura(dir) ∈ {-1, 0, 1}. Após inserção/remoção, se fb sair do intervalo: LL (rotação simples direita), RR (rotação simples esquerda), LR (rotação dupla esq+dir), RL (rotação dupla dir+esq). Garante altura ≤ 1.44 log₂(n). Todas operações em O(log n) garantido.",
+        x: "Inserindo 1,2,3 em BST sem balanceamento: lista com 3 nós à direita (O(n) busca). Inserindo 3 na AVL: fb do nó 1 fica -2 (desbalanceado RR). Rotação esquerda: 2 vira raiz, 1 filho esq, 3 filho dir. Árvore balanceada, busca O(log n).",
+      },
+    ],
+  },
+  "APIs REST e GraphQL": {
+    Fácil: [
+      {
+        q: "Qual método HTTP deve ser usado para criar um novo recurso em uma API REST?",
+        o: ["POST", "GET", "PUT", "DELETE"],
+        c: 0,
+        e: "POST é o método HTTP para criar novos recursos. A resposta típica é 201 Created com o recurso no body. GET lê recursos (safe, idempotente), PUT substitui recurso completo (idempotente), PATCH atualiza parcialmente, DELETE remove. REST usa verbos HTTP como operações semânticas.",
+        x: 'POST /api/usuarios Body: {"nome": "Ana"} → 201 Created {"id": 42, "nome": "Ana"}. GET /api/usuarios/42 → 200 OK {"id": 42, ...}. DELETE /api/usuarios/42 → 204 No Content. PUT /api/usuarios/42 Body: {"nome":"Ana Silva"} → substitui recurso completo.',
+      },
+      {
+        q: "O que significa o código de status HTTP 401 e como difere do 403?",
+        o: [
+          "401: não autenticado (credenciais ausentes/inválidas); 403: autenticado mas sem permissão para o recurso",
+          "401: recurso não encontrado; 403: servidor indisponível",
+          "401: erro interno do servidor; 403: requisição mal formada",
+          "São sinônimos que indicam acesso negado sem distinção",
+        ],
+        c: 0,
+        e: "401 Unauthorized: sem credenciais ou credenciais inválidas. Header WWW-Authenticate informa método de autenticação. 403 Forbidden: autenticado mas sem permissão (ex: usuário comum tentando acessar area admin). 404 Not Found: recurso inexistente. 429 Too Many Requests: rate limit atingido.",
+        x: "GET /api/perfil sem token → 401. Com token expirado → 401. Com token válido de usuário comum em GET /api/admin → 403. GET /api/usuario/999 (não existe) → 404. 100 requisições em 1 minuto → 429.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual é a principal vantagem do GraphQL sobre REST para consultas de dados aninhados?",
+        o: [
+          "Evita overfetching e underfetching: cliente especifica exatamente os campos necessários e obtém dados de múltiplas entidades relacionadas em uma única requisição",
+          "GraphQL é sempre mais rápido que REST por usar protocolo binário",
+          "Usa WebSockets nativamente para comunicação em tempo real",
+          "Processa queries no cliente sem necessidade de servidor",
+        ],
+        c: 0,
+        e: "REST: endpoints fixos retornam estrutura predefinida. Overfetching: recebe 20 campos quando precisa de 2. Underfetching: precisa de múltiplas requisições para dados relacionados. GraphQL: cliente define query com exatamente os campos desejados. Introspection: schema autodocumentado. Desvantagem: complexidade de caching (sem URLs fixas), curva de aprendizado.",
+        x: "REST: GET /usuario/1 (20 campos) + GET /posts?userId=1 = 2 requests. GraphQL: query { usuario(id:1) { nome posts { titulo } } } = 1 request com somente nome e títulos dos posts. N-fields, 1-request. Playground: GraphiQL, Apollo Studio.",
+      },
+      {
+        q: "O que é idempotência em APIs REST e quais métodos HTTP são idempotentes?",
+        o: [
+          "Operação que produz o mesmo resultado independente de quantas vezes é executada; GET, PUT, DELETE são idempotentes; POST não é",
+          "Operação sem efeitos colaterais; somente GET é idempotente",
+          "Operação reversível; todos os métodos exceto DELETE são idempotentes",
+          "Operação atômica; POST e PATCH são idempotentes",
+        ],
+        c: 0,
+        e: "Idempotência: executar N vezes = executar 1 vez (mesmo estado final). GET: leitura sem efeito. PUT: substituição total — PUT /pedidos/42 com mesmo body sempre resulta no mesmo estado. DELETE: deletar item já deletado retorna 404 mas estado é o mesmo (ausente). POST: cria novo recurso a cada chamada. PATCH: depende da implementação (pode ou não ser idempotente).",
+        x: "PUT /pedidos/42 {status:'cancelado'}: executar 10 vezes = mesmo resultado. Importante para retries automáticos em caso de falha de rede. POST /pedidos: 10 execuções = 10 pedidos. Idempotency-Key header: permite POST idempotente em pagamentos (Stripe usa isso).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o problema N+1 em GraphQL e como o DataLoader resolve?",
+        o: [
+          "N+1: cada item de uma lista dispara query individual ao banco; DataLoader agrupa (batching) todos os IDs em um único tick do event loop e faz uma query com IN",
+          "N queries para buscar 1 campo; cache do Apollo resolve automaticamente",
+          "N+1 é exclusivo de REST; GraphQL não sofre esse problema",
+          "DataLoader elimina a necessidade de banco de dados ao fazer cache total",
+        ],
+        c: 0,
+        e: "N+1: query busca 100 usuários (1 query) e, para cada um, busca seus posts (100 queries) = 101 queries. DataLoader: acumula IDs solicitados durante o tick do event loop, executa 1 batch query (SELECT * FROM posts WHERE user_id IN (ids)), distribui resultados. Facebook criou DataLoader para esse problema. Reduz de N+1 para 2 queries.",
+        x: "Sem DataLoader: 100 users → 100×SELECT posts WHERE user_id=X. Com DataLoader: dataloader.load(userId) acumula; batchLoadFn recebe [1..100] → SELECT posts WHERE user_id IN (1,...,100). 101 queries → 2 queries. graphql-dataloader, prime cache por key.",
+      },
+      {
+        q: "O que são middlewares de rate limiting e quais algoritmos existem para implementá-los?",
+        o: [
+          "Controle de taxa de requisições para proteger APIs; algoritmos: Token Bucket (bursts permitidos), Leaky Bucket (saída constante), Fixed Window (janela fixa) e Sliding Window (mais precisa)",
+          "Cache de respostas de API para reduzir carga no servidor",
+          "Balanceamento de carga entre instâncias da API",
+          "Compressão de payload para reduzir largura de banda consumida",
+        ],
+        c: 0,
+        e: "Rate limiting protege contra abuso e DDoS. Token Bucket: tokens gerados a taxa fixa, cada req consome um token (permite bursts ate o tamanho do bucket). Leaky Bucket: fila com saída constante (suaviza tráfego, sem bursts). Fixed Window: conta reqs em janela fixa (problema: burst na virada da janela). Sliding Window Log: preciso mas custoso em memória. Sliding Window Counter: equilíbrio.",
+        x: "Token Bucket: limite 100 req/min, 100 tokens disponíveis. 100 reqs simultâneas (burst): aceita todas. Next second: ~1-2 tokens. API Gateway AWS usa Token Bucket. Nginx: limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s. Redis usado para rate limiting distribuído entre múltiplos pods.",
+      },
+    ],
+  },
+  "Arquitetura de Software": {
+    Fácil: [
+      {
+        q: "O que é o padrão arquitetural MVC (Model-View-Controller)?",
+        o: [
+          "Separa a aplicação em Model (dados/regras), View (interface) e Controller (lógica de controle), desacoplando responsabilidades",
+          "Padrão de banco de dados com três tabelas obrigatórias",
+          "Arquitetura de microsserviços com três serviços core",
+          "Metodologia ágil com três papéis: dev, QA e PO",
+        ],
+        c: 0,
+        e: "MVC: Model gerencia dados e regras de negócio. View renderiza a interface ao usuário. Controller recebe input do usuário, atualiza o Model e seleciona a View para resposta. Promove separação de responsabilidades, reuso (mesmo Model para múltiplas Views) e testabilidade independente das camadas.",
+        x: "Blog: Model=Post (busca/salva no BD), View=post.html (renderiza HTML), Controller=PostController (recebe GET /post/1, chama Post.find(1), passa para View). Rails, Django, Laravel, ASP.NET MVC seguem esse padrão. Spring MVC e Express.js também.",
+      },
+      {
+        q: "O que é um microsserviço e qual a diferença principal em relação a uma arquitetura monolítica?",
+        o: [
+          "Serviço pequeno e independente com domínio específico, deployado separadamente; monolito é uma única aplicação unificada deployada por completo",
+          "Serviço externo de terceiros integrado via API REST",
+          "Container Docker com um único processo isolado",
+          "Função serverless com escopo e tempo de vida limitados",
+        ],
+        c: 0,
+        e: "Microsserviços: aplicação decomposta em serviços pequenos e independentes, cada um com sua base de código, banco de dados e ciclo de deploy próprio. Comunicam via APIs HTTP/gRPC ou mensageria (Kafka, RabbitMQ). Monolito: tudo em um processo. Microsserviços: escalabilidade e independência de times a custo de complexidade distribuída.",
+        x: "E-commerce monolítico: 1 deploy para tudo (risco: falha afeta tudo). Microsserviços: Pedidos, Pagamentos, Estoque, Usuários independentes. Time de Pagamentos faz deploy isolado. Escalabilidade: 10× o serviço de Pedidos sem escalar Usuários. Netflix, Amazon, Uber usam microsserviços.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é CQRS (Command Query Responsibility Segregation) e qual problema ele resolve?",
+        o: [
+          "Separa operações de leitura (Query) e escrita (Command) em modelos distintos; permite otimizar leitura e escrita independentemente",
+          "Padrão de cache que separa dados quentes de dados frios em camadas",
+          "Separação entre banco relacional (escrita) e NoSQL (leitura)",
+          "Padrão de segurança que separa autenticação e autorização",
+        ],
+        c: 0,
+        e: "CQRS: Commands (escrita) alteram estado e não retornam dados, executados no modelo de escrita com validação de invariantes. Queries (leitura) retornam dados sem efeito colateral, executadas em modelo de leitura otimizado (desnormalizado, cache, Elasticsearch). Frequentemente combinado com Event Sourcing. Custo: complexidade de sincronização eventual entre os modelos.",
+        x: "E-commerce: Command CreateOrder → BD relacional normalizado (grava). Query GetOrderHistory → view materializada ou Elasticsearch desnormalizado (lê rápido). Escrita usa PostgreSQL; leitura usa Elasticsearch para busca por texto livre. Sync via eventos de domínio.",
+      },
+      {
+        q: "O que é Domain-Driven Design (DDD) e o que são Bounded Contexts?",
+        o: [
+          "Abordagem que alinha código ao domínio do negócio; Bounded Context define limite explícito onde um modelo de domínio tem significado específico e coerente",
+          "Framework de banco de dados organizado por domínio de negócio",
+          "Metodologia de desenvolvimento de microsserviços orientada a domínio",
+          "Padrão de UI que organiza componentes conforme o domínio do usuário",
+        ],
+        c: 0,
+        e: "DDD: modelagem de software orientada ao domínio do problema, com linguagem ubíqua entre devs e especialistas de negócio. Conceitos: Entidades (identidade), Value Objects (imutáveis por valor), Aggregates (cluster com invariantes), Domain Events, Repositories. Bounded Context: fronteira explícita onde termos e modelos têm significado único (Produto em Vendas ≠ Produto em Estoque).",
+        x: "E-commerce: Bounded Context de Vendas tem Pedido com lineItems e valor total. Bounded Context de Logística tem Pedido com endereço e tracking. Mesma palavra 'Pedido', modelos completamente diferentes. Comunicação entre contextos via eventos de domínio publicados.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é Event Sourcing e como difere do armazenamento tradicional de estado?",
+        o: [
+          "Persiste sequência imutável de eventos ao invés do estado atual; estado reconstruído via replay dos eventos; permite auditoria e viagem no tempo",
+          "Cache de eventos em memória para acelerar queries de estado",
+          "Pub/Sub para notificar microserviços sobre mudanças de estado em tempo real",
+          "Log de auditoria opcional sobre o banco de estado relacional",
+        ],
+        c: 0,
+        e: "Event Sourcing: fonte da verdade = sequência de eventos (OrderCreated, ItemAdded, PaymentProcessed). Estado atual = replay de eventos. Vantagens: auditoria completa e imutável, estado em qualquer ponto do passado, base natural para CQRS. Desvantagens: complexidade de queries diretas, snapshots periódicos para evitar replay longo, eventual consistency.",
+        x: "Conta bancária: em vez de saldo=1500, armazenamos Deposito(1000), Deposito(800), Saque(300). saldo = replay = 1500. Saldo em 01/jan: replay até aquela data. Eventstore, Axon, EventStoreDB. Snapshots: a cada 100 eventos, salva snapshot do estado para evitar replay completo.",
+      },
+      {
+        q: "O que é o padrão Saga para gerenciar transações distribuídas em microsserviços?",
+        o: [
+          "Sequência de transações locais com compensações em caso de falha; implementada via coreografia (eventos) ou orquestração (coordenador central)",
+          "Two-phase commit (2PC) distribuído entre microsserviços",
+          "Fila de mensagens que garante entrega exatamente uma vez entre serviços",
+          "Circuit breaker que interrompe transações em cascata em caso de falha",
+        ],
+        c: 0,
+        e: "Em microsserviços não há transações ACID distribuídas. Saga: sequência de transações locais; se uma falha, executa transações compensatórias nas anteriores. Coreografia: cada serviço emite eventos e reage a eventos de outros (sem coordenador, mas difícil de rastrear). Orquestração: Saga Orchestrator centraliza coordenação (mais visível, ponto único de falha).",
+        x: "Pedido: 1-CriarPedido → 2-ReservarEstoque → 3-ProcessarPagamento → 4-DespacharPedido. Se 3 falha: compensação 2=LiberarEstoque, 1=CancelarPedido. Coreografia via eventos Kafka. Orquestração: AWS Step Functions, Temporal, Conductor. Cada etapa tem transação compensatória correspondente.",
+      },
+    ],
+  },
+  "Banco de Dados SQL": {
+    Fácil: [
+      {
+        q: "O que faz a cláusula GROUP BY em SQL e como o HAVING a complementa?",
+        o: [
+          "GROUP BY agrupa linhas com valores iguais permitindo funções de agregação por grupo; HAVING filtra grupos (como WHERE mas para grupos)",
+          "GROUP BY ordena resultado por coluna; HAVING ordena grupos",
+          "Ambos filtram linhas antes de qualquer agrupamento",
+          "GROUP BY cria subgrupos temporários; HAVING os nomeia",
+        ],
+        c: 0,
+        e: "GROUP BY agrupa linhas com mesmo valor, usada com COUNT(), SUM(), AVG(), MAX(), MIN(). WHERE filtra linhas antes do agrupamento. HAVING filtra grupos após agrupamento (pode usar funções de agregação). Ordem: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY.",
+        x: "SELECT departamento, COUNT(*) as total, AVG(salario) as media FROM funcionarios WHERE ativo=1 GROUP BY departamento HAVING COUNT(*) > 5 ORDER BY media DESC — departamentos ativos com mais de 5 funcionários, ordenados por salário médio.",
+      },
+      {
+        q: "O que é uma FOREIGN KEY e como o ON DELETE CASCADE se comporta?",
+        o: [
+          "Coluna que referencia a PK de outra tabela garantindo integridade referencial; ON DELETE CASCADE deleta automaticamente os registros filhos ao deletar o pai",
+          "Segundo índice de uma tabela para melhorar performance de joins",
+          "Restrição de unicidade composta por múltiplas colunas da mesma tabela",
+          "Chave criptográfica para segurança dos dados relacionados",
+        ],
+        c: 0,
+        e: "Foreign Key: garante integridade referencial — impossível ter pedido de cliente inexistente. ON DELETE CASCADE: ao deletar pai, filhos são deletados automaticamente. ON DELETE RESTRICT (padrão): bloqueia deleção se houver filhos. ON DELETE SET NULL: seta FK para NULL nos filhos. ON DELETE NO ACTION: similar ao RESTRICT mas verificado ao final da transação.",
+        x: "Deletar cliente com pedidos: ON DELETE RESTRICT → ERRO. ON DELETE CASCADE → cliente + todos seus pedidos deletados. ON DELETE SET NULL → pedidos ficam com cliente_id = NULL. Muito comum em relacionamentos pai-filho: blog (posts cascadeiam comments).",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é normalização e o que a Terceira Forma Normal (3NF) requer?",
+        o: [
+          "3NF: tabela está na 2NF (sem dependências parciais da PK) e sem dependências transitivas entre atributos não-chave",
+          "3NF: todas as colunas são indexadas e não contêm valores nulos",
+          "3NF: tabela sem grupos repetitivos e com chave primária simples",
+          "3NF: nenhum atributo multivalorado e sem relacionamentos recursivos",
+        ],
+        c: 0,
+        e: "1NF: sem grupos repetitivos, valores atômicos. 2NF: sem dependências parciais (todos atributos dependem da PK completa). 3NF: sem dependências transitivas (A→B→C onde B não é chave). Elimina anomalias de insert/update/delete. BCNF: versão mais rígida da 3NF. Desnormalização intencional melhora leitura ao custo de redundância.",
+        x: "Tabela: CodPedido, CodCliente, CidadeCliente, PaisCliente. Problema transitivo: CodCliente→Cidade→País. 3NF: separar em Pedidos(CodPedido, CodCliente) e Clientes(CodCliente, Cidade, País). Atualizar cidade de cliente: 1 lugar, não n pedidos.",
+      },
+      {
+        q: "Qual a diferença entre INNER JOIN, LEFT JOIN e FULL OUTER JOIN no SQL?",
+        o: [
+          "INNER: apenas registros com match em ambas as tabelas; LEFT: todos à esquerda + match à direita (NULL se sem match); FULL OUTER: todos de ambas as tabelas com NULL onde não há correspondência",
+          "INNER retorna todos os registros; LEFT somente da tabela esquerda; FULL duplica linhas com match",
+          "LEFT e RIGHT são equivalentes ao INNER; FULL é a intersecção das tabelas",
+          "INNER é o join mais lento; LEFT e FULL têm melhor performance sempre",
+        ],
+        c: 0,
+        e: "INNER JOIN: intersecção — linhas presentes em AMBAS as tabelas. LEFT JOIN: todos da esquerda + dados da direita (NULL se sem match) — útil para listar clientes sem pedidos. RIGHT JOIN: oposto. FULL OUTER JOIN: união de LEFT + RIGHT — todos os registros de ambas as tabelas, NULL onde sem correspondência.",
+        x: "Clientes (A, B, C) e Pedidos (A, D). INNER → somente A (match). LEFT clientes → A(com pedido), B(NULL), C(NULL). FULL OUTER → A(pedido), B(NULL), C(NULL) + D(NULL cliente). Relatório 'clientes sem pedido': LEFT JOIN WHERE pedidos.id IS NULL.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é um índice parcial em banco de dados e quando é mais eficiente que um índice completo?",
+        o: [
+          "Índice criado com cláusula WHERE cobrindo apenas subconjunto de linhas; mais eficiente quando queries sempre filtram esse subconjunto (menor tamanho, manutenção mais rápida)",
+          "Índice que cobre apenas algumas colunas de uma tabela de alta cardinalidade",
+          "Índice aplicado somente às linhas com valores nulos em determinada coluna",
+          "Índice com menos de 50% das linhas da tabela por definição de seletividade",
+        ],
+        c: 0,
+        e: "Índice parcial (PostgreSQL/SQLite): CREATE INDEX ... WHERE condição. Indexa apenas linhas que satisfazem a condição. Vantagens: menor tamanho em disco, manutenção mais rápida em INSERTs/UPDATEs, estatísticas mais precisas. Planner usa o índice apenas quando a query inclui o predicado. Ideal quando subset de dados é muito menor que o total.",
+        x: "Tabela pedidos com 1M linhas: 99% status='concluido', 1% status='pendente'. Queries sempre em pendentes. CREATE INDEX idx_pendentes ON pedidos(criado_em) WHERE status='pendente' — indexa 10k linhas, não 1M. Consulta pedidos pendentes usa índice 100× menor. Manutenção: INSERT de pedido concluído não toca o índice.",
+      },
+      {
+        q: "O que são os níveis de isolamento de transações SQL e quais anomalias cada um previne?",
+        o: [
+          "READ UNCOMMITTED: sem proteção; READ COMMITTED: previne dirty read; REPEATABLE READ: +non-repeatable read; SERIALIZABLE: +phantom reads (protecão máxima)",
+          "Todos os níveis garantem isolamento total; diferença é apenas na performance",
+          "SERIALIZABLE é o único nível com garantias reais; os outros são equivalentes",
+          "READ COMMITTED previne todas as anomalias exceto deadlock entre transações",
+        ],
+        c: 0,
+        e: "Anomalias: Dirty Read (ler dados não commitados de outra txn), Non-Repeatable Read (mesma query retorna valores diferentes dentro da txn — UPDATE por outra txn), Phantom Read (nova query retorna linhas diferentes — INSERT/DELETE por outra txn). READ UNCOMMITTED: nenhuma proteção. READ COMMITTED: evita dirty read (padrão PostgreSQL). REPEATABLE READ: evita dirty + non-repeatable (padrão MySQL/InnoDB). SERIALIZABLE: máxima proteção, menor concorrência.",
+        x: "T1 lê saldo=1000 em READ COMMITTED. T2 atualiza para 900 e commita. T1 lê novamente: 900 (non-repeatable read). REPEATABLE READ: T1 sempre vê 1000 até commitar. SERIALIZABLE: bloqueia T2 de modificar enquanto T1 está ativa. Trade-off: mais isolamento = menos throughput.",
+      },
+    ],
+  },
+  "Banco de Dados NoSQL": {
+    Fácil: [
+      {
+        q: "Qual é o modelo de dados do MongoDB e o que diferencia BSON de JSON?",
+        o: [
+          "MongoDB é orientado a documentos; BSON é Binary JSON com tipos extras como Date, ObjectId, Int64 e dados binários nativos",
+          "MongoDB é relacional; BSON é JSON comprimido em Base64",
+          "MongoDB é orientado a colunas; BSON é JSON com suporte a XML",
+          "MongoDB é chave-valor; BSON é JSON com suporte a tipos genéricos",
+        ],
+        c: 0,
+        e: "MongoDB armazena documentos BSON em coleções (análogo a tabelas). BSON estende JSON com tipos: Date (nativo, não string), ObjectId (ID distribuído único de 12 bytes), Int32/Int64/Decimal128, Binary, Regex. Schema flexível: documentos na mesma coleção podem ter campos diferentes. Permite documentos aninhados e arrays nativamente.",
+        x: "Documento: {_id: ObjectId('6af...'), nome: 'Ana', criado: ISODate('2025-01-15'), tags: ['dev', 'js'], endereco: {rua: 'Av Brasil', cep: '01310'}}. ObjectId = timestamp(4)+machine(3)+pid(2)+counter(3). Coleção users pode ter documentos com campos totalmente distintos.",
+      },
+      {
+        q: "Para que o Redis é mais usado e quais estruturas de dados ele suporta nativamente?",
+        o: [
+          "Cache em memória e filas; suporta String, List, Hash, Set, Sorted Set (ZSet), Stream e HyperLogLog",
+          "Banco de grafos in-memory com vértices e arestas como estruturas nativas",
+          "Banco analítico columnar com compressão nativa e alta consulta",
+          "Banco de documentos JSON in-memory com índices automáticos",
+        ],
+        c: 0,
+        e: "Redis (Remote Dictionary Server): banco in-memory key-value com estruturas ricas. String: cache simples, contadores INCR/DECR. List: fila FIFO/LIFO (LPUSH/RPOP). Hash: objeto com campos (HSET/HGET). Set: conjunto sem duplicatas (SADD/SMEMBERS). Sorted Set: set ordenado por score — leaderboards. Stream: log de eventos. TTL por chave. Persistência: RDB snapshots ou AOF log.",
+        x: "Cache de sessão: SET session:u123 tokenJWT EX 3600. Fila: LPUSH jobs 'email'. Counter: INCR views:home. Leaderboard: ZADD ranking 1500 'playerA'; ZREVRANK ranking 'playerA'. Rate limit: INCR reqs:ip EX 60. Redis Pub/Sub para eventos em tempo real.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o Teorema CAP e como ele impacta a escolha de bancos NoSQL?",
+        o: [
+          "Em presença de Partition (falha de rede), sistema distribiudo escolhe entre Consistency e Availability; bancos NoSQL são geralmente AP (Cassandra) ou CP (MongoDB)",
+          "Bancos relacionais garantem as 3 propriedades; NoSQL sacrifica as 3",
+          "CAP se aplica somente a bancos relacionais com replicação multi-master",
+          "Partition Tolerance é sempre opcional em sistemas de produção modernos",
+        ],
+        c: 0,
+        e: "CAP Theorem (Brewer): sistema distribuído não pode garantir simultaneamente Consistency (toda leitura retorna dado mais recente), Availability (toda requisição recebe resposta) e Partition Tolerance (continua operando com falha de rede). Como P é inevitável em redes reais, a escolha é C vs A. CP: MongoDB, HBase. AP: Cassandra, CouchDB, DynamoDB (eventual consistency).",
+        x: "Cassandra (AP): durante falha de rede, nó isolado continua respondendo (disponível) com dado possivelmente desatualizado (inconsistente). MongoDB (CP): nó primário cai → elege novo primário, recusa escritas até então (consistente, mas menos disponível). PACELC refina CAP também para o caso sem partição.",
+      },
+      {
+        q: "Quando é mais adequado usar banco de dados orientado a grafos como Neo4j?",
+        o: [
+          "Quando relacionamentos entre entidades são centrais e queries envolvem múltiplos graus de conexão (amigos de amigos, recomendações, detecção de fraude)",
+          "Quando necessita de alta taxa de escrita com grande volume de dados flatten",
+          "Quando dados têm estrutura hierárquica profunda como árvores de diretórios",
+          "Quando o esquema muda frequentemente e precisa de flexibilidade de documentos",
+        ],
+        c: 0,
+        e: "Bancos de grafos armazenam vértices e arestas como cidadãos de primeira classe, com alta performance em traversal de múltiplos hops. Casos de uso: redes sociais (amigos de amigos), sistemas de recomendação, detecção de fraude (padrões de conexão), autorização RBAC/ABAC complexa, grafos de conhecimento, rotas e logística.",
+        x: "LinkedIn: MATCH (ana:Person)-[:KNOWS*1..3]->(rec:Person) WHERE NOT (ana)-[:KNOWS]->(rec) RETURN rec LIMIT 10 — amigos de amigos de amigos em 1 query. SQL equivalente: 3 JOINs aninhados ou CTE recursiva muito mais lenta e complexa. Neo4j, Amazon Neptune, TigerGraph.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é consistent hashing e por que é usado em sistemas de sharding de bancos NoSQL?",
+        o: [
+          "Mapeia dados e nós em anel circular; adicionar/remover nó redistribui apenas K/n chaves (não todas), minimizando reorganização do cluster",
+          "Função hash que garante zero colisões entre shards de diferentes nós",
+          "Técnica de replicação que mantém cópias sempre idênticas entre shards",
+          "Balanceamento de carga por round-robin aprimorado para clusters de banco de dados",
+        ],
+        c: 0,
+        e: "Consistent hashing: nós e chaves mapeados em anel (hash 0 a 2³²). Chave vai ao próximo nó em sentido horário. Adicionar nó: apenas 1/n das chaves migram (não todas). Sem consistent hashing: adicionar nó requer rehash de todas as chaves (indisponibilidade). Virtual nodes (vnodes): cada nó físico = múltiplos pontos no anel para distribuição uniforme e rebalanceamento gradual.",
+        x: "3 nós no anel: N1(0-120°), N2(121-240°), N3(241-360°). Adicionar N4 entre N1 e N2: apenas keys do intervalo N1→N4 migram de N2. Cassandra usa consistent hashing com vnodes por padrão. DynamoDB usa variante. Reduz downtime de rebalanceamento de horas para minutos.",
+      },
+      {
+        q: "O que é a arquitetura LSM-Tree usada por Cassandra e RocksDB e quais seus trade-offs?",
+        o: [
+          "Escrita vai para MemTable (in-memory) + WAL, depois flushed como SSTable imutável em disco; compactação periódica mescla SSTables; otimizada para escrita, leitura levemente mais lenta",
+          "Árvore B+ que loggeia todas as operações antes de aplicar ao arquivo de dados",
+          "Índice invertido para buscas full-text em grandes volumes de documentos",
+          "Cache de índices em memória com persistência em disco via checkpoint periódico",
+        ],
+        c: 0,
+        e: "LSM-Tree: escrita sequencial no WAL (durabilidade) + MemTable in-memory ordenada. MemTable cheia → flushed como SSTable imutável. Compactação: mescla SSTables periodicamente (elimina versões antigas, garbage collect). Leitura: MemTable → SSTables (Bloom filter evita I/O desnecessário). Trade-off: escritas muito rápidas (sequencial), leituras levemente piores que B+Tree, write amplification na compactação.",
+        x: "Cassandra: escrita em <1ms (MemTable). Bloom filter: 95% de probabilidade de saber se key está na SSTable antes de ler. Compaction strategies: STCS (size-tiered), LCS (leveled, melhor leitura). RocksDB: engine de vários BDs (TiKV, Kafka Streams, MyRocks/MySQL). Read amplification: varrer múltiplas SSTables.",
+      },
+    ],
+  },
+  "Clean Code e Boas Práticas": {
+    Fácil: [
+      {
+        q: "O que é o princípio DRY (Don't Repeat Yourself) e como identificar sua violação?",
+        o: [
+          "Cada pedaço de conhecimento deve ter representação única no sistema; violação: mesma lógica duplicada em múltiplos lugares exigindo mudanças paralelas",
+          "Escrever o menor código possível, mesmo sacrificando legibilidade",
+          "Comentários não devem repetir o que o código já diz",
+          "Reusar variáveis para não alocar memória desnecessária",
+        ],
+        c: 0,
+        e: "DRY: duplicação de código/lógica cria manutenção frágil — mudança precisa ser aplicada em múltiplos lugares, risco de inconsistência. Solução: abstrair em função, classe, constante ou módulo reutilizável. Cuidado: WET (Write Everything Twice) temporariamente pode ser melhor que abstrair prematuramente antes da terceira repetição.",
+        x: "Validação de email duplicada em 3 arquivos: se regra muda, 3 lugares para atualizar (risco de esquecer). DRY: extrair validateEmail() usada em todos os lugares. Uma mudança reflete em todos. Exceção: duplicação acidental (código similar, lógica diferente) não deve ser abstraída.",
+      },
+      {
+        q: "O que é refatoração e o que ela NÃO deve alterar?",
+        o: [
+          "Reestruturar código interno sem alterar comportamento observável externamente; NÃO adiciona features, NÃO corrige bugs intencionalmente",
+          "Reescrever algoritmos para melhorar performance mantendo a mesma interface",
+          "Adicionar funcionalidades mantendo compatibilidade com código legado",
+          "Migrar para nova linguagem ou framework preservando a lógica de negócio",
+        ],
+        c: 0,
+        e: "Refactoring (Martin Fowler): melhorar estrutura interna (legibilidade, manutenibilidade, reduzir dívida técnica) SEM mudar comportamento observável. Testes garantem que comportamento não mudou — refactor sem testes é arriscado. Catálogo: Extract Method, Rename Variable, Replace Conditional with Polymorphism, Extract Class, Inline Function.",
+        x: "Antes: if (u.s == 1 && u.p > 0) {}. Depois: if (usuario.estaAtivo() && usuario.temPagamento()) {}. Mesma lógica, mais legível. Renomear 'x' para 'totalVendas', extrair método 'calcularDesconto'. Nenhuma mudança funcional — testes verdes antes e depois.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o princípio de Responsabilidade Única (SRP) do SOLID e como identificar violação?",
+        o: [
+          "Classe deve ter apenas um motivo para mudar; violação: classe que muda por razões distintas (lógica de negócio E persistência E apresentação)",
+          "Classe deve ter apenas um método público exposto",
+          "Módulo deve depender de apenas uma abstração",
+          "Função deve realizar no máximo uma operação de I/O",
+        ],
+        c: 0,
+        e: "SRP: cada classe/módulo tem responsabilidade única — um único motivo para mudar. Teste: 'por que essa classe mudaria?' — se múltiplas respostas, viola SRP. UserService que valida dados + salva no BD + envia email + gera relatório tem 4 motivos para mudar. Decomponha: UserValidator, UserRepository, UserNotifier, UserReportGenerator.",
+        x: "Classe Report: gera dados + formata HTML + salva arquivo + envia email = 4 responsabilidades. SRP: ReportData, HtmlFormatter, ReportSaver, ReportEmailer. Cada uma muda por uma razão: trocar provedor de email → só ReportEmailer. Trocar formato → só HtmlFormatter.",
+      },
+      {
+        q: "O que é dívida técnica e quais os principais tipos segundo Martin Fowler?",
+        o: [
+          "Custo futuro de retrabalho por soluções subótimas hoje; tipos: deliberada prudente (shortcut consciente), deliberada imprudente, inadvertida prudente e inadvertida imprudente",
+          "Débito financeiro de licenças de software atrasadas",
+          "Backlog de features não implementadas por falta de prazo",
+          "Horas extras acumuladas da equipe durante períodos de crunch",
+        ],
+        c: 0,
+        e: "Quadrante de Fowler: Reckless/Deliberate (sabemos o que fazemos, não nos importamos), Prudent/Deliberate (prazos, documentamos para pagar depois), Reckless/Inadvertent (não sabíamos de padrões melhores), Prudent/Inadvertent (só descobrimos o design correto após implementar). Cada tipo exige estratégia diferente. 'Juros': cada mudança futura fica mais cara.",
+        x: "Deliberada prudente: 'vamos usar essa solução simples agora, criar ticket para refatorar antes da v2'. Inadvertida prudente: 'só após implementar percebemos que Domain Events era a abordagem certa'. Reckless deliberada: copiar-colar 5 vezes por pressa, sem plano de corrigir.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o Princípio de Inversão de Dependência (DIP) do SOLID e como Injeção de Dependência o implementa?",
+        o: [
+          "Módulos de alto e baixo nível devem depender de abstrações (interfaces), não de implementações concretas; DI fornece implementações em runtime sem que a classe as instancie",
+          "Classes de alto nível chamam diretamente classes de baixo nível para maior coesão",
+          "Interfaces devem depender das classes que as implementam para garantir contrato",
+          "Serviços externos devem ser injetados como parâmetros do construtor sem abstração",
+        ],
+        c: 0,
+        e: "DIP: UserService (alto nível) não deve instanciar EmailService (baixo nível) — ambos dependem de IEmailPort (abstração). DI: implementação concreta fornecida externamente (constructor injection, setter, container IoC). Invertente do controle: classe não cria dependências, recebe-as. Facilita testes (mock das interfaces), troca de implementação sem mudar o consumidor.",
+        x: "Sem DIP: class UserService { email = new SendGridEmail(); } — acoplado. Com DIP: class UserService { constructor(private email: IEmailPort) {} }. Em produção: container injeta SendGridEmail(). Em testes: injeta MockEmail(). Trocar para AWS SES: nova classe AwsSesEmail implements IEmailPort — UserService não muda.",
+      },
+      {
+        q: "O que é o Princípio de Substituição de Liskov (LSP) e como identificar violações práticas?",
+        o: [
+          "Subclasse deve ser substituível pela superclasse sem alterar o comportamento do programa; violação clássica: Quadrado extends Retangulo onde setLargura() quebra invariante da área",
+          "Subclasse deve sobrescrever todos os métodos herdados da superclasse",
+          "Interface deve ser mais específica que a classe que a implementa",
+          "Herança múltipla sem conflito de método representa aplicação do LSP",
+        ],
+        c: 0,
+        e: "LSP (Liskov): se S é subtipo de T, programa usando T deve funcionar com S sem saber. Violações: subclasse lança exceção para método herdado, post-conditions mais fracas, pre-conditions mais fortes. Quadrado herda Retangulo: setLargura(5) em Quadrado também altera altura (invariante área = L×A se L≠A quebra). Pinguim extends Ave com voar() lança exceção.",
+        x: "Violação: class ReadOnlyList extends List { add(item) { throw Error('Somente leitura'); } } — código que chama list.add() quebra com ReadOnlyList. Solução: segregar interfaces — IReadableList e IWritableList. Outro exemplo: Pinguim — interface IAveVoadora vs IAveNaoVoadora ou composição de comportamentos.",
+      },
+    ],
+  },
+  "Design Patterns": {
+    Fácil: [
+      {
+        q: "O que é o padrão Singleton e quais são suas desvantagens em aplicações modernas?",
+        o: [
+          "Garante uma única instância da classe com acesso global; desvantagens: estado global dificulta testes, viola SRP, acoplamento oculto entre módulos",
+          "Cria múltiplas instâncias de forma controlada por uma factory central",
+          "Garante uma única implementação de interface sem restrição de instâncias",
+          "Cria objetos imutáveis com acesso thread-safe sem estado compartilhado",
+        ],
+        c: 0,
+        e: "Singleton: construtor privado + static getInstance() retorna a mesma instância. Usado para: logger, configuração, pool de conexões. Problemas: estado global contamina testes (instância suja entre testes), viola SRP (gerencia próprio ciclo de vida), acoplamento oculto (modules dependem de instância global). Preferir DI de objetos únicos gerenciados pelo container IoC.",
+        x: "class Database { private static instance: Database; static getInstance() { if (!this.instance) this.instance = new Database(); return this.instance; } }. Problema: Database.getInstance() em múltiplos testes compartilha conexões sujas. Alternativa: injetar a instância do banco via DI — mais testável.",
+      },
+      {
+        q: "O que é o padrão Observer e como ele é o núcleo de sistemas reativos?",
+        o: [
+          "Define dependência um-para-muitos: Subject notifica automaticamente todos os Observers registrados quando seu estado muda",
+          "Um objeto observa e modifica outros objetos diretamente",
+          "Cria objetos complexos passo a passo com estado intermediário observável",
+          "Encapsula algoritmos intercambiáveis com monitoramento de execução",
+        ],
+        c: 0,
+        e: "Observer: Subject mantém lista de Observers e chama update() em todos quando muda. Observer se inscreve (subscribe) e cancela (unsubscribe) dinamicamente. Usado: event listeners DOM, EventEmitter Node.js, RxJS Observables, React useEffect com subscriptions, MVC (View observa Model). Cuidado: memory leaks por não cancelar observadores.",
+        x: "EventEmitter (Node.js): emitter.on('data', handler) — Observer. emitter.emit('data', payload) — Subject notifica todos os handlers registrados em 'data'. RxJS: observable$.subscribe(handler) + takeUntil para cancelamento. Componente React subscreve WebSocket no useEffect e cancela no cleanup.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o padrão Factory Method e como difere do Abstract Factory?",
+        o: [
+          "Factory Method: método de criação que subclasses sobrescrevem para instanciar produtos concretos; Abstract Factory: interface para criar famílias de objetos relacionados sem especificar classes concretas",
+          "São idênticos — apenas nomes diferentes para o mesmo padrão de criação",
+          "Factory Method cria múltiplos objetos; Abstract Factory cria apenas um por família",
+          "Abstract Factory usa herança; Factory Method usa composição de objetos",
+        ],
+        c: 0,
+        e: "Factory Method: classe base declara createProduct() abstrato, subclasses concretas decidem qual classe instanciar. Abre extensão sem modificar código existente (OCP). Abstract Factory: interface com múltiplos métodos (createButton(), createTextbox(), createDialog()) para família coerente. MacUIFactory vs WindowsUIFactory — garante componentes da mesma família. Abstract Factory compõe Factory Methods.",
+        x: "Factory Method: Notificador base com createChannel() abstrato. EmailNotificador retorna EmailChannel; SMSNotificador retorna SMSChannel. Abstract Factory: GUIFactory { createButton(); createInput() }. DarkTheme retorna DarkButton + DarkInput coerentes. LightTheme retorna LightButton + LightInput coerentes.",
+      },
+      {
+        q: "O que é o padrão Decorator e quando é preferível ao subclassing (herança)?",
+        o: [
+          "Adiciona comportamento a objetos em runtime envolvendo-os (composição); herança é estática e gera explosão de subclasses para cada combinação de comportamentos",
+          "É idêntico à herança mas sem reaproveitamento de código da superclasse",
+          "Decorator é Singleton que adiciona métodos em runtime; herança cria novos tipos em compile-time",
+          "Herança adiciona comportamento em runtime; Decorator é sempre estático",
+        ],
+        c: 0,
+        e: "Decorator: envolve objeto existente com mesmo interface, adicionando comportamento. Pode encadear múltiplos decorators. Herança: estática, explosão de subclasses para combinações (Coffee + Leite + Açúcar + Canela = 2⁴ subclasses vs 4 decorators combináveis). Runtime: pode adicionar/remover decorators dinamicamente. Java I/O, Express middlewares, Python @decorator.",
+        x: "Java I/O: new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(file))) — pipeline de decorators sem subclassing. Python: @lru_cache, @staticmethod, @login_required são decorators. TypeScript: @Log() aplicado em método adiciona logging sem alterar o método original.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o padrão Command e como ele suporta undo/redo e processamento assíncrono?",
+        o: [
+          "Encapsula requisição como objeto (execute, undo); histórico em pilha habilita undo/redo; objetos Command podem ser enfileirados para processamento assíncrono",
+          "Controla fluxo de execução com comandos if/else encapsulados em classes",
+          "Gerencia pool de threads que executam funções em paralelo com controle",
+          "Interface de linha de comando encapsulada em objetos de domínio",
+        ],
+        c: 0,
+        e: "Command encapsula ação como objeto com execute() e opcionalmente undo(). Invoker não precisa saber o que o Command faz. Undo stack: pilha de Commands executados; Ctrl+Z: pop + undo(). Redo stack: undo vai para redo stack. Job Queue: serializar Commands, processar assincronamente (trabalhadores). Logging: persistir Commands para replay de auditoria ou recuperação de falhas.",
+        x: "Editor: DigitarText(pos, texto), DeletarChar(pos, char), AplicarNegrito(range). Ctrl+Z: undo() de cada comando na pilha. Redux: cada action é um Command; store = replay de actions = Event Sourcing. Job Queue: EmailCommand enfileirado → Worker processa. AWS SQS: mensagens como Commands persistidos.",
+      },
+      {
+        q: "O que é o padrão Strategy e como difere do Template Method?",
+        o: [
+          "Strategy: composição — delega algoritmo a objeto separado intercambiável em runtime; Template Method: herança — superclasse define esqueleto, subclasses sobrescrevem steps específicos",
+          "Strategy usa herança para delegar; Template Method usa composição para sobrescrição",
+          "São intercambiáveis; a escolha é apenas preferência de estilo",
+          "Template Method é para algoritmos simples; Strategy só para algoritmos de alta complexidade",
+        ],
+        c: 0,
+        e: "Strategy (composição): contexto recebe strategy como dependência injetada (SortStrategy: BubbleSort, QuickSort), pode trocar em runtime, testável isoladamente, aberto a extensão. Template Method (herança): classe abstrata define algoritmo completo com hooks que subclasses sobrescrevem — estrutura fixa, pontos de variação definidos. Herança = acoplamento mais forte.",
+        x: "Strategy: PaymentProcessor { strategy: PaymentStrategy }. Usuário escolhe PIX → injetar PixStrategy; cartão → CreditCardStrategy. Troca em runtime. Template Method: DataImporter.importar() define parse→validate→save. CsvImporter sobrescreve parse(). JsonImporter sobrescreve parse(). Estrutura do algoritmo é fixa.",
+      },
+    ],
+  },
+  "Git e Versionamento": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre git reset e git revert ao desfazer commits?",
+        o: [
+          "git reset remove commits do histórico (reescreve historia, perigoso em repo compartilhado); git revert cria novo commit de reversão (seguro, preserva histórico)",
+          "São idênticos em efeito, apenas com sintaxe diferente",
+          "git revert apaga arquivos do disco; git reset desfaz apenas o stage",
+          "git reset funciona somente em branches locais; revert somente em remotas",
+        ],
+        c: 0,
+        e: "git reset --hard HEAD~1: move HEAD para commit anterior, apaga o commit do histórico. Perigoso em branches compartilhadas — reescreve histórico público. git revert HEAD: cria novo commit que reverte as mudanças, histórico intacto e rastreável. Em branches públicas sempre use revert. reset --soft: remove commit mas mantém changes staged.",
+        x: "Commit com senha no código: git reset --hard HEAD~1 + git push --force (avisa equipe!). Já no main compartilhado: git revert abc123 cria 'Revert: remove credentials' — histórico preservado, mais seguro. git revert -n: prepara reversão sem commitar (permite revisar antes).",
+      },
+      {
+        q: "O que é um branch no Git e por que usar branches por feature?",
+        o: [
+          "Ponteiro para um commit que avança com novos commits; branches por feature isolam desenvolvimento paralelo sem interferência na linha principal",
+          "Cópia completa do repositório para desenvolvimento de feature isolada",
+          "Snapshot imutável do código para marcação de versões de release",
+          "Tag especial que agrupa commits relacionados a uma feature",
+        ],
+        c: 0,
+        e: "Branch: ponteiro leve (um arquivo com SHA do commit HEAD). main/master: linha estável. Feature branch: dev A cria feature/login, dev B cria feature/pagamento — trabalham em paralelo sem interferência. Merge integra de volta ao main após review. Estratégias: Git Flow (feature/release/hotfix), GitHub Flow (feature → main), Trunk-Based (branches curtas < 1 dia).",
+        x: "Dev A trabalha em feature/login, Dev B em feature/pagamento. Ambos fazem push ao mesmo tempo sem conflito (repositórios de branches isolados). Após review: PR feature/login → main (aprovado, merge). Conflito só acontece se editaram os mesmos arquivos — resolvido na hora do merge/rebase.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual a diferença entre git merge --no-ff e git rebase ao integrar branches?",
+        o: [
+          "merge --no-ff cria merge commit preservando histórico da branch; rebase reaplica commits sobre a base gerando histórico linear mas com SHAs reescritos",
+          "Produzem resultado idêntico no histórico do repositório",
+          "rebase é seguro em branches públicas; merge --no-ff deve ser evitado",
+          "merge --no-ff só disponível no GitHub; rebase é apenas local",
+        ],
+        c: 0,
+        e: "merge --no-ff: mesmo com fast-forward possível, força criação de merge commit com 2 parents — rastreabilidade da feature branch no histórico. Fast-forward merge: histórico linear, sem merge commit (branch aparece integrada). rebase: pega commits da feature e os reaplica sobre o tip do target com novos SHAs — histórico linear limpo. Regra: nunca rebase branches públicas/compartilhadas (reescreve SHA pode conflitar com histórico de outros).",
+        x: "Feature com 3 commits. merge --no-ff: main recebe merge commit + 3 commits visíveis, git log --graph mostra bifurcação. rebase: 3 commits reescritos com novos SHAs no topo da main (histórico linear). git log --oneline: parece que foram feitos diretamente na main. GitHub Squash and Merge: combina os 3 em 1 commit na main.",
+      },
+      {
+        q: "O que é git cherry-pick e quando é apropriado usá-lo?",
+        o: [
+          "Aplica commits específicos de outro branch no branch atual; útil para backport de bugfixes em branches de release sem fazer merge completo",
+          "Seleciona aleatoriamente commits para resolver conflitos de merge automaticamente",
+          "Desfaz commits selecionados mantendo os demais inalterados",
+          "Compara diferenças entre commits específicos para análise de mudanças",
+        ],
+        c: 0,
+        e: "git cherry-pick <sha>: copia commit específico, cria novo commit com mesmo diff mas novo SHA. Use quando: bugfix critical no main precisa ser backportado em branches de release v1.x e v2.x; commit acidentalmente feito no branch errado. Cuidado: em branches que serão merged eventualmente, cherry-pick cria commits duplicados (mesmo diff, SHAs diferentes).",
+        x: "Bugfix crítico no main (sha: abc123). Release branches v2.5 e v3.0 precisam do fix. git checkout release/v2.5 && git cherry-pick abc123. git checkout release/v3.0 && git cherry-pick abc123. Cada branch recebe cópia do fix. Ferramentas: git cherry em duas bandas para identificar quais commits foram portados.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é git reflog e como ele recupera commits após um reset --hard?",
+        o: [
+          "Log de todos os movimentos do HEAD incluindo após reset; permite recuperar SHAs de commits que não aparecem mais no git log mas ainda estão no object store",
+          "Log de erros e conflitos de merge registrados pelo Git automaticamente",
+          "Histórico de operações de push e pull entre repositório local e remoto",
+          "Backup automático de todos os commits antes e depois de qualquer operação destrutiva",
+        ],
+        c: 0,
+        e: "git reflog: registra cada posição do HEAD (commit, checkout, reset, rebase, merge). Git não deleta objetos imediatamente — garbage collection ocorre após ~90 dias. Recuperar: git reflog mostra HEAD@{N}: commit ABC. Encontrar SHA anterior ao reset. git reset --hard SHA ou git checkout -b recovery SHA. Objetos 'órfãos' (sem branch apontando) ficam no object store até GC.",
+        x: "git reset --hard HEAD~3 — 3 commits perdidos! git reflog → HEAD@{0}: reset (atual), HEAD@{1}: commit 'feature login', HEAD@{2}: commit 'add tests', HEAD@{3}: commit 'fix bug'. git reset --hard HEAD@{3} ou git checkout -b recovery HEAD@{3}. Commits recuperados. Salvar SHA antes de operações destrutivas!",
+      },
+      {
+        q: "O que são Git Hooks e quais são mais usados em pipelines de CI/CD?",
+        o: [
+          "Scripts executados automaticamente em eventos Git; pre-commit (lint/format), commit-msg (valida mensagem), pre-push (testes); post-receive no servidor para deploy",
+          "Extensões do GitHub Actions para automação de workflows",
+          "Tags especiais que marcam pontos de deploy no histórico",
+          "Configurações de branch protection no repositório remoto",
+        ],
+        c: 0,
+        e: "Git hooks: scripts em .git/hooks/ executados em eventos. Client-side: pre-commit (ESLint, Prettier, testes rápidos), prepare-commit-msg, commit-msg (Conventional Commits validation), post-commit, pre-push (testes completos). Server-side: pre-receive (validar, rejeitar push), update, post-receive (trigger deploy). Ferramentas de compartilhamento: Husky (Node), pre-commit (Python), lefthook.",
+        x: "Husky + lint-staged: pre-commit roda ESLint e Prettier somente em arquivos staged (rápido). commitlint no commit-msg: valida 'feat: mensagem' (Conventional Commits). pre-push: npm test. post-receive no servidor: docker build + kubectl rollout. Resultado: erros básicos bloqueados localmente antes do push, sem desperdiçar CI.",
+      },
+    ],
+  },
+  "JavaScript e TypeScript": {
+    Fácil: [
+      {
+        q: "O que é hoisting em JavaScript e como var, let e const se comportam diferentemente?",
+        o: [
+          "Declarações são movidas ao topo do escopo em compilação; var é hoisted e inicializado com undefined; let e const ficam em Temporal Dead Zone (TDZ) até declaração",
+          "Nenhuma declaração é hoisted em JavaScript moderno (ES6+)",
+          "var, let e const têm comportamento idêntico com hoisting, diferindo apenas em escopo",
+          "Somente funções arrow são sofrem hoisting; funções declaration não",
+        ],
+        c: 0,
+        e: "Hoisting: engine JS move declarações ao topo (não inicializações). var: hoisted e inicializado com undefined — acessível antes da linha de declaração (retorna undefined). let/const: hoisted mas entram em Temporal Dead Zone (TDZ) — ReferenceError se acessados antes da declaração. Function declaration: hoisted completamente com corpo. Function expression (const fn = ...) segue regras da variável.",
+        x: "console.log(x); var x = 5; → undefined (não ReferenceError). console.log(y); let y = 5; → ReferenceError: Cannot access 'y' before initialization (TDZ). funcao(); function funcao(){} → OK (hoisted). funcaoExpr(); const funcaoExpr = () => {}; → ReferenceError (TDZ de const).",
+      },
+      {
+        q: "O que é o event loop do JavaScript e por que setTimeout(fn, 0) não executa imediatamente?",
+        o: [
+          "Event loop processa callbacks da task queue somente após a call stack estar vazia; setTimeout(fn, 0) coloca fn na task queue, executada após todo código síncrono atual",
+          "setTimeout(fn, 0) executa fn imediatamente em thread separada paralela ao código principal",
+          "Event loop é uma thread separada que roda código assíncrono simultâneo ao síncrono",
+          "Microtasks (Promises) e tasks (setTimeout) são processadas na mesma fila de forma intercalada",
+        ],
+        c: 0,
+        e: "JS é single-threaded (1 call stack). Event loop: Web APIs (timers, fetch) executam em background. Ao terminar, callbacks vão para Task Queue (setTimeout, setInterval) ou Microtask Queue (Promise.then, queueMicrotask). Event loop: call stack vazia → drena TODA microtask queue → processa 1 task. setTimeout(fn, 0) = task, executada após código síncrono atual e promises pendentes.",
+        x: "console.log('A'); setTimeout(() => console.log('B'), 0); Promise.resolve().then(() => console.log('C')); console.log('D'); Ordem: A, D, C, B. A e D: síncrono. C: microtask (Promise). B: task (setTimeout). Microtasks sempre antes de tasks. setTimeout de 100ms também aguarda stack vazia antes de executar.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são Generics em TypeScript e como diferem de usar o tipo any?",
+        o: [
+          "Generics preservam informação de tipo com parâmetros de tipo <T>; any descarta type safety completamente — generics permitem reuso sem perder verificação em compile-time",
+          "Generics são alias de tipo documentais; any é tipo especial que bypassa erros de runtime",
+          "São equivalentes em segurança; Generics apenas têm sintaxe mais verbosa",
+          "any é mais performático em runtime pois evita checagens de tipo dinâmico",
+        ],
+        c: 0,
+        e: "Generics: parâmetros de tipo (<T>) criam código reutilizável com preservação de tipos. TypeScript infere T na maioria dos casos. Com any: inferência de tipos perdida, erros só aparecem em runtime. unknown: tipo seguro para valores desconhecidos (exige type guard antes de usar). Constraints: <T extends Comparable> restringe T a tipos que implementam Comparable.",
+        x: "function primeiro<T>(arr: T[]): T { return arr[0]; }. primeiro([1,2,3]): retorna number. primeiro(['a','b']): retorna string. TypeScript detecta erros em compile-time. Com any: function primeiro(arr: any[]): any — primeiro(['a','b']).toFixed() compila mas falha em runtime. Generic evita esse bug.",
+      },
+      {
+        q: "O que são Promises e como async/await simplifica o código assíncrono?",
+        o: [
+          "Promise representa valor futuro com estados pending/fulfilled/rejected; async/await é açúcar sintático sobre Promises que permite escrever código assíncrono como síncrono com try/catch",
+          "Promise é callback avançado síncrono; async/await cria threads reais em paralelo",
+          "async/await substitui Promises completamente e são mecanismos independentes",
+          "Promises são para I/O de disco; async/await para operações de rede",
+        ],
+        c: 0,
+        e: "Promise: estados — pending (aguardando), fulfilled (resolvida), rejected (falhou). .then()/.catch()/.finally() encadeiam operações. async/await: função async retorna Promise implicitamente, await pausa execução até Promise resolver (sem bloquear call stack). try/catch captura rejeições. Promise.all([p1,p2]): executa em paralelo, aguarda todos. Promise.race: primeiro a resolver vence.",
+        x: "Callback hell aninhado: getUser(id, (u) => getPosts(u.id, (p) => getComments(p[0].id, fn))). async/await: const user = await getUser(id); const posts = await getPosts(user.id); const comments = await getComments(posts[0].id). Paralelo: const [user, config] = await Promise.all([getUser(id), getConfig()]).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que são tipos condicionais (Conditional Types) em TypeScript e como NonNullable é implementado?",
+        o: [
+          "Tipos que resolvem para diferentes tipos baseado em condição T extends U ? X : Y; NonNullable<T> = T extends null | undefined ? never : T eliminando nulos da union",
+          "Operador ternário aplicado a valores em tempo de execução pelo engine TypeScript",
+          "Tipos que mudam conforme configurações do strictNullChecks no tsconfig.json",
+          "Union types com narrowing de tipo em condicional if/else explícito",
+        ],
+        c: 0,
+        e: "Conditional Types: T extends U ? X : Y. Distributive: aplicado a union T distribui — (A|B) extends U ? X : Y = (A extends U ? X : Y) | (B extends U ? X : Y). Infer: extrai tipos dentro da condição. ReturnType<T> = T extends (...args: any) => infer R ? R : never. never em union é absorvido. NonNullable<string | null | undefined> = string.",
+        x: "type Flatten<T> = T extends Array<infer Item> ? Item : T. Flatten<string[]> = string; Flatten<number> = number. type ReturnType<T extends (...a: any) => any> = T extends (...a: any) => infer R ? R : never. ReturnType<() => string> = string. Usado extensivamente em tipos utilitários da lib padrão do TS.",
+      },
+      {
+        q: "O que é o objeto Proxy em JavaScript e quais são as interceptações (traps) disponíveis?",
+        o: [
+          "new Proxy(target, handler) intercepta operações em objetos via traps (get, set, has, apply, construct, deleteProperty...); base de sistemas reativos como Vue 3",
+          "Objeto de proxy de rede HTTP para interceptar requisições no browser",
+          "Design pattern Proxy criado explicitamente para logging e auditoria de objetos",
+          "Método de clonagem profunda de objetos complexos com transformação de propriedades",
+        ],
+        c: 0,
+        e: "Proxy ES6: new Proxy(target, handler). Traps: get (leitura), set (escrita), has (operador in), deleteProperty, apply (chamada de função), construct (new), getPrototypeOf, setPrototypeOf, ownKeys, defineProperty, isExtensible, preventExtensions. Vue 3 substituiu Object.defineProperty (Vue 2) por Proxy para melhor reatividade (detecta adição de propriedades, delete, array index).",
+        x: "Validação: const handler = { set(target, prop, value) { if (prop === 'age' && !Number.isInteger(value)) throw TypeError('age deve ser inteiro'); target[prop] = value; return true; } }. Vue 3: reactive({count: 0}) cria Proxy; count++ interceptado por set trap → notifica dependentes → re-render automático dos componentes.",
+      },
+    ],
+  },
+  "Programação Orientada a Objetos": {
+    Fácil: [
+      {
+        q: "O que é encapsulamento em POO e qual o papel dos modificadores de acesso?",
+        o: [
+          "Ocultar detalhes de implementação e expor apenas interface pública; private (só na própria classe), protected (classe e subclasses), public (todos)",
+          "Técnica de compressão de dados para otimizar uso de memória em objetos",
+          "Herdar comportamento do pai mantendo os dados da classe filha privados",
+          "Agrupar objetos com mesmo tipo em coleções encapsuladas",
+        ],
+        c: 0,
+        e: "Encapsulamento: estado interno escondido, interação apenas via métodos públicos definidos. Benefícios: controle de invariantes (setter valida antes de alterar), liberdade de mudar implementação sem quebrar consumidores, redução de acoplamento. private: inacessível externamente. protected: acessível em subclasses. public: parte da interface pública.",
+        x: "class ContaBancaria { private saldo = 0; depositar(v: number) { if (v <= 0) throw Error('Valor inválido'); this.saldo += v; } sacar(v: number) { if (v > this.saldo) throw Error('Saldo insuficiente'); this.saldo -= v; } getSaldo() { return this.saldo; } }. Saldo nunca fica negativo — invariante garantida pelo encapsulamento.",
+      },
+      {
+        q: "O que é herança em POO e qual problema a herança profunda pode causar?",
+        o: [
+          "Subclasse reutiliza código e tipo da superclasse; herança profunda (muitos níveis) gera fragilidade — mudança na base quebra subclasses distantes (Fragile Base Class Problem)",
+          "Subclasse compartilha instâncias com a superclasse para economizar memória",
+          "Técnica de copiar métodos de uma classe para outra sem relação hierárquica",
+          "Padrão que permite múltiplas superclasses em todas as linguagens OOP",
+        ],
+        c: 0,
+        e: "Herança: subclasse herda estado e comportamento da superclasse (relação 'é-um'). Fragilidade: mudança em método da classe base pode quebrar subclasses que dependem do comportamento antigo. Herança profunda (5+ níveis) dificulta rastreamento de onde comportamento vem. Regra: máximo 2-3 níveis; preferir composição para hierarquias mais profundas.",
+        x: "Animal→Mamifero→Animal Domestico→Pet→Cachorro. Adicionar validação no construtor de Animal quebra todos os 5 níveis se não esperada. Änderung em Mamifero.respirar() pode quebrar Cachorro.respirar() silenciosamente. Solução: compor comportamentos (Respiravel, Domesticavel) ao invés de herança profunda.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é composição versus herança e quando preferir composição em POO?",
+        o: [
+          "Herança: relação 'é-um' com acoplamento forte; composição: relação 'tem-um' delegando a colaboradores; preferir composição para evitar hierarquias rígidas e explosão de subclasses",
+          "Herança é sempre mais reutilizável; composição somente para objetos sem relação de tipo",
+          "São equivalentes em todos os aspectos; escolha é puramente estilística",
+          "Composição é exclusiva de linguagens funcionais que não suportam herança",
+        ],
+        c: 0,
+        e: "'Favoreça composição sobre herança' (GoF): herança expõe internals da superclasse (acoplamento forte), hierarquias rígidas e difíceis de modificar, Fragile Base Class Problem. Composição: objeto contém colaboradores como membros, delega comportamento, pode trocar implementação em runtime (Strategy), mais testável (mock de colaboradores). Herança válida quando relação 'é-um' é semântica e estável.",
+        x: "Explosão de herança: Duck extends Bird; FlyingDuck, SwimmingDuck, FlyingSwimmingDuck. O que herda? Composição: duck = new Duck({ fly: new DroneFlyer(), swim: new DuckSwimmer() }). Pinguin: { fly: new NoFlight(), swim: new DivingSwim() }. Comportamentos trocados injetando implementações.",
+      },
+      {
+        q: "Qual a diferença entre classe abstrata e interface em TypeScript e quando usar cada uma?",
+        o: [
+          "Classe abstrata: pode ter estado e implementação parcial, estendida por uma subclasse; interface: só define contrato sem estado, implementada por múltiplas classes",
+          "São completamente intercambiáveis no TypeScript moderno",
+          "Interface pode ter campos de instância; classe abstrata não pode ter campos",
+          "Classe abstrata pode ser instanciada diretamente; interface nunca pode ser implementada por classes concretas",
+        ],
+        c: 0,
+        e: "Classe abstrata: campos, construtores, métodos concretos e abstratos. Subclasse usa extends (apenas uma). Use quando há código compartilhado real entre subclasses. Interface: apenas assinaturas de métodos e tipos (TypeScript permite default methods em interfaces? Não — apenas declarações). Classe usa implements (múltiplas). Use para definir capabilities/contratos sem impor hierarquia.",
+        x: "abstract class Conversor { abstract converter(d: any): string; logar(msg: string) { console.log(msg); } } — JsonConversor e CsvConversor herdam log() e implementam converter(). interface Serializavel { serializar(): string; } — User e Product implementam sem herança forçada. TypeScript verifica em compile-time.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o Princípio Aberto/Fechado (OCP) do SOLID e como evitar violações em código com múltiplos tipos?",
+        o: [
+          "Código aberto para extensão (novos comportamentos) mas fechado para modificação (sem editar existente); violação: switch/if-else que cresce a cada novo tipo",
+          "Código open-source (aberto) com API interna fechada ao usuário externo",
+          "Módulo sem modificadores de acesso public mas extensível via herança",
+          "Classe que não aceita dependências externas mas é extensível internamente",
+        ],
+        c: 0,
+        e: "OCP: adicionar comportamento = nova classe/módulo, não editar existente. Violação clássica: switch(forma) { case 'circulo': ...; case 'quadrado': ...; } — adicionar triângulo exige editar sempre. Solução: polimorfismo (interface Forma.calcularArea()), Strategy, Decorator. Paradoxo: toda abstração é um palpite — OCP válido quando ponto de variação é identificado corretamente.",
+        x: "CalculadoraDesconto com switch(tipoCliente) — cada novo tipo = editar classe. OCP: interface DescontoStrategy, VIPStrategy, NormalStrategy. Calculadora recebe strategy — nova estratégia = nova classe, calculadora não muda. Plugin systems: VS Code extensions não editam o editor, apenas implementam interfaces definidas.",
+      },
+      {
+        q: "O que é covariância e contravariância em definição de tipos genéricos e como TypeScript trata?",
+        o: [
+          "Covariância: subtipo pode ser substituído em posição de saída (retorno); contravariância: supertipo pode ser substituído em posição de entrada (parâmetro); TypeScript usa structural typing bivariant por default com strictFunctionTypes fixando",
+          "São propriedades exclusivas de linguagens com herança múltipla estrita",
+          "TypeScript não suporta variância — usa any internamente para todos os genéricos",
+          "Covariância e contravariância são idênticas em sistemas de tipos estruturais",
+        ],
+        c: 0,
+        e: "Covariante (out): Producer<Cat> é subtipo de Producer<Animal> — retornar Cat onde Animal esperado é seguro. Contravariante (in): Consumer<Animal> é subtipo de Consumer<Cat> — aceitar Animal onde Cat esperado é seguro (aceita mais amplo). Invariante: mutável T<Cat> não pode substituir T<Animal> (nem covariant nem contravariant). TypeScript: métodos de classe são bivariant (histórico), function types são contravariantes em parâmetros com strictFunctionTypes.",
+        x: "Covariante seguro: () => Cat pode ser usada como () => Animal (retorna algo que é Animal). Contravariante seguro: (animal: Animal) => void pode ser usada como (cat: Cat) => void (aceita mais que Cat). Invariante (não seguro): Array<Cat> não é Array<Animal> — push(dog) causaria problema. TypeScript detecta isso com arrays mutáveis.",
+      },
+    ],
+  },
+  "React e React Native": {
+    Fácil: [
+      {
+        q: "O que é o hook useState e qual a regra crítica de imutabilidade do estado?",
+        o: [
+          "Hook para estado local em componentes funcionais; estado NUNCA deve ser mutado diretamente — sempre usar setter para criar novo valor e triggerar re-render",
+          "Variável global compartilhada entre todos os componentes da aplicação",
+          "Cache de dados remotos fetch com invalidação automática",
+          "Equivalente ao this.state de class component sem restrições de mutação",
+        ],
+        c: 0,
+        e: "useState(initial) retorna [state, setState]. setState(novoValor) ou setState(prev => novoValor). React detecta mudança por referência — mutar objeto/array existente não triggera re-render (mesma referência). Regra: sempre criar novo objeto/array: setList([...list, item]), setObj({...obj, key: valor}). Batching: múltiplos setStates em event handler são batched (React 18 em todos os contexts).",
+        x: "ERRADO: state.items.push('novo'); setItems(state.items); → mesma referência, sem re-render. CORRETO: setItems([...state.items, 'novo']); → nova referência, re-render. Para objetos: setUser({...user, nome: 'Ana'}) — spread preserva outros campos. Uso com função updater: setCount(prev => prev + 1) — seguro para múltiplos updates rápidos.",
+      },
+      {
+        q: "O que é JSX e por que React usa className em vez de class?",
+        o: [
+          "JSX é açúcar sintático transformado em React.createElement(); usa className porque class é palavra reservada em JavaScript",
+          "JSX é arquivo JSON para configurar componentes React de forma declarativa",
+          "JSX é linguagem de template separada compilada independentemente do JavaScript",
+          "JSX é substituição do HTML que roda diretamente no browser sem transpilação",
+        ],
+        c: 0,
+        e: "JSX: <Button color='red'>Click</Button> → React.createElement(Button, {color:'red'}, 'Click'). Transpilado por Babel/SWC. Atributos seguem o DOM JavaScript, não HTML: class→className (class é reserved keyword), for→htmlFor, tabindex→tabIndex, onclick→onClick (camelCase). Eventos são SyntheticEvents gerenciados pelo React.",
+        x: "<div className='box' onClick={fn} htmlFor='id'>...</div> → React.createElement('div', {className:'box', onClick:fn, htmlFor:'id'}). Fragment: <></> evita div wrapper. JSX permite expressões: {list.map(i => <li key={i.id}>{i.name}</li>)}. Compilado pelo Babel com @babel/plugin-transform-react-jsx.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funciona o array de dependências do useEffect e quais são os 3 comportamentos possíveis?",
+        o: [
+          "Sem array: executa após todo render; [] vazio: só na montagem; [a,b]: quando a ou b muda; cleanup function executada antes do próximo effect e no unmount",
+          "Array vazio: nunca executa; com deps: executa no unmount; sem array: uma única vez na montagem",
+          "Controla quantidade máxima de renderers por segundo para throttling",
+          "Define quais estados são serializados para persistência entre sessões",
+        ],
+        c: 0,
+        e: "useEffect(fn, deps): 1) sem deps → roda após CADA render. 2) [] → roda só na montagem (componentDidMount equivalent). 3) [a, b] → roda quando a ou b muda (comparação por referência com Object.is). Cleanup: função retornada pela fn roda antes do próximo effect e no unmount — essencial para cancelar subscriptions, clearInterval, removeEventListener para evitar memory leaks.",
+        x: "[]: buscar dados uma vez. [userId]: rebuscar ao trocar usuário. Cleanup crítico: useEffect(() => { const timer = setInterval(tick, 1000); return () => clearInterval(timer); }, []). Sem cleanup: timer continua rodando após unmount (memory leak). Dependências exaustivas: eslint-plugin-react-hooks detecta deps faltantes.",
+      },
+      {
+        q: "O que é o Context API no React e qual a principal limitação de performance?",
+        o: [
+          "Evita prop drilling compartilhando estado via Provider/useContext; limitação: qualquer mudança no valor do context re-renderiza TODOS os consumers, mesmo os que usam apenas partes não alteradas",
+          "Substituto completo de Redux com gerenciamento de estado global sem desvantagens",
+          "Cache de componentes React para evitar re-renders via memoização automática",
+          "Sistema de roteamento sem dependências externas baseado em contexto de URL",
+        ],
+        c: 0,
+        e: "Context: Provider fornece value, useContext(MyContext) acessa em qualquer descendente. Evita prop drilling. Limitação: quando value do Provider muda, todos os useContext(MyContext) re-renderizam — mesmo que componente use apenas parte não alterada. Soluções: dividir em múltiplos contextos granulares, useMemo no value, Zustand/Jotai/Redux para estado frequentemente mutável.",
+        x: "Context {user, theme, notifications}: trocar theme → componentes que usam só user re-renderizam. Dividir: UserContext, ThemeContext, NotificationContext. UserProvider: value={useMemo(() => ({user}), [user])} — só re-renderiza consumers de UserContext quando user muda. Context bom para: tema, locale, auth (mudam raramente).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o algoritmo de reconciliação do React e como o Virtual DOM otimiza atualizações?",
+        o: [
+          "React mantém VDOM em memória; ao setState cria novo VDOM, faz diff (O(n) com heurísticas de tipo e key) com anterior e aplica apenas patches mínimos ao DOM real",
+          "React serializa componentes em JSON para comparação antes de atualizar o DOM",
+          "Novo DOM real criado a cada render e substituído completamente pelo anterior",
+          "VDOM sincroniza automaticamente com servidor via SSR sem algoritmo de diff",
+        ],
+        c: 0,
+        e: "VDOM: representação JS leve do DOM. Diffing O(n) com heurísticas: mesmos tipos → atualiza props; tipos diferentes → destrói e recria subárvore; listas → key para identificar elementos. Sem key: inserir no início reordena todos os elementos (O(n) mutations). Com key: React identifica que elementos existentes mantiveram identidade. Fiber (16+): reconciliador interrompível permite priorização de updates.",
+        x: "setState({count: 1}) → novo VDOM diff com anterior → apenas textContent do span muda. Sem VDOM: innerHTML repintaria toda a página. Keys em list: <li key={item.id}> — inserir no início move os existentes em vez de recriar. key={Math.random()} é anti-pattern: recria tudo. Profiler DevTools: identifica renders desnecessários.",
+      },
+      {
+        q: "Quando useMemo e useCallback causam problemas de performance ao invés de resolver?",
+        o: [
+          "Usados desnecessariamente adicionam overhead de closure, comparação de deps e alocação de memória — piores para operações baratas do que computar diretamente a cada render",
+          "Sempre melhoram performance pois evitam qualquer recalculação de valor ou função",
+          "useCallback é para componentes; useMemo é para valores primitivos simples",
+          "Eliminam completamente re-renders desnecessários em qualquer cenário do React",
+        ],
+        c: 0,
+        e: "useMemo e useCallback têm custo: criar closure, manter deps array, comparação por Object.is a cada render. Para operações baratas, é mais caro do que recomputar. useMemo correto: cálculo custoso (sort de lista grande, filtragem complexa). useCallback correto: função passada como prop a React.memo ou dep de useEffect. Prematuro: useMemo(() => a + b, [a,b]) — soma é barata.",
+        x: "useMemo ERRADO: useMemo(() => items.length, [items]) — .length é O(1), overhead de useMemo maior. CERTO: useMemo(() => items.filter(complexPredicate).sort(complexSort), [items]) — evita O(n log n) a cada render. useCallback necessário: <Chart onHover={cb}/> onde Chart é React.memo — sem useCallback, cb recria toda render e Chart re-renderiza de qualquer forma.",
+      },
+    ],
+  },
+  "Testes de Software": {
+    Fácil: [
+      {
+        q: "O que é um teste unitário e qual a regra FIRST para boas práticas?",
+        o: [
+          "Testa unidade isolada (função/classe) sem dependências externas reais; FIRST: Fast, Isolated, Repeatable, Self-validating, Timely",
+          "Testa toda a aplicação de ponta a ponta incluindo banco e APIs externas",
+          "Verifica integração entre múltiplos módulos do sistema em cenários reais",
+          "Simula interações do usuário em interface gráfica com browser real",
+        ],
+        c: 0,
+        e: "Teste unitário: menor unidade testável isolada de dependências (mocks para banco, APIs). FIRST: Fast (milissegundos, não segundos), Isolated (sem dependência entre testes — ordem não importa), Repeatable (mesmo resultado em qualquer ambiente/hora), Self-validating (pass/fail automático sem inspeção manual), Timely (escrito junto ao código, não após meses).",
+        x: "test('soma(2,3) = 5', () => expect(soma(2,3)).toBe(5)) — unitário, puro, sem dependências. Não é unitário: test que faz SELECT no banco, chama API real, depende de arquivo no disco ou de outro test ter rodado antes. Jest/Vitest: 100 testes unitários em < 1s. 10 testes E2E: 30+ segundos.",
+      },
+      {
+        q: "O que é TDD e qual é o ciclo Red-Green-Refactor?",
+        o: [
+          "Test-Driven Development: escrever teste que falha (Red), implementar código mínimo para passar (Green), melhorar código mantendo testes verdes (Refactor)",
+          "Escrever todos os testes ao final do desenvolvimento como documentação",
+          "Gerar testes automaticamente a partir do código de produção via reflection",
+          "QA escreve testes antes dos devs como especificação formal do sistema",
+        ],
+        c: 0,
+        e: "TDD: ciclo curto de feedback guiado por testes. Red: escrever teste para comportamento desejado (falha porque código não existe). Green: implementar código MÍNIMO para passar (pode ser feio). Refactor: melhorar sem quebrar funcionalidade (testes como rede de segurança). Benefícios: design emergente, documentação viva (testes), confiança em mudanças, debugging mais fácil.",
+        x: "Red: test('juros(1000, 0.01, 12) = 126.83') → CompileError/Fail. Green: function juros(p,r,n) { return p*((1+r)**n-1); } → Pass. Refactor: renomear parâmetros, extrair constante, melhorar arredondamento → testes ainda passam. Ciclo dura minutos, não horas.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual a diferença entre mock, stub e spy em testes?",
+        o: [
+          "Stub: retorna valores pré-definidos sem verificar chamadas; Mock: verifica se foi chamado corretamente (comportamento); Spy: envolve implementação real registrando chamadas",
+          "São sinônimos — termos diferentes para o mesmo conceito de substituição",
+          "Mock substitui banco; Stub substitui APIs externas; Spy monitora logs do sistema",
+          "Spy é para testes unitários; Mock para integração; Stub para E2E",
+        ],
+        c: 0,
+        e: "Test Doubles (Meszaros): Stub — retorna dados fixos, controla estado, sem assertions sobre chamadas. Mock — pre-programado com expectations: expect(mock.metodo).toHaveBeenCalledWith(arg). Spy — wraps implementação real, registra chamadas para verificação posterior. Fake — implementação simplificada (in-memory DB). Dummy — preenche parâmetros obrigatórios sem uso real.",
+        x: "Stub: jest.fn().mockReturnValue({id:1}) — retorna dados sem verificar. Mock: emailService.send = jest.fn(); ... expect(emailService.send).toHaveBeenCalledWith('ana@mail.com', 'Boas-vindas'). Spy: const spy = jest.spyOn(cache, 'get'); cache.get(key); expect(spy).toHaveBeenCalledTimes(1) — implementação real rodou mas registrou.",
+      },
+      {
+        q: "O que é a pirâmide de testes e como equilibrar unitários, integração e E2E?",
+        o: [
+          "Base: muitos unitários (rápidos/baratos); meio: alguns de integração; topo: poucos E2E (lentos/caros/frágeis); proporção recomendada evita a anti-pattern 'ice cream cone'",
+          "Todos os tipos em proporções iguais para cobertura balanceada e justa",
+          "Maioria de testes E2E pois simulam o usuário real com maior confiança",
+          "Apenas testes E2E são suficientes para garantir qualidade de software",
+        ],
+        c: 0,
+        e: "Pirâmide (Mike Cohn): unitários = base (muitos, ms, baratos, isolados), integração = meio (alguns, segundos, verificam módulos juntos), E2E = topo (poucos, minutos, frágeis, alto valor). Anti-pattern ice cream cone: maioria E2E (lento, caro, frágil). Testing Trophy (Kent Dodds para React): mais integração que unitário (componentes com DOM). Suite típica: 70% unitários, 20% integração, 10% E2E.",
+        x: "Suite 500u+50int+10e2e: < 3 minutos. 100 E2E: 30+ minutos, falhas intermitentes por timing. React Testing Library: testa componentes com DOM real (integração) — mais valor que só funções unitárias. Cypress/Playwright: 10 jornadas críticas do usuário. E2E cobre o que unitários não conseguem (routing, auth, fluxo completo).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é property-based testing e como ele difere de example-based testing?",
+        o: [
+          "Property-based define propriedades lógicas que devem valer para qualquer input; geradores aleatórios encontram edge cases que testes manuais não cobrem; shrinking minimiza o caso falho",
+          "Property-based documenta o sistema; example-based garante cobertura de linhas",
+          "São a mesma técnica com nomes diferentes em linguagens distintas",
+          "Property-based testa somente tipos primitivos; example-based é para objetos complexos",
+        ],
+        c: 0,
+        e: "Example-based: test('reverse([1,2,3]) = [3,2,1]') — casos escolhidos manualmente. Property-based: define propriedade (reverso do reverso = original, sort preserva elementos, append incrementa length) e gerador cria centenas de inputs aleatórios buscando falsificar a propriedade. Shrinking: ao achar input falho, minimiza para o menor caso. Encontra edge cases (vazio, null, overflow) que humanos não pensam.",
+        x: "fast-check: fc.assert(fc.property(fc.array(fc.integer()), (arr) => { const rev = [...arr].reverse(); return [...rev].reverse().join(',') === arr.join(','); })). Roda 100 arrays aleatórios. Se falha: shrinking produz o menor array que quebra. Hypothesis (Python), QuickCheck (Haskell), Jqwik (Java). Propriedade de encode/decode: decode(encode(x)) === x.",
+      },
+      {
+        q: "O que é mutation testing e como ele avalia a qualidade real dos testes?",
+        o: [
+          "Introduz bugs intencionais (mutantes) no código e verifica se testes os detectam; mutation score = % mutantes mortos; 100% cobertura de linhas não garante alta mutation score",
+          "Testa automaticamente código que manipula dados mutáveis vs imutáveis",
+          "Gera automaticamente testes unitários a partir de análise estática do código",
+          "Verifica se testes são determinísticos eliminando dependências de estado mutável",
+        ],
+        c: 0,
+        e: "Mutation testing (Stryker, PIT): gera mutantes (troca > por >=, remove return, inverte condicionais, altera operadores aritméticos). Executa suite para cada mutante. Morto: algum teste falhou (mutante detctado). Sobrevivente: nenhum teste falhou (lacuna na suite). Mutation score = mortos / (mortos + sobreviventes). 100% line coverage pode ter mutation score baixo se assertions são fracas.",
+        x: "Código: if (saldo >= valor). Mutante: if (saldo > valor). Test1: sacar(100) com saldo=200 → passa com ambos. Test2: sacar(100) com saldo=100 → passa com >=, falha com > → mata mutante. Test1 sobrevive com mutante = lacuna. Stryker para JS/TS: stryker run. Mutation score 80%+ indica testes que realmente testam lógica.",
+      },
+    ],
+  },
+};
+
+// ─── Round 2 · +2 questões por nível por categoria ───
+
+const desenvolvimentoRound2Extras: Record<
+  string,
+  Record<UserLevel, SeedCard[]>
+> = {
+  "Algoritmos e Estruturas de Dados": {
+    Fácil: [
+      {
+        q: "O que é recursão em programação e quais são os dois componentes fundamentais de uma função recursiva?",
+        o: [
+          "Caso base (condição de parada) e caso recursivo (chamada a si mesma reduzindo o problema)",
+          "Loop infinito e variável global de controle",
+          "Chamada a outra função e retorno de null",
+          "Iteração com for e condição de break",
+        ],
+        c: 0,
+        e: "Recursão: função que chama a si mesma. Caso base: condição que encerra a recursão (sem ele, stack overflow). Caso recursivo: reduz o problema e chama a função novamente. Exemplos: fatorial(n) = n × fatorial(n-1), com fatorial(0) = 1 como caso base; Fibonacci, percurso de árvores.",
+        x: "function fatorial(n) { if (n <= 1) return 1; /* caso base */ return n * fatorial(n - 1); /* caso recursivo */ } fatorial(5) → 5×4×3×2×1 = 120. Sem caso base: fatorial(5) → fatorial(4) → ... → stack overflow. Cada chamada empilha um frame na call stack.",
+      },
+      {
+        q: "O que é uma fila de prioridade (priority queue) e qual estrutura de dados a implementa de forma eficiente?",
+        o: [
+          "Fila onde elementos saem por prioridade (não por ordem de chegada); implementada eficientemente com heap binário",
+          "Fila FIFO comum onde o primeiro a entrar sai primeiro; usa array",
+          "Pilha LIFO onde o último inserido é removido primeiro; usa linked list",
+          "Lista ordenada que mantém elementos em ordem crescente; usa árvore binária de busca",
+        ],
+        c: 0,
+        e: "Priority queue: cada elemento tem prioridade associada. Dequeue retira o de maior (ou menor) prioridade, não o mais antigo. Heap binário: árvore binária completa onde pai ≥ filhos (max-heap) ou pai ≤ filhos (min-heap). Inserção e remoção: O(log n). Peek: O(1). Usos: algoritmo de Dijkstra, agendamento de processos, merge de k listas ordenadas.",
+        x: "Min-heap: inserir(5), inserir(2), inserir(8), inserir(1). peek() → 1. remove() → 1, heap reorganiza → peek() = 2. Em Python: import heapq; h=[]; heapq.heappush(h,5); heapq.heappush(h,2); heapq.heappop(h) → 2. Java: PriorityQueue<Integer> pq = new PriorityQueue<>();",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funciona o algoritmo Merge Sort e por que ele garante complexidade O(n log n) mesmo no pior caso?",
+        o: [
+          "Divide o array ao meio recursivamente até ter subarrays unitários, depois intercala (merge) em ordem; log n níveis × O(n) por nível = O(n log n) garantido",
+          "Seleciona um pivô e particiona em menores e maiores; no pior caso é O(n²)",
+          "Compara elementos adjacentes e troca se necessário; complexidade O(n²)",
+          "Constrói um heap e extrai o máximo repetidamente; instável",
+        ],
+        c: 0,
+        e: "Merge Sort: dividir-e-conquistar. 1) Divide array ao meio recursivamente até tamanho 1 (log n divisões). 2) Intercala (merge) dois subarrays ordenados percorrendo ambos linearmente. Cada nível de recursão processa todos os n elementos → O(n) por nível × log n níveis = O(n log n) sempre. Estável (preserva ordem de iguais). Desvantagem: O(n) espaço extra para o merge.",
+        x: "[38,27,43,3,9,82,10] → divide até unitários → merge: [27,38],[3,43],[9,82],[10] → [3,27,38,43],[9,10,82] → [3,9,10,27,38,43,82]. 3 níveis (log₂7 ≈ 3), cada nível percorre 7 elementos. Python usa Timsort (merge+insertion híbrido).",
+      },
+      {
+        q: "O que é a técnica Two Pointers em algoritmos e em quais tipos de problemas ela é aplicada?",
+        o: [
+          "Usa dois índices que percorrem a estrutura (do início/fim ou ambos do início) para resolver problemas em O(n) sem espaço extra",
+          "Cria duas cópias do array e compara elemento a elemento",
+          "Divide o array em duas metades e processa cada uma separadamente com threads",
+          "Usa duas estruturas de dados separadas (pilha e fila) para processar dados",
+        ],
+        c: 0,
+        e: "Two Pointers: dois índices percorrem a estrutura de dados. Variantes: 1) Opostos: left=0, right=n-1, convergem ao centro (ex: two sum em array ordenado, palíndromo). 2) Mesmo sentido: slow/fast (ex: remover duplicatas in-place, detectar ciclo em linked list — Floyd). Complexidade: O(n) tempo, O(1) espaço. Pré-requisito comum: array ordenado.",
+        x: "Two Sum em array ordenado [2,7,11,15], target=9: left=0(2), right=3(15), soma=17>9 → right--; left=0(2), right=2(11), soma=13>9 → right--; left=0(2), right=1(7), soma=9=target ✓. O(n) vs O(n²) brute force. Floyd cycle: slow=next, fast=next.next; se encontram = ciclo.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que são Segment Trees e como permitem consultas e atualizações em intervalos de forma eficiente?",
+        o: [
+          "Árvore binária onde cada nó armazena informação agregada de um intervalo do array; consulta e atualização em O(log n)",
+          "Árvore binária de busca auto-balanceada que mantém elementos ordenados",
+          "Estrutura que armazena todos os prefixos de um array para consultas rápidas",
+          "Grafo direcionado que conecta intervalos sobrepostos para detecção de conflitos",
+        ],
+        c: 0,
+        e: "Segment Tree: árvore binária construída sobre array. Cada nó guarda resultado agregado (soma, mín, máx) de um intervalo [l, r]. Raiz: intervalo total. Folhas: elementos individuais. Construção: O(n). Query de intervalo [ql, qr]: percorre nós relevantes em O(log n). Update pontual: propaga em O(log n). Lazy propagation: permite updates em intervalo também em O(log n).",
+        x: "Array [1,3,5,7,9,11]. Segment tree de soma: raiz=36 [0-5]; esq=9 [0-2], dir=27 [3-5]. Query soma(1,4): nós [1-2]=8, [3-3]=7, [4-4]=9 → 24. Update idx=2 para 10: propaga da folha à raiz. Sem segment tree: query O(n); com: O(log n). Usada em competitive programming e bancos de dados geoespaciais.",
+      },
+      {
+        q: "O que é o algoritmo de Kruskal para árvore geradora mínima (MST) e qual estrutura o torna eficiente?",
+        o: [
+          "Ordena arestas por peso e adiciona a menor que não forma ciclo, usando Union-Find para detectar ciclos em O(α(n)) amortizado",
+          "Começa de um vértice e expande adicionando a aresta mais barata ao conjunto visitado",
+          "Percorre o grafo em largura calculando distância mínima de cada vértice à origem",
+          "Remove iterativamente a aresta de maior peso até restar uma árvore conexa",
+        ],
+        c: 0,
+        e: "Kruskal: algoritmo guloso para MST. 1) Ordena arestas por peso: O(E log E). 2) Itera: para cada aresta (u,v,w), se u e v estão em componentes diferentes (Union-Find), adiciona à MST. 3) Para com V-1 arestas. Union-Find com path compression + union by rank: operações em O(α(n)) ≈ O(1). Total: O(E log E). Prim é melhor para grafos densos.",
+        x: "Grafo: A-B(4), A-C(2), B-C(1), B-D(5), C-D(8), D-E(2). Ordenar: B-C(1), A-C(2), D-E(2), A-B(4), B-D(5), C-D(8). Adicionar: B-C(1)✓, A-C(2)✓, D-E(2)✓, A-B(4)→A,B já conectados (skip), B-D(5)✓. MST: {B-C,A-C,D-E,B-D}, peso=10. V-1=4 arestas ✓.",
+      },
+    ],
+  },
+  "APIs REST e GraphQL": {
+    Fácil: [
+      {
+        q: "O que é uma query string na URL de uma API e como é usada para filtrar ou paginar resultados?",
+        o: [
+          "Parte da URL após '?' com pares chave=valor separados por '&'; usada para filtros, paginação e ordenação em requisições GET",
+          "Corpo da requisição HTTP em JSON para criar recursos",
+          "Header que define o tipo de resposta esperada pelo cliente",
+          "Caminho da URL que identifica o recurso específico a ser acessado",
+        ],
+        c: 0,
+        e: "Query string: parte da URL após '?'. Formato: ?chave1=valor1&chave2=valor2. Usada em GET para filtros, paginação, ordenação, busca. Não deve conter dados sensíveis (aparece no log e histórico). Limite prático: ~2048 caracteres. Caracteres especiais são URL-encoded (%20 para espaço).",
+        x: "GET /api/products?category=electronics&min_price=100&sort=price&order=asc&page=2&limit=20. Servidor recebe: category='electronics', min_price=100, sort='price', page=2, limit=20. Resposta inclui total, hasMore ou Link header para próxima página.",
+      },
+      {
+        q: "O que significa uma API REST ser stateless e qual a implicação para autenticação entre requisições?",
+        o: [
+          "Cada requisição deve conter todas as informações necessárias; o servidor não guarda estado da sessão, então tokens (JWT/API key) são enviados em cada request",
+          "O servidor mantém sessão em memória e o cliente usa apenas cookie de sessão",
+          "Stateless significa que a API não retorna dados, apenas confirma operações",
+          "O servidor armazena histórico de todas as requisições do cliente para manter contexto",
+        ],
+        c: 0,
+        e: "Stateless: servidor não guarda estado entre requisições. Cada request é independente. Implicação para auth: não existe sessão no servidor — token (JWT, API key, Bearer) é enviado em cada chamada via Authorization header. Benefícios: escalabilidade horizontal (qualquer servidor atende qualquer request), simplicidade, cacheabilidade.",
+        x: "Request 1: GET /api/profile, Authorization: Bearer eyJhbGciOi... → 200 OK {name:'Ana'}. Request 2: GET /api/orders, Authorization: Bearer eyJhbGciOi... → 200 OK [...]. Sem header: 401 Unauthorized. Servidor não 'lembra' request 1 ao processar request 2.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são webhooks e como diferem de polling para receber notificações de eventos de serviços externos?",
+        o: [
+          "Webhooks: servidor externo envia HTTP POST ao seu endpoint quando evento ocorre (push); polling: seu sistema consulta periodicamente (pull) — webhooks são mais eficientes",
+          "Webhooks usam WebSockets bidirecionais; polling usa SSE unidirecional",
+          "Webhooks requerem conexão TCP persistente; polling usa UDP",
+          "Webhooks são exclusivos para GraphQL; polling é o padrão REST",
+        ],
+        c: 0,
+        e: "Polling: cliente consulta servidor repetidamente em intervalos (ex: GET a cada 30s). Desperdício se não há dados novos. Webhooks: evento ocorre → servidor externo faz POST para URL cadastrada com payload do evento. Eficiente (tráfego só quando há dados). Desafios: idempotência (evento pode ser reenviado), verificar assinatura (HMAC), retry com backoff em falhas.",
+        x: "Stripe webhook: pagamento confirmado → POST https://seusite.com/webhooks/stripe, body:{type:'payment_intent.succeeded', data:{amount:5000}}. Servidor: verifica Stripe-Signature header (HMAC-SHA256), processa, retorna 200. Se retornar 5xx, Stripe reenvia com backoff exponencial até 72h.",
+      },
+      {
+        q: "O que é paginação cursor-based e como difere de offset-based em APIs com grandes volumes de dados?",
+        o: [
+          "Cursor-based usa ponteiro opaco para o último item retornado; offset pula N registros — cursor é mais eficiente e consistente em datasets grandes e mutáveis",
+          "Cursor-based numera páginas sequencialmente; offset usa índices de array",
+          "Cursor-based só funciona com GraphQL; offset é exclusivo de REST",
+          "Ambas são idênticas em performance; a escolha é puramente estética",
+        ],
+        c: 0,
+        e: "Offset-based: GET /items?offset=1000&limit=20. Banco: OFFSET 1000 LIMIT 20 — precisa pular 1000 rows (lento em datasets grandes). Problema: inserções/deleções entre páginas causam duplicatas ou itens pulados. Cursor-based: GET /items?after=eyJpZCI6MTAwMH0. Banco: WHERE id > 1000 LIMIT 20 — usa index, O(log n). Consistente mesmo com mutações.",
+        x: "1M registros. Offset página 5000 → OFFSET 100000 — banco itera 100K rows. Cursor after=id_100000 → WHERE id > 100000 LIMIT 20 — index seek direto. Resposta: { data: [...], pageInfo: { endCursor: 'abc123', hasNextPage: true } }. GitHub API v4 usa cursor-based.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o problema N+1 em GraphQL e como o DataLoader resolve esse problema de performance?",
+        o: [
+          "Resolver de campo dispara 1 query por item (N queries + 1 inicial); DataLoader agrupa IDs e faz uma única query batch por tick do event loop",
+          "N+1 refere-se ao limite de profundidade de queries; DataLoader limita a N+1 níveis",
+          "N+1 é o número máximo de campos retornados; DataLoader comprime a resposta",
+          "N+1 é um limite de rate limiting; DataLoader faz cache local ilimitado",
+        ],
+        c: 0,
+        e: "Problema N+1: query { users { posts { title } } }. Resolver users: 1 query. Para cada user, resolver posts: N queries (SELECT FROM posts WHERE user_id=?). Total: N+1 queries. DataLoader: agrupa load(userId) no mesmo tick do event loop → batch function com todos IDs: SELECT FROM posts WHERE user_id IN (1,2,...N). Resultado: 2 queries. Também cacheia por request.",
+        x: "Sem DataLoader: users [1,2,3] → SELECT * FROM posts WHERE user_id=1; WHERE user_id=2; WHERE user_id=3 (4 queries). Com: const loader = new DataLoader(ids => db.query('SELECT * FROM posts WHERE user_id IN (?)', [ids])); resolver: loader.load(user.id); → batch: 1 query IN(1,2,3). Total: 2 queries.",
+      },
+      {
+        q: "O que são Server-Sent Events (SSE) e como diferem de WebSockets para comunicação em tempo real?",
+        o: [
+          "SSE: conexão HTTP unidirecional server→client com reconexão automática e text/event-stream; WebSocket: bidirecional full-duplex sobre protocolo ws://",
+          "SSE usa UDP para streaming; WebSocket usa TCP com garantia de entrega",
+          "SSE requer servidor dedicado; WebSocket funciona em qualquer servidor HTTP padrão",
+          "SSE é bidirecional como WebSocket mas com menor latência",
+        ],
+        c: 0,
+        e: "SSE: API nativa do navegador (EventSource). HTTP simples, Content-Type: text/event-stream. Unidirecional: server→client. Reconexão automática com Last-Event-ID. WebSocket: protocolo ws://, upgrade de HTTP. Bidirecional: client↔server. Mais complexo (handshake, heartbeat, reconnect manual). SSE para: notificações, feeds, dashboards. WebSocket para: chat, gaming, colaboração.",
+        x: "SSE server: res.writeHead(200,{'Content-Type':'text/event-stream'}); setInterval(()=>res.write('data:'+JSON.stringify({price:42})+'\\n\\n'),1000). Client: const es=new EventSource('/stream'); es.onmessage=e=>console.log(JSON.parse(e.data)). Se cair, navegador reconecta em 3s com Last-Event-ID.",
+      },
+    ],
+  },
+  "Arquitetura de Software": {
+    Fácil: [
+      {
+        q: "O que é escalabilidade horizontal vs vertical e quando cada abordagem é mais adequada?",
+        o: [
+          "Vertical: aumentar recursos da máquina (CPU, RAM); horizontal: adicionar mais máquinas — horizontal é preferível para alta disponibilidade e elasticidade",
+          "Vertical: adicionar servidores; horizontal: melhorar hardware de um servidor",
+          "Vertical: escalar frontend; horizontal: escalar backend",
+          "Ambas significam adicionar mais capacidade de processamento",
+        ],
+        c: 0,
+        e: "Vertical (scale up): CPU mais potente, mais RAM — mesma máquina. Limite: hardware tem teto, single point of failure. Horizontal (scale out): mais instâncias distribuídas. Requer: app stateless, load balancer, dados compartilhados. Benefícios: sem teto teórico, alta disponibilidade (nó cai, outros continuam). Desafio: consistência de dados, complexidade.",
+        x: "App com 10K users. Vertical: trocar de 4GB para 32GB RAM — rápido mas limite ~256GB. Horizontal: 3 instâncias de 4GB atrás de ALB. Sessão: JWT stateless. Upload: S3 compartilhado. Auto-scaling AWS: adiciona instâncias quando CPU > 70%. Kubernetes: HPA escala pods horizontalmente.",
+      },
+      {
+        q: "O que é uma fila de mensagens (message queue) e por que é usada em sistemas distribuídos?",
+        o: [
+          "Middleware que desacopla produtor/consumidor: produtor envia mensagem à fila, consumidor processa assincronamente — garante resiliência e absorção de picos",
+          "Banco NoSQL otimizado para mensagens curtas e efêmeras",
+          "Protocolo de comunicação síncrona entre microsserviços",
+          "Sistema de cache que armazena respostas de APIs para reduzir latência",
+        ],
+        c: 0,
+        e: "Message queue: produtor publica mensagem → fila armazena → consumidor consome quando disponível. Desacoplamento: produtor e consumidor não precisam estar online simultaneamente. Buffer de picos: 1000 req/s → fila absorve → consumidor processa a 100/s gradualmente. Garantias: at-least-once (RabbitMQ), at-most-once, exactly-once (Kafka). Exemplos: RabbitMQ, Apache Kafka, SQS, Redis Streams.",
+        x: "Checkout e-commerce → publica 'pedido_criado' no Kafka. Consumers independentes: email (envia confirmação), estoque (reserva itens), analytics (registra venda). Se serviço de email cair, mensagem permanece no Kafka; ao voltar, consome e envia. Checkout não espera nenhum deles.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o padrão Outbox para garantir consistência entre banco de dados e sistema de mensageria?",
+        o: [
+          "Grava o evento numa tabela outbox na mesma transação do dado; processo separado publica os eventos pendentes no broker",
+          "Envia mensagem ao broker e depois persiste no banco na mesma operação",
+          "Usa transações distribuídas (2PC) entre banco e broker para atomicidade",
+          "Replica o banco inteiro para o broker em intervalos regulares",
+        ],
+        c: 0,
+        e: "Problema: salvar no DB + publicar no broker não é atômico. Publicação falha após commit = evento perdido. Outbox pattern: 1) Transação atômica: INSERT pedido + INSERT outbox_events (mesmo TX). 2) Processo separado (polling ou CDC/Debezium) lê outbox e publica no Kafka. 3) Marca evento como publicado. Garante at-least-once. Consumer deve ser idempotente.",
+        x: "BEGIN TX; INSERT INTO orders(id,total) VALUES(1,100); INSERT INTO outbox_events(id,type,payload) VALUES(uuid,'Order','{id:1,total:100}'); COMMIT; — Debezium (CDC) detecta INSERT na outbox → publica no Kafka topic 'order.events'. Consumer grava processed_event_id para idempotência.",
+      },
+      {
+        q: "O que é Observability e quais são os três pilares (logs, métricas e traces) em sistemas distribuídos?",
+        o: [
+          "Capacidade de entender o estado interno do sistema; logs registram eventos, métricas quantificam comportamento e traces rastreiam requisições entre serviços",
+          "Monitoramento de uptime com ping; logs são suficientes para total observabilidade",
+          "Alertas automáticos que reiniciam serviços quando detectam falhas",
+          "Dashboard que mostra apenas uso de CPU e memória",
+        ],
+        c: 0,
+        e: "Observability: diagnosticar problemas em sistemas complexos. Três pilares: 1) Logs: registros de eventos (JSON estruturado). Ferramentas: ELK, Loki. 2) Métricas: valores numéricos ao longo do tempo (latência p99, error rate). Ferramentas: Prometheus, Grafana. 3) Traces: rastreamento de request através de múltiplos serviços com correlation ID. Ferramentas: Jaeger, OpenTelemetry.",
+        x: "Request lenta: 1) Métrica: p99 latência subiu de 200ms para 2s no serviço de pagamento. 2) Trace: OpenTelemetry mostra request por API Gateway→Auth→Pagamento→Banco. Span do banco: 1.8s (bottleneck). 3) Log: query SQL com full table scan. Solução: adicionar índice. trace-id=abc123 liga os 3.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que são CRDTs (Conflict-free Replicated Data Types) e como permitem edição concorrente sem coordenação central?",
+        o: [
+          "Estruturas que garantem convergência eventual automática em réplicas independentes sem consenso ou lock; operações são comutativas e idempotentes",
+          "Bancos com transações ACID distribuídas que previnem conflitos via locking pessimista",
+          "Algoritmos de consenso como Raft que elegem líder para serializar operações",
+          "Caches distribuídos que invalidam entradas conflitantes e forçam releitura",
+        ],
+        c: 0,
+        e: "CRDTs: data structures para replicação sem conflito. State-based (CvRDT): envia estado completo, merge com lattice join. Operation-based (CmRDT): envia operações comutativas. Exemplos: G-Counter (incremento), LWW-Register (last writer wins), OR-Set. Strong Eventual Consistency: réplicas que receberam mesmas updates convergem sem coordenação. Usado em: Google Docs, Figma, Redis CRDTs.",
+        x: "G-Counter 3 nós: A=[1,0,0], B=[0,2,0], C=[0,0,1]. A incrementa: A=[2,0,0]. B recebe de A: merge([0,2,0],[2,0,0])=[2,2,0]. Valor=4. Merge comutativo e idempotente → ordem não importa → convergência garantida. Figma usa CRDT para posição de objetos no canvas colaborativo.",
+      },
+      {
+        q: "O que é o padrão Bulkhead e como previne falhas em cascata em arquiteturas de microsserviços?",
+        o: [
+          "Isola recursos (threads, conexões) em pools separados por funcionalidade; falha de um componente não esgota recursos dos outros",
+          "Cria réplicas redundantes de cada serviço para failover automático",
+          "Implementa retry com backoff exponencial em todas as chamadas entre serviços",
+          "Monitora health checks e remove serviços defeituosos do load balancer",
+        ],
+        c: 0,
+        e: "Bulkhead: inspirado em compartimentos estanques de navios. Se um inunda, outros ficam intactos. Em software: isola pools de recursos. Sem bulkhead: pool único de 100 threads — se API-A travar, todas bloqueadas, APIs B e C param. Com bulkhead: pool-A=30, pool-B=30, pool-C=30, reserva=10. API-A trava → 30 threads afetadas; B e C normais. Implementações: Resilience4j, Polly.",
+        x: "E-commerce: pool-pagamento=20 threads (Stripe), pool-frete=10 (Correios API), pool-recomendação=5 (ML). Correios fora: 10 threads pendentes mas pagamento continua com suas 20. Sem bulkhead: 100 threads compartilhadas, Correios consome todas → checkout inteiro para.",
+      },
+    ],
+  },
+  "Banco de Dados SQL": {
+    Fácil: [
+      {
+        q: "O que é uma subquery (subconsulta) em SQL e em quais cláusulas ela pode ser utilizada?",
+        o: [
+          "Query aninhada dentro de outra; pode ser usada em WHERE, FROM, SELECT e HAVING para filtrar, calcular ou gerar conjuntos intermediários",
+          "Função que cria tabela temporária permanente no banco de dados",
+          "Comando para executar múltiplas queries em paralelo",
+          "Procedure que aceita parâmetros e retorna resultados",
+        ],
+        c: 0,
+        e: "Subquery: SELECT dentro de outro SELECT. Em WHERE: filtro dinâmico. Em FROM: tabela derivada. Em SELECT: valor calculado por row. Tipos: escalar (1 valor), tabela (múltiplas rows). Correlacionada: referencia tabela externa (executa para cada row). EXISTS: testa se subquery retorna resultados. CTEs (WITH) são alternativa mais legível.",
+        x: "Funcionários com salário acima da média: SELECT name FROM employees WHERE salary > (SELECT AVG(salary) FROM employees). Correlacionada: SELECT * FROM departments d WHERE (SELECT COUNT(*) FROM employees e WHERE e.dept_id = d.id) > 5 — executa subquery para cada departamento.",
+      },
+      {
+        q: "O que é a cláusula ORDER BY em SQL e como combinar com LIMIT para obter os top-N resultados?",
+        o: [
+          "ORDER BY ordena o resultado por colunas (ASC/DESC); LIMIT restringe o número de linhas — juntos permitem consultar os N primeiros ou últimos registros",
+          "ORDER BY filtra registros por condição; LIMIT define número máximo de colunas",
+          "ORDER BY agrupa registros semelhantes; LIMIT define tamanho de cada grupo",
+          "ORDER BY cria índice temporário; LIMIT impede que o índice cresça demais",
+        ],
+        c: 0,
+        e: "ORDER BY: ordena resultado. ASC (crescente, padrão), DESC (decrescente). Múltiplas colunas: ORDER BY dept ASC, salary DESC. LIMIT (MySQL/PostgreSQL) ou TOP (SQL Server): restringe rows. OFFSET: pula N rows para paginação. Performance: sem índice, faz filesort (lento). Com índice na coluna de ordenação: mais eficiente.",
+        x: "Top 5 salários: SELECT name, salary FROM employees ORDER BY salary DESC LIMIT 5. Paginação: SELECT * FROM products ORDER BY id LIMIT 20 OFFSET 40 — página 3. SQL Server: SELECT TOP 5 name, salary FROM employees ORDER BY salary DESC.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é um trigger em SQL e em quais cenários seu uso é apropriado ou deve ser evitado?",
+        o: [
+          "Bloco de código executado automaticamente em INSERT/UPDATE/DELETE; útil para auditoria e integridade, mas pode causar efeitos colaterais difíceis de rastrear",
+          "Comando manual do DBA para limpar dados inconsistentes em massa",
+          "Índice especial que acelera queries com condições complexas",
+          "Procedure agendada via cron para executar em horários específicos",
+        ],
+        c: 0,
+        e: "Trigger: código que executa automaticamente BEFORE ou AFTER DML. INSTEAD OF: substitui operação (em views). Usos legítimos: audit log (quem alterou, quando), campos calculados, validação complexa. Evitar: lógica de negócio complexa (difícil debugar, cascata de triggers). Alternativas modernas: CDC (Debezium), eventos na aplicação.",
+        x: "CREATE TRIGGER audit_salary AFTER UPDATE ON employees FOR EACH ROW INSERT INTO salary_audit(emp_id,old_salary,new_salary,changed_at) VALUES(OLD.id,OLD.salary,NEW.salary,NOW()); — cada UPDATE registra antes/depois. Cuidado: UPDATE em 10K rows = 10K inserts na audit.",
+      },
+      {
+        q: "O que é connection pooling em bancos de dados e por que é essencial para aplicações em produção?",
+        o: [
+          "Reutilização de conexões pré-estabelecidas em vez de abrir/fechar a cada request; reduz overhead de handshake TCP/SSL e limita conexões simultâneas",
+          "Replicação de dados entre servidores para alta disponibilidade",
+          "Cache de queries frequentes na memória do servidor de aplicação",
+          "Balanceamento de carga entre múltiplas instâncias de banco de dados",
+        ],
+        c: 0,
+        e: "Sem pool: cada request abre conexão (TCP+auth+SSL ~20-50ms) → query → fecha. 1000 req/s = 1000 conexões, esgota max_connections. Com pool: N conexões pré-abertas; request pega do pool → query → devolve. Configuração: min_pool, max_pool, idle_timeout. Ferramentas: PgBouncer, HikariCP (Java), Prisma pool.",
+        x: "Node pg pool: const pool = new Pool({min:5, max:20}); await pool.query('SELECT * FROM users WHERE id=$1',[id]). 100 requests: 20 executam, 80 aguardam na fila. Sem pool: 100 conexões TCP abertas/fechadas + risco de esgotar max_connections (PostgreSQL default: 100).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é MVCC (Multi-Version Concurrency Control) e como permite leituras sem bloqueio em bancos de dados?",
+        o: [
+          "Mantém múltiplas versões de cada registro; leituras acessam snapshot consistente sem bloquear escritas — cada transação vê a versão válida no seu timestamp",
+          "Usa locks de leitura compartilhados para múltiplas leituras simultâneas bloqueando escritas",
+          "Replica dados para servidores de leitura dedicados enquanto o primário processa escritas",
+          "Armazena dados em cache na memória para evitar acesso ao disco",
+        ],
+        c: 0,
+        e: "MVCC: UPDATE não sobrescreve — cria nova versão com novo timestamp. Leituras usam snapshot: veem versão mais recente visível no início da transação. Readers não bloqueiam writers, writers não bloqueiam readers. PostgreSQL: xmin/xmax por tuple, VACUUM limpa versões antigas. MySQL InnoDB: undo log. READ COMMITTED: snapshot por statement; REPEATABLE READ: snapshot por TX.",
+        x: "TX1 (t=100): SELECT balance FROM accounts WHERE id=1 → vê 1000 (versão t=90). TX2 (t=101): UPDATE SET balance=500; COMMIT → cria versão t=101. TX1 (ativa): SELECT novamente → ainda vê 1000 (REPEATABLE READ, snapshot t=100). TX1 nunca bloqueada por TX2.",
+      },
+      {
+        q: "O que são índices compostos em SQL e como a ordem das colunas afeta quais queries se beneficiam?",
+        o: [
+          "Índice sobre múltiplas colunas; segue a regra do prefixo mais à esquerda — só é usado se a query filtra pelas colunas na mesma ordem a partir da primeira",
+          "Índice que combina dois índices simples automaticamente em runtime",
+          "Índice que armazena resultado de funções aplicadas às colunas",
+          "Índice especial para queries com OR que une resultados de múltiplos índices",
+        ],
+        c: 0,
+        e: "Índice composto: CREATE INDEX idx ON orders(customer_id, status, created_at). B-tree ordena: primeiro customer_id → status → created_at. Regra do prefixo: usado se query filtra (customer_id), (customer_id, status) ou (customer_id, status, created_at). NÃO usado se filtrar só por (status) ou (created_at). Covering index: se colunas do SELECT estão no índice, index-only scan (sem acesso à tabela).",
+        x: "INDEX idx ON orders(customer_id, status, created_at). ✓ WHERE customer_id=5 — usa. ✓ WHERE customer_id=5 AND status='paid' — usa. ✓ Todas as 3 — usa totalmente. ✗ WHERE status='paid' — não usa. ✗ WHERE created_at>'2024-01-01' — não usa. Solução: criar índice separado em (status).",
+      },
+    ],
+  },
+  "Banco de Dados NoSQL": {
+    Fácil: [
+      {
+        q: "Quais são os quatro principais tipos de bancos NoSQL e qual o caso de uso ideal de cada um?",
+        o: [
+          "Documento (MongoDB), Chave-Valor (Redis), Colunar (Cassandra) e Grafo (Neo4j) — cada um otimizado para padrões de acesso diferentes",
+          "Apenas dois tipos existem: documento e chave-valor; os outros são variações SQL",
+          "Relacional, Documento, Arquivo e Objeto — todos armazenam dados em tabelas",
+          "Texto, Numérico, Binário e Misto — classificados pelo tipo de dado armazenado",
+        ],
+        c: 0,
+        e: "1) Documento (MongoDB): JSON flexível, queries ricas. Ideal para catálogos, CMS. 2) Chave-Valor (Redis): acesso por chave, ultra-rápido. Ideal para cache, sessões. 3) Colunar/Wide-Column (Cassandra): escritas massivas. Ideal para IoT, logs, séries temporais. 4) Grafo (Neo4j): nós e arestas. Ideal para redes sociais, recomendações, fraud detection.",
+        x: "Rede social: Neo4j para amigos-de-amigos em 3 níveis (2ms vs minutos em SQL). Cache: Redis SET session:abc '{user:1}' EX 3600. Catálogo: MongoDB — cada produto tem atributos diferentes. IoT logs: Cassandra — 1M escritas/s com replicação multi-datacenter.",
+      },
+      {
+        q: "O que é o Redis e quais estruturas de dados ele oferece além de simples chave-valor string?",
+        o: [
+          "Banco in-memory que suporta strings, listas, sets, sorted sets, hashes, streams, bitmaps e HyperLogLog",
+          "Banco de documentos JSON que suporta apenas strings e números",
+          "Cache simples que armazena apenas pares chave-string com expiração",
+          "Banco relacional em memória com tabelas, índices e JOINs",
+        ],
+        c: 0,
+        e: "Redis: Remote Dictionary Server. In-memory, single-threaded. Estruturas: String (cache, INCR), List (filas, LPUSH/RPOP), Set (unique, SADD), Sorted Set (ranking, ZADD com score), Hash (objetos, HSET/HGET), Stream (event log, XADD), Bitmap (flags, SETBIT), HyperLogLog (contagem aproximada de únicos). Persistência: RDB snapshots + AOF.",
+        x: "Leaderboard: ZADD game:scores 1500 'alice' 1800 'carol'. ZREVRANGE 0 2 WITHSCORES → carol(1800), alice(1500). Sessão: HSET session:abc user_id 1; EXPIRE 3600. Fila: LPUSH queue:emails '{to:ana}'; worker: BRPOP queue:emails 0.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o conceito de sharding em bancos NoSQL e como a partition key afeta a distribuição de dados?",
+        o: [
+          "Distribuição horizontal entre nós baseada em partition key; chave mal escolhida causa hot spots enquanto boa chave distribui uniformemente",
+          "Replicação de todos os dados em todos os nós para redundância total",
+          "Compressão de dados para reduzir armazenamento em cada nó",
+          "Indexação automática de todos os campos para acelerar qualquer query",
+        ],
+        c: 0,
+        e: "Sharding: divide dataset em partições distribuídas entre nós. Key: campo para determinar o shard (hash ou range). Boa key: alta cardinalidade, acesso distribuído (user_id). Má key: baixa cardinalidade (country — 'BR' com 60% tráfego = hot spot). DynamoDB/Cassandra: partition key → hash → shard. Queries devem incluir partition key (scatter-gather é caro).",
+        x: "DynamoDB 'orders': partition key=customer_id→1M customers bem distribuídos. Se fosse status ('pending','shipped','delivered'): 3 partições, 'pending' com 60% = hot spot. Cassandra: PRIMARY KEY((user_id), created_at). Eficiente: WHERE user_id='abc'. Ineficiente: WHERE created_at>'2024-01-01' (full scan).",
+      },
+      {
+        q: "O que é modelagem por desnormalização em bancos de documentos e quando duplicar dados é vantajoso?",
+        o: [
+          "Duplicar dados relacionados no mesmo documento para evitar lookups; vantajoso quando lidos juntos frequentemente e raramente atualizados independentemente",
+          "Separar dados em collections normalizadas como em SQL para evitar redundância",
+          "Comprimir documentos para reduzir espaço de armazenamento",
+          "Criar índices em todos os campos para compensar falta de JOINs",
+        ],
+        c: 0,
+        e: "SQL normalizado: pedido referencia cliente via FK, precisa JOIN. NoSQL documental: embutir dados do cliente no pedido (desnormalizar). Vantagem: uma leitura retorna tudo. Desvantagem: atualizar nome do cliente requer update em todos pedidos. Regra: embutir se 1:poucos e dados lidos juntos; referenciar se 1:muitos ou dados mudam frequentemente. Padrão Extended Reference: copiar só campos mais usados.",
+        x: "Blog embedded (poucos comentários): {title:'Post 1', comments:[{user:'Ana',text:'...'}]}. Um read retorna tudo. Referência (milhares): {title:'Post 1', comment_ids:['c1','c2']} + collection separada. Extended Reference: {order_id:1, customer:{name:'Ana',email:'...'}, customer_id:'ref'} — dados de exibição embutidos, id para dados completos.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o protocolo Raft para consenso distribuído e como garante eleição de líder e replicação de log?",
+        o: [
+          "Algoritmo com três papéis (leader, follower, candidate); usa election timeout aleatório e majority quorum para replicação de log consistente",
+          "Protocolo de gossip para disseminação eventual entre nós sem líder",
+          "Algoritmo de hash consistente para distribuir dados uniformemente",
+          "Protocolo de heartbeat para detecção de falhas sem eleição",
+        ],
+        c: 0,
+        e: "Raft: consenso compreensível (alternativa a Paxos). Leader processa writes, Followers replicam, Candidate em eleição. Eleição: follower sem heartbeat → timeout aleatório (150-300ms) → candidate → pede votos → maioria = leader. Replicação: client→leader appenda log→ envia AppendEntries→ maioria confirma→ committed. Usado: etcd, CockroachDB, Consul.",
+        x: "Cluster 5 nós: Leader(A), Followers(B,C,D,E). Write x=5: A appenda log → B,C,D confirmam (maioria 4/5) → committed. A morre: B timeout primeiro → candidate → C,D votam → B=novo leader com x=5 preservado. Raft garante: entry committed nunca é perdida.",
+      },
+      {
+        q: "O que são LSM Trees (Log-Structured Merge Trees) e por que bancos como Cassandra e RocksDB as utilizam?",
+        o: [
+          "Estrutura otimizada para escritas: dados vão para memtable em RAM, depois flush como SSTables imutáveis no disco; compaction periódica faz merge dos níveis",
+          "Árvore B+ que agrupa escritas em batches para reduzir I/O",
+          "Índice invertido que mapeia valores para posições no disco",
+          "Cache em camadas que armazena dados quentes em SSD e frios em HDD",
+        ],
+        c: 0,
+        e: "LSM Tree: write-heavy otimizada. 1) Write → memtable (RAM) + WAL. 2) Memtable cheia → flush como SSTable (Sorted String Table, imutável). 3) SSTables acumulam → compaction: merge em SSTable maior, remove duplicatas/tombstones. Leitura: memtable → SSTables (recente→antigo). Bloom filters evitam reads desnecessários. Write O(1) amortizado; reads mais lentas que B-tree.",
+        x: "Write x=5: memtable.put(x,5) + WAL. Memtable cheia: flush → SSTable-L0.sst (ordenada). Compaction L0→L1: merge-sort SSTables. Read x: memtable(miss) → Bloom filter L0(false) → L1(maybe) → check SSTable(found). LevelDB, RocksDB, Cassandra, ScyllaDB usam LSM.",
+      },
+    ],
+  },
+  "Clean Code e Boas Práticas": {
+    Fácil: [
+      {
+        q: "O que são guard clauses (cláusulas de guarda) e como simplificam a leitura de funções?",
+        o: [
+          "Validações no início da função que retornam cedo em casos inválidos, eliminando aninhamento excessivo de if/else",
+          "Blocos try/catch no final da função para capturar exceções",
+          "Comentários que documentam pré-requisitos da função",
+          "Testes unitários que validam parâmetros de entrada antes da execução",
+        ],
+        c: 0,
+        e: "Guard clause: return/throw cedo para cases inválidos no topo da função. Sem: if aninhados profundos (arrow anti-pattern). Com: cada condição inválida sai imediatamente — happy path fica no nível principal sem indentação extra. Princípio: 'fail fast, return early'. Reduz cognitive complexity.",
+        x: "Antes: function process(user) { if(user) { if(user.active) { if(user.age>=18) { /*lógica*/ } } } }. Depois: function process(user) { if(!user) return null; if(!user.active) throw Error('Inactive'); if(user.age<18) throw Error('Minor'); /*lógica sem indentação*/ }.",
+      },
+      {
+        q: "O que é formatação consistente de código e por que ferramentas como Prettier e ESLint são importantes em times?",
+        o: [
+          "Padrões uniformes de indentação, espaçamento e nomenclatura; ferramentas automatizam a formatação eliminando debates de estilo em code reviews",
+          "Maneira pessoal de organizar código que cada desenvolvedor escolhe individualmente",
+          "Sistema de compilação que otimiza código para produção",
+          "Framework de testes que valida regras de negócio do projeto",
+        ],
+        c: 0,
+        e: "Formatação consistente: codebase parece escrito por uma pessoa. Prettier: formatador opinativo (tabs, aspas, trailing commas). ESLint: linter (bugs potenciais, variáveis não usadas). Juntos: ESLint para qualidade, Prettier para estilo. Automação: pre-commit hook (husky + lint-staged) formata antes de cada commit. Zero debates sobre estilo em PRs.",
+        x: "Sem Prettier: dev A usa tabs, dev B usa 2 espaços. PR: diff enorme por formatação. Com: npx prettier --write . .prettierrc: {semi:true, singleQuote:true, tabWidth:2}. ESLint: 'no-unused-vars':'error' → CI falha se variável não usada. Husky: git commit → lint-staged roda ambos automaticamente.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é coesão e acoplamento em design de software e qual a relação ideal entre eles?",
+        o: [
+          "Coesão: grau em que elementos de um módulo pertencem juntos (alta=bom); acoplamento: dependência entre módulos (baixo=bom) — ideal: alta coesão e baixo acoplamento",
+          "Coesão: número de classes (menos=melhor); acoplamento: métodos públicos (mais=melhor)",
+          "Coesão: velocidade de execução; acoplamento: consumo de memória",
+          "Ambos devem ser altos para módulos trabalharem juntos eficientemente",
+        ],
+        c: 0,
+        e: "Alta coesão: módulo faz uma coisa bem (UserRepository: apenas CRUD de users). Baixa coesão: faz coisas não relacionadas (Utils: email+log+crypto). Baixo acoplamento: depende de interface/abstração. Alto: acessa campos internos, instancia classes concretas. Injeção de dependência inverte acoplamento. Lei de Demeter reduz acoplamento.",
+        x: "Alta coesão + baixo acoplamento: class OrderService { constructor(private repo: OrderRepository) {} create(data) { return this.repo.save(new Order(data)); } } — interface. Baixa coesão: class GodService { sendEmail() {} processPayment() {} generatePDF() {} }. Alto acoplamento: class X { process() { new PostgresDB().query(...); } } — amarrado ao concreto.",
+      },
+      {
+        q: "O que são code reviews efetivas e quais aspectos priorizar ao revisar código de outros desenvolvedores?",
+        o: [
+          "Análise de PRs focando em corretude, legibilidade, segurança e aderência a padrões — com feedback construtivo e específico",
+          "Revisão focada exclusivamente em bugs de compilação e erros de sintaxe",
+          "Reescrever o código do colega no seu próprio estilo",
+          "Aprovação automática de PRs que passam nos testes automatizados",
+        ],
+        c: 0,
+        e: "Priorizar: 1) Corretude: lógica, edge cases, race conditions. 2) Design: responsabilidades, abstração. 3) Legibilidade: nomes, complexidade. 4) Segurança: SQL injection, XSS. 5) Testes: cenários cobertos. 6) Performance: N+1, loops desnecessários. Feedback específico, elogiar o bom, perguntar ao invés de impor. PRs pequenos (<400 linhas).",
+        x: "Ruim: 'Código confuso'. Bom: 'Esse bloco de 30 linhas poderia ser extraído para calcularDesconto() — mais legível e testável'. Nit: 'nit: renomear d para discount'. Blocking: 'Query dentro do loop causa N+1; use JOIN'. Elogio: 'Boa ideia usar guard clauses, ficou legível!'.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é Cognitive Complexity e como difere de Cyclomatic Complexity para medir legibilidade?",
+        o: [
+          "Cognitive penaliza aninhamento proporcionalmente à profundidade; Cyclomatic conta caminhos independentes sem considerar nesting",
+          "São sinônimos — ambas contam branches no código",
+          "Cognitive mede tempo de execução; Cyclomatic mede uso de memória",
+          "Cognitive só se aplica a linguagens OO; Cyclomatic a procedurais",
+        ],
+        c: 0,
+        e: "Cyclomatic (McCabe): conta caminhos de execução. if(a) if(b) if(c) = 4. Não penaliza profundidade. Cognitive (SonarSource): incrementa para quebra de fluxo (+1) E adiciona penalidade por nesting. if(a){if(b){if(c)}} = 1+2+3=6. Mais alinhada com percepção humana. Guideline: ≤15 por método. SonarQube mede automaticamente.",
+        x: "function f(a,b,c) {if(a){for(...){if(b){if(c){}}}}}. Cyclomatic: 1+1+1+1=5. Cognitive: if=1, for=1+1(nest), if=1+2(nest), if=1+3(nest) = 10. Cognitive penaliza mais o aninhamento profundo. Refatorar com guard clauses e extração de funções reduz drasticamente o score.",
+      },
+      {
+        q: "O que é Immutability by Default e como a imutabilidade reduz bugs em software concorrente e funcional?",
+        o: [
+          "Tratar dados como imutáveis por padrão, criando novos objetos ao modificar — elimina race conditions e facilita raciocínio sobre estado",
+          "Usar apenas constantes declaradas em tempo de compilação",
+          "Impedir reatribuição de qualquer variável durante toda a execução",
+          "Congelar objetos na memória para evitar coleta pelo garbage collector",
+        ],
+        c: 0,
+        e: "Imutabilidade: dado criado nunca é alterado. 1) Thread-safety: sem mutação compartilhada, sem race conditions (sem locks). 2) Previsibilidade: ninguém modifica objeto em paralelo. 3) Memoização segura. Custo: alocação de novos objetos (mitigado por structural sharing — Immer/Immutable.js). Linguagens: Rust, Haskell, Kotlin val, JS const/Object.freeze.",
+        x: "Mutável (bug): const user={name:'Ana'}; processA(user); processB(user) — A mudou name='Bob', B recebe 'Bob' inesperadamente. Imutável: const updated={...user, name:'Bob'} — user intacto. React: setState({...state, count: state.count+1}). Immer: produce(state, draft=>{draft.count++}) — API mutável, resultado imutável.",
+      },
+    ],
+  },
+  "Design Patterns": {
+    Fácil: [
+      {
+        q: "O que é o padrão Iterator e como ele permite percorrer coleções sem expor a estrutura interna?",
+        o: [
+          "Fornece interface padronizada (next/hasNext) para percorrer elementos sequencialmente independente se é array, árvore ou hash — desacopla iteração da implementação",
+          "Cria cópia completa da coleção para iterar sem modificar a original",
+          "Ordena a coleção antes de iterar para garantir sequência consistente",
+          "Converte qualquer coleção em array para usar métodos de array",
+        ],
+        c: 0,
+        e: "Iterator: interface para percorrer elementos sem expor representação interna. Métodos: next() retorna próximo elemento, hasNext() verifica se há mais. Em JS: Symbol.iterator + protocolo { done, value }. Permite: for...of em qualquer coleção. Array, Map, Set, String — todos implementam. Custom iterables: qualquer objeto pode ser iterável implementando o protocolo.",
+        x: "JS: const range = { from:1, to:5, [Symbol.iterator]() { let cur=this.from; return { next:()=> cur<=this.to ? {value:cur++,done:false} : {done:true} }; } }; for(const n of range) console.log(n); // 1,2,3,4,5. Java: Iterator<String> it = list.iterator(); while(it.hasNext()) System.out.println(it.next());",
+      },
+      {
+        q: "O que é o padrão Template Method e como ele define o esqueleto de um algoritmo delegando passos às subclasses?",
+        o: [
+          "Método na classe base define a estrutura do algoritmo com passos abstratos que as subclasses implementam — mesma sequência, diferentes comportamentos",
+          "Template genérico que gera código automaticamente a partir de tipos",
+          "Método que aceita funções callback como parâmetro para variar comportamento",
+          "Padrão que copia objetos existentes como template para criar novos",
+        ],
+        c: 0,
+        e: "Template Method: classe base define algoritmo com sequência fixa de passos; alguns passos são abstratos (obrigatórios) ou hooks (opcionais). Subclasses sobrescrevem passos específicos sem alterar a estrutura. Princípio Hollywood: 'Don't call us, we'll call you'. Exemplos: frameworks de teste (setUp → test → tearDown), processadores de dados (read → parse → validate → save).",
+        x: "abstract class DataProcessor { process() { const data=this.read(); const parsed=this.parse(data); this.validate(parsed); this.save(parsed); } abstract read(): string; abstract parse(d:string): any; validate(d:any) {} /* hook opcional */ abstract save(d:any): void; } class CSVProcessor extends DataProcessor { read() { return fs.readFileSync('data.csv'); } ... }",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o padrão Facade e como ele simplifica a interação com subsistemas complexos?",
+        o: [
+          "Classe que fornece interface unificada e simplificada para um conjunto de interfaces de subsistemas — oculta a complexidade interna expondo operações de alto nível",
+          "Classe que herda de múltiplos subsistemas para combinar funcionalidades",
+          "Proxy que intercepta chamadas aos subsistemas para adicionar cache",
+          "Adaptador que converte interfaces incompatíveis entre subsistemas",
+        ],
+        c: 0,
+        e: "Facade: interface simplificada sobre múltiplas classes/serviços complexos. Cliente usa Facade sem conhecer subsistemas internos. Benefícios: desacoplamento (cliente não depende de subsistemas), simplicidade (uma chamada vs múltiplas). Não adiciona funcionalidade — apenas orquestra. Diferença de Adapter: Adapter converte interfaces; Facade simplifica. Diferença de Mediator: Mediator coordena comunicação bidirecional entre objetos.",
+        x: "class HomeTheaterFacade { constructor(private dvd:DVDPlayer, private amp:Amplifier, private lights:Lights) {} watchMovie(title:string) { this.lights.dim(10); this.amp.setVolume(5); this.dvd.play(title); } endMovie() { this.lights.on(); this.amp.off(); this.dvd.stop(); } } — cliente: theater.watchMovie('Matrix') em vez de 3 chamadas.",
+      },
+      {
+        q: "O que é o padrão Builder e quando usá-lo em vez de construtores com muitos parâmetros?",
+        o: [
+          "Constrói objetos complexos passo a passo com método encadeado (fluent API); evita construtores telescópicos com muitos parâmetros opcionais",
+          "Factory que cria famílias de objetos relacionados sem especificar classes concretas",
+          "Padrão que clona objetos existentes para criar novos com pequenas modificações",
+          "Singleton que controla a criação para garantir apenas uma instância",
+        ],
+        c: 0,
+        e: "Builder: separa construção de objeto complexo da representação. Problema: construtor com 10+ parâmetros, muitos opcionais — difícil lembrar ordem. Builder permite chamar apenas métodos necessários em qualquer ordem. Fluent API: retorna this em cada método para encadear. Variante: Director orquestra a sequência de construção. Usos: query builders, configurações, requests HTTP.",
+        x: "const query = new QueryBuilder().select('name','email').from('users').where('active = true').orderBy('name').limit(10).build(); — vs new Query('name,email','users','active=true',null,'name',10,null,null). Java: User.builder().name('Ana').email('ana@x.com').age(25).build();",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o padrão Event Sourcing e como ele difere da persistência tradicional baseada em estado?",
+        o: [
+          "Armazena a sequência de eventos que levaram ao estado atual em vez do estado final; o estado é reconstruído fazendo replay dos eventos",
+          "Padrão de cache que armazena o último estado e sincroniza periodicamente com o banco",
+          "Sistema de filas que processa eventos assincronamente entre microsserviços",
+          "Log de auditoria que registra mudanças mas armazena apenas o estado final no banco",
+        ],
+        c: 0,
+        e: "CRUD: armazena estado final (UPDATE balance=500). Event Sourcing: armazena eventos imutáveis (DepositMade(200), WithdrawMade(100)). Estado atual = replay de todos os eventos. Vantagens: audit trail completo, temporal queries (estado em qualquer ponto no tempo), undo/redo nativo. Desvantagens: complexidade, event schema evolution, eventual consistency. Snapshots: guardam estado periódico para evitar replay completo.",
+        x: "Conta bancária: eventos [AccountCreated(0), Deposited(1000), Withdrawn(200), Deposited(500)]. Estado atual: replay → 0+1000-200+500 = 1300. Query temporal: 'saldo em 10/jan' → replay até data. Snapshot a cada 1000 eventos: {balance:1000, eventId:1000}. Replay apenas eventos após snapshot. Usado: sistemas financeiros, e-commerce, contabilidade.",
+      },
+      {
+        q: "O que é o padrão Specification e como ele encapsula regras de negócio reutilizáveis em objetos compostos?",
+        o: [
+          "Encapsula uma regra de negócio em objeto com método isSatisfiedBy(); permite compor specs com AND, OR, NOT para formar regras complexas reutilizáveis",
+          "Define especificação técnica de APIs usando OpenAPI/Swagger para gerar código",
+          "Padrão de validação que verifica se dados atendem schema JSON antes de persistir",
+          "Interface que especifica métodos obrigatórios para implementação em subclasses",
+        ],
+        c: 0,
+        e: "Specification: encapsula regra de negócio em objeto reutilizável. Método principal: isSatisfiedBy(candidate): boolean. Composição: spec1.and(spec2), spec1.or(spec2), spec1.not(). Benefícios: regras de negócio desacopladas do domínio, reutilizáveis (filtragem, validação, query building). DDD: parte da camada de domínio. Pode ser traduzida em SQL WHERE para queries eficientes.",
+        x: "class PremiumUser extends Spec { isSatisfiedBy(u:User) { return u.purchases > 10 && u.totalSpent > 1000; } } class ActiveUser extends Spec { isSatisfiedBy(u:User) { return u.lastLogin > thirtyDaysAgo; } } const eligibleForDiscount = new PremiumUser().and(new ActiveUser()); users.filter(u => eligibleForDiscount.isSatisfiedBy(u));",
+      },
+    ],
+  },
+  "Git e Versionamento": {
+    Fácil: [
+      {
+        q: "O que é o comando git stash e quando utilizá-lo durante o desenvolvimento?",
+        o: [
+          "Salva temporariamente mudanças não commitadas numa pilha para limpar o working directory; útil para trocar de branch sem perder trabalho em progresso",
+          "Apaga permanentemente todas as mudanças não commitadas do repositório",
+          "Cria um branch temporário com as mudanças atuais para revisão futura",
+          "Comprime o histórico de commits para reduzir o tamanho do repositório",
+        ],
+        c: 0,
+        e: "git stash: empilha mudanças (staged e unstaged) numa stash list e limpa working directory. stash pop: recupera e remove da pilha. stash apply: recupera sem remover. stash list: mostra todos os stashes. stash drop: remove um stash. Caso de uso: trabalhando em feature, precisa trocar para branch hotfix urgente sem commitar trabalho incompleto.",
+        x: "Trabalhando em feature/login com código incompleto. Precisa consertar bug em main: git stash → working directory limpo. git checkout main → corrigir bug → commit → push. git checkout feature/login → git stash pop → mudanças restauradas. Stash com mensagem: git stash save 'WIP: login form validation'.",
+      },
+      {
+        q: "O que é um arquivo .gitignore e como configurá-lo para excluir arquivos do versionamento?",
+        o: [
+          "Arquivo que lista padrões de arquivos/diretórios que o Git deve ignorar no rastreamento; suporta wildcards como *, ** e negação com !",
+          "Arquivo que define permissões de acesso ao repositório para cada usuário",
+          "Configuração que impede push para branches protegidas no servidor remoto",
+          "Script que roda antes de cada commit para validar o código automaticamente",
+        ],
+        c: 0,
+        e: ".gitignore: arquivo na raiz do repositório listando padrões a ignorar. Regras: node_modules/ (diretório), *.log (todos .log), !important.log (exceto este), build/ (saída de build), .env (variáveis sensíveis). Globais: ~/.gitignore_global para todos os repos. Já rastreado: git rm --cached arquivo para parar de rastrear. Template: github.com/github/gitignore.",
+        x: ".gitignore: node_modules/ | dist/ | .env | *.log | .DS_Store | coverage/ | .idea/ | *.swp. Arquivo já rastreado antes do .gitignore: git rm --cached .env (remove do tracking mas mantém o arquivo local). git status: arquivos ignorados não aparecem. gitignore.io: gera templates por tecnologia.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é git bisect e como ele ajuda a encontrar o commit que introduziu um bug usando busca binária?",
+        o: [
+          "Comando que faz busca binária no histórico de commits, testando pontos médios até encontrar o commit exato que introduziu o problema",
+          "Ferramenta que compara dois branches e lista todas as diferenças entre eles",
+          "Comando que reverte múltiplos commits simultaneamente para desfazer uma feature",
+          "Análise automática de código que detecta bugs potenciais em qualquer commit",
+        ],
+        c: 0,
+        e: "git bisect: busca binária no histórico. 1) git bisect start. 2) git bisect bad (commit atual com bug). 3) git bisect good <sha> (commit antigo sem bug). 4) Git faz checkout do commit do meio → você testa → marca good/bad. 5) Repete até encontrar o commit exato. 100 commits entre good e bad: ~7 testes (log₂ 100). Automatizável: git bisect run <script-de-teste>.",
+        x: "Bug detectado na v2.0 (commit 200), v1.5 (commit 100) funcionava. git bisect start; git bisect bad HEAD; git bisect good abc123. Git faz checkout do commit 150. Teste: bug? 'git bisect bad' → testa 125. Sem bug? 'git bisect good' → testa 137. Após ~7 iterações: 'abc456 is the first bad commit'. Automático: git bisect run npm test.",
+      },
+      {
+        q: "O que é git rebase interativo e como usá-lo para limpar o histórico de commits antes de um merge?",
+        o: [
+          "Permite reordenar, editar, juntar (squash) ou remover commits de uma branch interativamente; útil para criar histórico limpo antes de abrir um PR",
+          "Visualizador gráfico do histórico que permite navegar entre commits",
+          "Comando que automaticamente resolve conflitos entre branches",
+          "Ferramenta que compara performance entre diferentes commits",
+        ],
+        c: 0,
+        e: "git rebase -i HEAD~N: abre editor com N últimos commits. Ações: pick (manter), squash (juntar com anterior), fixup (squash sem mensagem), edit (parar para editar), reword (mudar mensagem), drop (remover). Caso de uso: 5 commits 'WIP' na feature branch → squash em 1-2 commits semânticos antes do PR. Cuidado: nunca rebase em branch pública/compartilhada (reescreve SHAs).",
+        x: "Branch com commits: 'wip', 'fix typo', 'add login form', 'fix test', 'add validation'. git rebase -i HEAD~5: squash 'wip'+'fix typo'+'add login form' → 'feat: add login form'. squash 'fix test'+'add validation' → 'feat: add form validation'. Resultado: 2 commits limpos. Force push: git push --force-with-lease origin feature/login.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que são Git worktrees e como permitem trabalhar em múltiplas branches simultaneamente sem stash ou clone?",
+        o: [
+          "Cria diretórios de trabalho adicionais vinculados ao mesmo repositório, cada um em branch diferente — permite alternar sem trocar de branch no diretório principal",
+          "Cria cópias completas (clones) independentes do repositório para cada branch",
+          "Subdiretórios dentro do repositório que contêm submódulos de outros projetos",
+          "Branches temporárias criadas automaticamente pelo sistema de CI/CD para testes paralelos",
+        ],
+        c: 0,
+        e: "git worktree: múltiplos working directories ligados ao mesmo .git. Cada worktree em branch diferente. Vantagem sobre git stash: não precisa salvar/restaurar; sobre clone: compartilha histórico e objects (economia de espaço). Uso: hotfix urgente enquanto trabalha em feature, code review de PR enquanto desenvolve, comparar versões lado a lado.",
+        x: "Trabalhando em feature/login: git worktree add ../hotfix-branch main → cria diretório ../hotfix-branch na branch main. cd ../hotfix-branch → corrigir bug → commit/push → cd ../meu-projeto (feature/login intacta). git worktree list: mostra todos. git worktree remove ../hotfix-branch: limpa. Cada worktree tem seu HEAD, index e working tree.",
+      },
+      {
+        q: "Como funciona o modelo de objetos internos do Git (blobs, trees, commits, tags) e o que é o object store?",
+        o: [
+          "Git armazena tudo como objetos endereçados por hash SHA-1: blob (conteúdo de arquivo), tree (diretório), commit (snapshot + metadata + parent) e tag (referência nomeada a commit)",
+          "Git usa banco de dados SQL interno para armazenar histórico de commits e branches",
+          "Git comprime arquivos em formato ZIP e armazena diffs entre versões consecutivas",
+          "Git mantém cópia completa de cada versão de cada arquivo em diretórios separados por data",
+        ],
+        c: 0,
+        e: "Object store (.git/objects): content-addressable storage. Blob: conteúdo de arquivo (sem nome). Hash (SHA-1) do conteúdo → se dois arquivos são idênticos, mesmo blob. Tree: lista de entradas (mode, name, hash) — representa diretório. Commit: referência a tree (snapshot), author, committer, message, parent(s). Tag: referência nomeada a commit (annotated tag tem mensagem). Pack files: objetos comprimidos com delta compression para economia de espaço.",
+        x: "git cat-file -p HEAD → tree abc123, parent def456, author Ana. git cat-file -p abc123 (tree) → 100644 blob aaa111 README.md, 040000 tree bbb222 src/. git cat-file -p aaa111 (blob) → conteúdo do README.md. Renomear arquivo: novo tree aponta para mesmo blob (conteúdo inalterado). git count-objects: número de objects no store.",
+      },
+    ],
+  },
+  "JavaScript e TypeScript": {
+    Fácil: [
+      {
+        q: "O que são os operadores spread (...) e rest (...) em JavaScript e como diferenciam pelo contexto de uso?",
+        o: [
+          "Spread expande iteráveis em elementos individuais (chamada/literal); rest coleta múltiplos argumentos em um array (declaração de função/desestruturação)",
+          "Spread e rest são o mesmo operador e sempre se comportam de forma idêntica",
+          "Spread cria deep copy de objetos; rest converte arrays em objetos",
+          "Spread só funciona com arrays; rest só com objetos",
+        ],
+        c: 0,
+        e: "Spread (...): expande. Em arrays: [...arr1, ...arr2] (concatenar). Em objetos: {...obj, key: 'new'} (copiar e sobrescrever). Em chamadas: func(...args). Rest (...): coleta. Em parâmetros: function f(a, ...rest) {} — rest é array com argumentos restantes. Em desestruturação: const [first, ...others] = [1,2,3] → others=[2,3]. Spread = desempacotar; Rest = empacotar.",
+        x: "Spread: const merged = [...[1,2], ...[3,4]] → [1,2,3,4]. const user2 = {...user, name:'Bob'} → cópia com name alterado. Math.max(...[5,2,8]) → 8. Rest: function sum(...nums) { return nums.reduce((a,b)=>a+b); } sum(1,2,3) → 6. const {a, ...rest} = {a:1,b:2,c:3} → rest={b:2,c:3}.",
+      },
+      {
+        q: "O que é o operador ternário em JavaScript e como usá-lo como alternativa concisa ao if/else?",
+        o: [
+          "Expressão condicional com sintaxe condição ? valorSeTrue : valorSeFalse; retorna um valor e pode ser usada em atribuições e JSX",
+          "Operador que testa três condições sequencialmente e retorna a primeira verdadeira",
+          "Função que aceita três argumentos e retorna o maior entre eles",
+          "Bloco condicional que substitui switch/case para exatamente três opções",
+        ],
+        c: 0,
+        e: "Ternário: expressão (não statement) que avalia condição e retorna um dos dois valores. condição ? exprVerdadeira : exprFalsa. Vantagem: conciso para atribuições condicionais simples. Evitar: aninhamento excessivo (difícil de ler). Em JSX/React: usado diretamente na renderização condicional. Pode ser encadeado mas legibilidade sofre.",
+        x: "const status = age >= 18 ? 'adulto' : 'menor'; const greeting = isLoggedIn ? `Olá, ${name}` : 'Olá, visitante'; JSX: {isLoading ? <Spinner /> : <Content />}. Evitar: const x = a ? b ? c : d : e ? f : g; — use if/else para clareza. Nullish: const val = input ?? 'default'; (melhor que ternário para null/undefined).",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são Map e Set em JavaScript e quando usá-los em vez de objetos simples e arrays?",
+        o: [
+          "Map: coleção chave-valor com chaves de qualquer tipo e ordem de inserção preservada; Set: coleção de valores únicos com lookup O(1) — ambos superam objetos/arrays em cenários específicos",
+          "Map e Set são wrappers de objetos e arrays sem benefícios de performance",
+          "Map aceita apenas strings como chave; Set permite duplicatas mas ordena automaticamente",
+          "Map e Set são imutáveis por padrão e não permitem adição de novos elementos",
+        ],
+        c: 0,
+        e: "Map vs objeto: chaves de qualquer tipo (objetos, funções), size nativo, iterável com ordem, sem prototype pollution. Set vs array: valores únicos garantidos, has() O(1) vs includes() O(n). Map: new Map([[key,val]]); .set(k,v), .get(k), .has(k), .delete(k), .size. Set: new Set([1,2,2,3]) → {1,2,3}; .add(v), .has(v), .delete(v). WeakMap/WeakSet: chaves com referência fraca (GC-friendly).",
+        x: "Map com chave objeto: const cache = new Map(); const key = {id:1}; cache.set(key, 'data'); cache.get(key) → 'data'. Objeto não aceita chave objeto (converte para '[object Object]'). Set para deduplicar: [...new Set([1,2,2,3,3])] → [1,2,3]. Set para intersecção: new Set([...setA].filter(x => setB.has(x))).",
+      },
+      {
+        q: "O que são Generics em TypeScript e como eles permitem criar funções e classes reutilizáveis com type safety?",
+        o: [
+          "Parâmetros de tipo que permitem definir funções/classes que operam com qualquer tipo mantendo type safety — o tipo concreto é definido no uso, não na declaração",
+          "Tipos que aceitam qualquer valor como 'any' mas com melhor performance",
+          "Templates de código que geram múltiplas versões de funções em compile-time",
+          "Interfaces que definem contratos genéricos para qualquer classe implementar",
+        ],
+        c: 0,
+        e: "Generics: <T> é parâmetro de tipo. function identity<T>(val: T): T { return val; } — sem generic, usaria any (perde type safety) ou escreveria uma versão para cada tipo. Com generic: identity<string>('hello') retorna string; identity<number>(42) retorna number. Inferência: identity('hello') — TS infere T=string. Constraints: <T extends HasLength> limita tipos aceitos. Usado em: Array<T>, Promise<T>, Map<K,V>.",
+        x: "function first<T>(arr: T[]): T | undefined { return arr[0]; } first([1,2,3]) → tipo: number. first(['a','b']) → tipo: string. Sem generic: function first(arr: any[]): any — perde tipo de retorno. Constraint: function longest<T extends {length:number}>(a:T, b:T): T { return a.length >= b.length ? a : b; } longest('abc','de') → 'abc' (tipo string preservado).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o padrão de Inversion of Control (IoC) em TypeScript e como decorators facilitam injeção de dependência?",
+        o: [
+          "IoC inverte quem cria dependências: em vez da classe instanciar suas deps, um container externo as injeta — decorators (@Injectable, @Inject) marcam classes e parâmetros para resolução automática",
+          "IoC é um padrão de controle de fluxo que inverte a ordem de execução de callbacks",
+          "Decorators criam instâncias singleton automaticamente sem necessidade de container",
+          "IoC substitui imports de módulos por carregamento dinâmico em runtime",
+        ],
+        c: 0,
+        e: "IoC: framework/container controla a criação e injeção de dependências. Sem IoC: class UserService { constructor() { this.repo = new PostgresRepo(); } } — acoplado. Com IoC: @Injectable() class UserService { constructor(private repo: UserRepository) {} } — container resolve UserRepository para a implementação registrada. Benefícios: testabilidade (mock fácil), flexibilidade (trocar implementação sem alterar código). Ferramentas TS: TSyringe, InversifyJS, NestJS.",
+        x: "NestJS: @Injectable() class UserService { constructor(private repo: UserRepository) {} } @Module({ providers: [{ provide: UserRepository, useClass: PostgresRepo }] }) class AppModule {}. Em teste: { provide: UserRepository, useClass: MockRepo }. TSyringe: @injectable() class A { constructor(@inject('IRepo') private repo: IRepo) {} }. container.register('IRepo', { useClass: PostgresRepo });",
+      },
+      {
+        q: "O que são Branded Types (tipos nominais) em TypeScript e como eles previnem mistura acidental de tipos compatíveis?",
+        o: [
+          "Técnica que adiciona uma propriedade phantom (brand) ao tipo para criar tipos estruturalmente distintos — impede usar UserId onde OrderId é esperado mesmo ambos sendo string",
+          "Tipos nativos do TypeScript que diferenciam classes por nome ao invés de estrutura",
+          "Enums com valores string que servem como identificadores únicos de tipo",
+          "Wrappers de classe que encapsulam tipos primitivos para adicionar métodos",
+        ],
+        c: 0,
+        e: "TypeScript é estrutural: type UserId = string; type OrderId = string; são intercambiáveis. Branded type: type UserId = string & { __brand: 'UserId' }. Agora UserId ≠ OrderId estruturalmente. Criação: function userId(id: string): UserId { return id as UserId; }. Previne: getUser(orderId) — erro de compilação. Custo zero em runtime (brand não existe em JS). Alternativa: unique symbol como brand.",
+        x: "type UserId = string & { readonly __brand: unique symbol }; type OrderId = string & { readonly __brand: unique symbol }; function createUserId(id: string): UserId { return id as UserId; } function getUser(id: UserId) { ... } const uid = createUserId('u1'); const oid = createOrderId('o1'); getUser(uid); // OK. getUser(oid); // Erro: OrderId não é UserId. getUser('raw'); // Erro: string não é UserId.",
+      },
+    ],
+  },
+  "Programação Orientada a Objetos": {
+    Fácil: [
+      {
+        q: "O que é o conceito de herança em POO e qual a diferença entre herança simples e múltipla?",
+        o: [
+          "Herança permite que uma classe filha reutilize atributos e métodos da classe pai; simples herda de uma classe, múltipla de várias — múltipla causa o problema do diamante",
+          "Herança é a capacidade de um objeto se transformar em outro tipo em runtime",
+          "Herança simples permite apenas métodos; múltipla permite atributos e métodos",
+          "Herança só funciona entre interfaces, não entre classes concretas",
+        ],
+        c: 0,
+        e: "Herança: classe filha (subclasse) herda comportamentos da classe pai (superclasse) com 'extends'. Simples: uma superclasse (Java, C#, TS). Múltipla: várias superclasses (C++, Python). Problema do diamante: classe herda de B e C que herdam de A — qual versão do método de A usar? Python resolve com MRO (Method Resolution Order, C3 Linearization). Java/C#/TS: interfaces (implements) não causam diamante pois não têm implementação (até default methods).",
+        x: "class Animal { eat() {} } class Dog extends Animal { bark() {} } — Dog herda eat(). Diamante (Python): class A: def greet(): 'A'. class B(A): def greet(): 'B'. class C(A): def greet(): 'C'. class D(B,C): pass. D().greet() → 'B' (MRO: D→B→C→A). C++: class D : public B, public C — ambíguo, requer virtual inheritance.",
+      },
+      {
+        q: "O que são métodos getters e setters em POO e por que encapsular acesso a atributos privados?",
+        o: [
+          "Métodos que controlam leitura (get) e escrita (set) de atributos privados, permitindo validação, cálculos derivados e proteção da invariante do objeto",
+          "Funções estáticas que serializam e desserializam objetos para JSON",
+          "Decorators que convertem métodos em propriedades computadas acessíveis diretamente",
+          "Constantes que definem os valores padrão iniciais de cada atributo",
+        ],
+        c: 0,
+        e: "Getters/Setters: encapsulam acesso a campos internos. Benefícios: 1) Validação: setter verifica se valor é válido antes de atribuir. 2) Computação: getter calcula valor derivado sob demanda. 3) Proteção: invariantes do objeto mantidas (ex: saldo nunca negativo). 4) Evolução: mudar implementação interna sem quebrar API pública. TypeScript/JS: get/set como property accessors. Java: getX()/setX().",
+        x: "class BankAccount { private _balance = 0; get balance() { return this._balance; } set balance(value: number) { if (value < 0) throw Error('Saldo negativo'); this._balance = value; } } const acc = new BankAccount(); acc.balance = 100; // OK via setter. acc.balance = -50; // Error. console.log(acc.balance); // 100 via getter.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o princípio de substituição de Liskov (LSP) e como sua violação causa bugs em hierarquias de classes?",
+        o: [
+          "Subclasses devem ser substituíveis por suas superclasses sem alterar a corretude do programa — violação: subclasse muda comportamento esperado ou lança exceções inesperadas",
+          "Classes com o mesmo nome em módulos diferentes devem ser intercambiáveis",
+          "Superclasses devem poder substituir subclasses em qualquer contexto",
+          "Toda classe abstrata deve ter pelo menos uma implementação concreta",
+        ],
+        c: 0,
+        e: "LSP (Liskov Substitution Principle): se S é subtipo de T, objetos de T podem ser substituídos por S sem alterar propriedades do programa. Violação clássica: class Retângulo { setLargura(); setAltura(); } class Quadrado extends Retângulo { setLargura(v) { largura=v; altura=v; } } — setLargura num quadrado altera altura, quebrando expectativas de quem usa Retângulo. Solução: evitar herança, usar composição ou interfaces separadas.",
+        x: "function calcularArea(r: Retangulo) { r.setLargura(5); r.setAltura(4); assert(r.area() === 20); } — passa para Retangulo, FALHA para Quadrado (5×5=25 ou 4×4=16). LSP violado: Quadrado não é substituível. Solução: interface Shape { area(): number; } class Retangulo implements Shape {...} class Quadrado implements Shape {...} — sem herança problemática.",
+      },
+      {
+        q: "O que são mixins em POO e como resolvem o problema de reutilização de comportamento sem herança múltipla?",
+        o: [
+          "Classes parciais que adicionam comportamentos específicos a outras classes via composição; permitem combinar funcionalidades sem hierarquia rígida de herança",
+          "Interfaces com implementação padrão que substituem classes abstratas",
+          "Padrão de design que injeta dependências em runtime usando reflection",
+          "Funções utilitárias estáticas agrupadas em um namespace compartilhado",
+        ],
+        c: 0,
+        e: "Mixins: reutilizar comportamento sem herança. Em TS: função que recebe uma classe base e retorna classe estendida com novos métodos. Em Python: class com métodos a serem 'mixados' via herança múltipla (ordem importa: MRO). Diferença de interface: mixin tem implementação. Diferença de herança: mixin é composição de comportamentos, não relação 'é-um'. Uso: adicionar serialização, logging, timestamping a classes diversas.",
+        x: "TS: function Timestamped<T extends Constructor>(Base: T) { return class extends Base { createdAt = new Date(); updatedAt = new Date(); } } function Serializable<T extends Constructor>(Base: T) { return class extends Base { toJSON() { return JSON.stringify(this); } } } class User extends Timestamped(Serializable(BaseEntity)) {} — User tem createdAt, updatedAt e toJSON().",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o padrão CQRS (Command Query Responsibility Segregation) em POO e quando ele é justificado?",
+        o: [
+          "Separa as operações de leitura (Query) das de escrita (Command) em modelos distintos, permitindo otimizações independentes de cada lado",
+          "Padrão que unifica leitura e escrita num único modelo para simplificar o código",
+          "Técnica de cache que separa dados quentes (leitura) de frios (escrita)",
+          "Framework de testes que separa queries de assertions em steps diferentes",
+        ],
+        c: 0,
+        e: "CQRS: modelo de escrita (Command) separado do modelo de leitura (Query). Write model: normalizado, validações complexas, eventos. Read model: desnormalizado, otimizado para queries específicas (views materializadas). Justificado quando: padrões de leitura e escrita são muito diferentes, alta escala, necessidade de modelos de leitura especializados (search, relatórios). Frequentemente combinado com Event Sourcing. Desvantagem: complexidade, eventual consistency entre modelos.",
+        x: "E-commerce: Command side: CreateOrderCommand → validar estoque → persist Order → emit OrderCreated event. Query side: OrderCreated handler → atualiza read DB (desnormalizado: order+customer+items numa tabela/documento). GET /orders → query diretamente no read model (rápido, sem JOINs). Write DB: PostgreSQL normalizado. Read DB: Elasticsearch para busca ou MongoDB desnormalizado.",
+      },
+      {
+        q: "O que é o princípio de covariância e contravariância em tipos genéricos e como afeta hierarquias de classes?",
+        o: [
+          "Covariância permite subtipo no retorno (Producer<Dog> é subtipo de Producer<Animal>); contravariância permite supertipo nos parâmetros (Consumer<Animal> é subtipo de Consumer<Dog>)",
+          "Covariância e contravariância são sinônimos para polimorfismo paramétrico",
+          "Covariância aplica-se apenas a arrays; contravariância apenas a funções",
+          "Ambas significam que tipos genéricos são sempre intercambiáveis se os tipos base são compatíveis",
+        ],
+        c: 0,
+        e: "Covariância (out): preserva direção da herança. Se Dog extends Animal, Producer<Dog> extends Producer<Animal>. Seguro para retorno/produção. Contravariância (in): inverte direção. Consumer<Animal> extends Consumer<Dog>. Seguro para parâmetros/consumo. Invariância: nenhuma direção (default em Java generics, C# sem in/out). Regra PECS (Java): Producer Extends, Consumer Super. TypeScript: funções são contravariantes nos parâmetros (com strictFunctionTypes).",
+        x: "C#: IEnumerable<out T> (covariante): IEnumerable<Dog> atribuível a IEnumerable<Animal> ✓. Action<in T> (contravariante): Action<Animal> atribuível a Action<Dog> ✓ (quem aceita Animal aceita Dog). Java: List<? extends Animal> (covariante: lê Animal), List<? super Dog> (contravariante: escreve Dog). TS: type Fn<T> = (arg: T) => void; Fn<Animal> atribuível a Fn<Dog>? Sim com --strict (contravariância).",
+      },
+    ],
+  },
+  "React e React Native": {
+    Fácil: [
+      {
+        q: "O que são props em React e como elas permitem passar dados de componentes pais para filhos?",
+        o: [
+          "Propriedades somente-leitura passadas de pai para filho via atributos JSX; permitem configurar e customizar componentes de forma declarativa",
+          "Variáveis globais compartilhadas entre todos os componentes da aplicação",
+          "Estado interno do componente que pode ser modificado por qualquer outro componente",
+          "Eventos disparados pelo componente filho que o pai pode interceptar",
+        ],
+        c: 0,
+        e: "Props: dados passados de pai para filho como atributos HTML. Somente leitura no filho (unidirecional). Tipagem: interface Props { name: string; age?: number; }. Desestruturação: function User({ name, age = 18 }: Props). Children: prop especial para conteúdo aninhado. Callback props: função passada como prop para comunicação filho→pai. Props são a base do modelo declarativo do React.",
+        x: "<UserCard name='Ana' age={25} onDelete={() => handleDelete(id)} /> — componente filho: function UserCard({ name, age, onDelete }: Props) { return <div>{name}, {age} anos <button onClick={onDelete}>X</button></div>; }. Children: <Card><h1>Título</h1></Card> → function Card({children}) { return <div className='card'>{children}</div>; }.",
+      },
+      {
+        q: "O que é renderização condicional em React e quais são as formas mais comuns de implementá-la?",
+        o: [
+          "Exibir ou ocultar elementos baseado em condições usando operador ternário, && lógico, ou early return — cada abordagem adequada para cenários diferentes",
+          "Usar CSS display:none para esconder componentes condicionalmente",
+          "Criar dois componentes separados e trocar entre eles via roteamento",
+          "Usar setTimeout para atrasar a renderização até a condição ser verdadeira",
+        ],
+        c: 0,
+        e: "Formas de renderização condicional: 1) Ternário: {isLoggedIn ? <Dashboard /> : <Login />} — quando há ambos os caminhos. 2) && lógico: {isAdmin && <AdminPanel />} — quando só há caminho verdadeiro. Cuidado: {count && <List />} renderiza '0' se count=0 (use count > 0). 3) Early return: if (loading) return <Spinner />; — melhor para múltiplas condições. 4) Variável: let content; if (...) content = <A/>; else content = <B/>; return {content};",
+        x: "{isLoading ? <Spinner /> : <DataTable data={data} />}. {error && <ErrorBanner message={error} />}. function Page({user, loading, error}) { if (loading) return <Spinner />; if (error) return <Error msg={error} />; if (!user) return <Login />; return <Dashboard user={user} />; } — guard clauses para renderização.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são custom hooks em React e quais as regras para criá-los corretamente?",
+        o: [
+          "Funções prefixadas com 'use' que encapsulam lógica stateful reutilizável usando outros hooks; devem seguir as Rules of Hooks (só no top level, só em componentes/hooks)",
+          "Classes que estendem React.Component com estado e ciclo de vida customizados",
+          "Componentes de ordem superior (HOC) escritos como funções arrow",
+          "Plugins do React que adicionam funcionalidades ao core da biblioteca",
+        ],
+        c: 0,
+        e: "Custom hook: função useXxx que usa hooks internamente para extrair e reutilizar lógica. Regras: 1) Prefixo 'use' (ESLint plugin detecta violações). 2) Chamar hooks apenas no top level (nunca em condicionais/loops). 3) Chamar apenas em componentes React ou outros hooks. Cada componente que usa o hook tem seu próprio estado (isolado). Padrões: useFormField, useFetch, useDebounce, useLocalStorage, useMediaQuery.",
+        x: "function useFetch<T>(url: string) { const [data, setData] = useState<T|null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState<Error|null>(null); useEffect(() => { fetch(url).then(r=>r.json()).then(setData).catch(setError).finally(()=>setLoading(false)); }, [url]); return { data, loading, error }; } — Uso: const { data, loading } = useFetch<User[]>('/api/users');",
+      },
+      {
+        q: "O que é React.memo e quando usá-lo para otimizar re-renders de componentes funcionais?",
+        o: [
+          "HOC que memoriza o resultado da renderização e só re-renderiza se as props mudarem (shallow compare); útil para componentes puros que recebem as mesmas props frequentemente",
+          "Função que salva o componente em cache do navegador para carregamento mais rápido",
+          "Hook que memoriza valores computados dentro do componente",
+          "Método que comprime a árvore de componentes para reduzir uso de memória",
+        ],
+        c: 0,
+        e: "React.memo: wrapa componente funcional, compara props com shallow equality antes de re-renderizar. Se props iguais → pula render (usa output anterior). Útil quando: componente é puro, pai re-renderiza frequentemente mas props do filho não mudam, renderização é custosa. Cuidado: props com objetos/arrays/funções criados inline → nova referência a cada render → memo inútil. Solução: useMemo/useCallback nas props do pai. Custom comparator: React.memo(Comp, (prev, next) => comparison).",
+        x: "const ExpensiveList = React.memo(function({ items }: { items: Item[] }) { return items.map(i => <li key={i.id}>{i.name}</li>); }); — pai re-renderiza mas items não mudou → ExpensiveList não re-renderiza. Problema: <Child onClick={() => doSomething()} /> → nova função toda render → memo inútil. Fix: const handleClick = useCallback(() => doSomething(), []); <Child onClick={handleClick} />.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o React Reconciliation Algorithm e como a heurística de keys otimiza a diferenciação de listas?",
+        o: [
+          "Algoritmo que compara árvores virtual DOM antiga e nova em O(n) usando heurísticas: elementos de tipos diferentes são recriados, e keys identificam elementos estáveis em listas",
+          "Algoritmo que compara DOMs reais para detectar mudanças manuais feitas via JavaScript",
+          "Sistema de cache que armazena renderizações anteriores para reutilizar em componentes idênticos",
+          "Processo de compilação que otimiza JSX em instruções DOM mínimas",
+        ],
+        c: 0,
+        e: "Reconciliation: diffing entre árvore virtual anterior e nova. Heurísticas (O(n) vs O(n³) ótimo): 1) Elementos de tipos diferentes → destruir subárvore e recriar (div→span: remonta tudo). 2) Mesmo tipo → compara atributos, atualiza apenas mudanças. 3) Listas: sem key → compara por posição (inserção no início re-renderiza todos). Com key estável → identifica movimentos, inserções, remoções eficientemente. Anti-pattern: key={Math.random()} ou key={index} com reordenação.",
+        x: "Lista [A,B,C] → [X,A,B,C]. Sem key: React compara posição: A→X (update), B→A (update), C→B (update), null→C (insert) = 4 operações. Com key: React identifica que A,B,C continuam, X é novo = 1 insert. key={item.id} ✓. key={index} com reorder: React confunde quem é quem → estado vindovinculado ao item errado.",
+      },
+      {
+        q: "O que é Suspense e React Server Components (RSC) e como mudam o modelo de data fetching e renderização?",
+        o: [
+          "Suspense permite mostrar fallback enquanto componente carrega dados/código; RSC renderiza no servidor sem enviar JS ao client — juntos eliminam waterfalls e reduzem bundle size",
+          "Suspense é um error boundary para erros de rede; RSC são componentes que rodam apenas no cliente",
+          "Suspense é um hook para gerenciar loading state; RSC compilam JSX em HTML estático",
+          "Suspense substitui useEffect para side effects; RSC são Web Components nativos do browser",
+        ],
+        c: 0,
+        e: "Suspense: componente React que mostra fallback (<Suspense fallback={<Spinner/>}>) enquanto children suspendem (lazy loading, data fetching). React 'pausa' a renderização, mostra fallback, resume quando dados prontos. RSC: componentes async que rodam no servidor (podem acessar DB, filesystem diretamente). Output: serializado como payload (não HTML puro). Não enviam JS ao client (zero bundle). Composição: Server Component pode conter Client Component ('use client'). Next.js App Router usa RSC por default.",
+        x: "RSC: async function UserProfile({id}) { const user = await db.query('SELECT * FROM users WHERE id=?', [id]); return <div>{user.name}</div>; } — roda no servidor, zero JS no client. Client Component: 'use client'; function LikeButton() { const [liked, setLiked] = useState(false); return <button onClick={()=>setLiked(true)}>Like</button>; }. <Suspense fallback={<Skeleton/>}><UserProfile id={1}/></Suspense>.",
+      },
+    ],
+  },
+  "Testes de Software": {
+    Fácil: [
+      {
+        q: "O que é o padrão AAA (Arrange-Act-Assert) em testes unitários e por que seguir essa estrutura?",
+        o: [
+          "Estrutura que organiza testes em três fases: preparar dados (Arrange), executar ação (Act), verificar resultado (Assert) — torna testes legíveis e previsíveis",
+          "Framework de teste que executa Arrange e Assert automaticamente, requerendo apenas Act",
+          "Técnica de mock que substitui todas as dependências em três camadas",
+          "Padrão de nomenclatura para arquivos de teste: Arrange.test.ts, Act.test.ts, Assert.test.ts",
+        ],
+        c: 0,
+        e: "AAA: 1) Arrange: configurar dados, mocks, estado inicial. 2) Act: executar a ação/método testado (geralmente uma linha). 3) Assert: verificar resultado esperado. Benefícios: legibilidade (qualquer dev entende a estrutura), separação (setup vs execução vs verificação). Variação: Given-When-Then (BDD). Anti-pattern: múltiplos Acts e Asserts misturados (dividir em testes separados).",
+        x: "test('calcula desconto de 10% para compras acima de R$100', () => { // Arrange const cart = new Cart(); cart.addItem({ price: 200 }); // Act const total = cart.calculateTotal(); // Assert expect(total).toBe(180); }); — um teste, uma responsabilidade, três fases claras.",
+      },
+      {
+        q: "O que são testes de regressão e por que são importantes quando se adiciona novas funcionalidades?",
+        o: [
+          "Testes que garantem que funcionalidades existentes continuam funcionando após mudanças no código; previnem que correções ou features novas quebrem comportamento anterior",
+          "Testes que verificam performance em carga alta para detectar degradação gradual",
+          "Testes executados apenas uma vez na primeira implantação para validar requisitos",
+          "Testes manuais feitos pelo QA antes de cada release para aprovação",
+        ],
+        c: 0,
+        e: "Regressão: re-executar suite de testes após cada mudança para detectar quebras. Cenário: dev corrige bug X, inadvertidamente quebra feature Y. Sem regressão: bug Y só descoberto em produção. Com regressão: CI roda toda suite → teste de Y falha → dev corrige antes do merge. Automação é essencial: suites grandes (centenas/milhares de testes) rodam em minutos no CI. Quanto mais testes, maior a rede de segurança.",
+        x: "Sprint 5: dev adiciona feature de cupom de desconto. Suite CI: 500 testes →  1 falha: 'test_checkout_total' espera total=100.00, recebeu 90.00 (desconto aplicado indevidamente sem cupom). Bug detectado antes do merge. Fix: condição if (hasCoupon) antes de aplicar desconto. 500 testes passam → merge seguro.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que são testes de integração e como diferem de testes unitários e end-to-end em escopo e velocidade?",
+        o: [
+          "Testam a interação entre módulos reais (ex: serviço + banco de dados); mais lentos que unitários mas mais rápidos que E2E, cobrindo cenários que mocks não capturam",
+          "Testam cada função isoladamente com mocks; são os mais lentos pois cobrem todos os caminhos",
+          "Testam a aplicação inteira do ponto de vista do usuário via browser automatizado",
+          "Testam apenas a interface visual comparando screenshots entre versões",
+        ],
+        c: 0,
+        e: "Unitário: testa função/classe isolada com mocks. Rápido (~ms). Integração: testa interação real entre módulos (API + DB real, serviço A chama serviço B). Médio (~s). Descobre: queries SQL erradas, serializações, configurações. E2E: testa fluxo completo como usuário (Cypress/Playwright). Lento (~min). Pirâmide: muitos unitários, menos integração, poucos E2E. Testcontainers: sobe DB real em Docker para testes de integração.",
+        x: "Unitário: test('createUser valida email', () => { expect(() => createUser({email:'invalid'})).toThrow(); }); — mock do repo. Integração: test('createUser persiste no banco', async () => { await createUser({email:'a@b.com'}); const user = await db.query('SELECT * FROM users'); expect(user).toHaveLength(1); }); — banco real (Testcontainers). E2E: test('signup flow', () => { cy.visit('/signup'); cy.type('#email','a@b.com'); cy.click('Submit'); cy.contains('Welcome'); });",
+      },
+      {
+        q: "O que é Test-Driven Development (TDD) e quais são os três passos do ciclo Red-Green-Refactor?",
+        o: [
+          "Red: escrever teste que falha para comportamento desejado; Green: implementar código mínimo para passar; Refactor: melhorar código mantendo testes verdes",
+          "Red: detectar bugs em produção; Green: corrigir; Refactor: otimizar performance",
+          "Red: código com erros de compilação; Green: compilação bem-sucedida; Refactor: adicionar testes",
+          "Red: branch com conflitos; Green: merge resolvido; Refactor: limpar histórico",
+        ],
+        c: 0,
+        e: "TDD: testes guiam o design do código. Red: escrever teste para funcionalidade que não existe ainda (falha porque código não foi escrito). Green: implementar código MÍNIMO para passar (pode ser feio). Refactor: melhorar estrutura sem quebrar testes (rede de segurança). Ciclo curto: poucos minutos. Benefícios: design emergente, documentação viva, confiança em mudanças, debugging mais fácil. Código testável by design.",
+        x: "Funcionalidade: calcular desconto. Red: test('aplica 10% acima de R$100', () => expect(calcDesconto(200)).toBe(20)); → FAIL (calcDesconto não existe). Green: function calcDesconto(v) { return v > 100 ? v*0.1 : 0; } → PASS. Refactor: extrair constantes THRESHOLD=100, RATE=0.1. Testes continuam verdes. Próximo ciclo: test('sem desconto abaixo de R$100', ...).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que são Contract Tests e como eles garantem compatibilidade entre serviços em arquiteturas de microsserviços?",
+        o: [
+          "Testes que verificam se a interface entre consumer e provider segue um contrato acordado; Pact é a ferramenta mais popular, gerando contratos do lado do consumer que o provider valida",
+          "Testes que validam termos legais de uso da API junto com termos de serviço",
+          "Testes de integração entre todos os microsserviços executados em ambiente de staging",
+          "Documentação OpenAPI/Swagger que descreve endpoints e serve como contrato estático",
+        ],
+        c: 0,
+        e: "Contract Testing: verifica que comunicação entre serviços segue acordo. Consumer-driven (Pact): 1) Consumer gera contrato (expect: GET /users/1 → {id:1, name:string}). 2) Contrato compartilhado via Pact Broker. 3) Provider valida: roda testes contra contrato, garante que implementação atende. Benefício vs integration test: não precisa de ambos os serviços rodando simultaneamente. Detecta: campos removidos, tipos alterados, endpoints renomeados antes do deploy.",
+        x: "Consumer (frontend): pact.addInteraction({ uponReceiving: 'get user by id', withRequest: { method: 'GET', path: '/users/1' }, willRespondWith: { status: 200, body: { id: integer(1), name: string('Ana') } } }). Provider (API): verifyPact({ providerBaseUrl: 'http://localhost:3000', pactUrls: ['pact-broker/consumer-provider.json'] }). Provider altera name→fullName: contract test FALHA → breaking change detectada.",
+      },
+      {
+        q: "O que é Chaos Engineering e como experimentos controlados de falha melhoram a resiliência de sistemas?",
+        o: [
+          "Disciplina de injetar falhas controladas em produção/staging para descobrir fraquezas antes que causem outages reais; segue hipótese → experimento → análise",
+          "Testes de carga que simulam milhares de usuários para encontrar limites de capacidade",
+          "Processo de code review focado em encontrar vulnerabilidades de segurança",
+          "Automação de rollback que reverte deploys automaticamente quando métricas degradam",
+        ],
+        c: 0,
+        e: "Chaos Engineering (Netflix): princípios — 1) Definir estado estável (SLIs normais). 2) Hipótese: 'sistema continua estável se nó X cair'. 3) Injetar falha: matar instância, simular latência, corromper rede. 4) Observar: métricas, logs, alertas. 5) Se hipótese falha → descobrir e corrigir fraqueza antes de outage real. Ferramentas: Chaos Monkey (Netflix), LitmusChaos (Kubernetes), AWS FIS. Blast radius: começar pequeno, escalar gradualmente.",
+        x: "Hipótese: 'Se 1 de 3 réplicas do serviço de pagamento cair, latência p99 fica abaixo de 500ms'. Experimento: Chaos Monkey mata 1 container. Observação: latência subiu para 2s porque auto-scaling demorou 3min. Insight: health check interval muito longo (30s → reduzir para 5s) + readiness probe mal configurada. Fix aplicado. Re-teste: latência p99 = 350ms. Resiliência comprovada.",
+      },
+    ],
+  },
+};
+
+function mergeDevBankRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  ...extras: Record<string, Record<UserLevel, SeedCard[]>>[]
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const result: Record<string, Record<UserLevel, SeedCard[]>> = {};
+  for (const cat of Object.keys(base)) {
+    result[cat] = {} as Record<UserLevel, SeedCard[]>;
+    for (const level of ["Fácil", "Médio", "Difícil"] as UserLevel[]) {
+      const baseCards = base[cat]?.[level] ?? [];
+      const seen = new Set(baseCards.map((c) => c.q.trim().toLowerCase()));
+      const merged = [...baseCards];
+      for (const extra of extras) {
+        for (const card of extra[cat]?.[level] ?? []) {
+          if (!seen.has(card.q.trim().toLowerCase())) {
+            seen.add(card.q.trim().toLowerCase());
+            merged.push(card);
+          }
+        }
+      }
+      result[cat][level] = merged;
+    }
+  }
+  return result;
+}
+
+export const desenvolvimentoBank = mergeDevBankRounds(
+  desenvolvimentoBankBase,
+  desenvolvimentoRound1Extras,
+  desenvolvimentoRound2Extras,
+);

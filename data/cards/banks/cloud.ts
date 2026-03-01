@@ -4,7 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Cloud · 12 categorias × 3 níveis × 7 questões (rodada 4/30) ───
 
-export const cloudBank: Record<string, Record<UserLevel, SeedCard[]>> = {
+const cloudBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── Arquitetura em Nuvem ──
   "Arquitetura em Nuvem": {
     Fácil: [
@@ -3050,3 +3050,1008 @@ export const cloudBank: Record<string, Record<UserLevel, SeedCard[]>> = {
     ],
   },
 };
+
+const cloudRound1Extras: Record<string, Record<UserLevel, SeedCard[]>> = {
+  "Arquitetura em Nuvem": {
+    Fácil: [
+      {
+        q: "Em arquitetura cloud, por que aplicações stateless escalam melhor horizontalmente?",
+        o: [
+          "Porque qualquer instância pode atender a requisição sem depender de sessão local",
+          "Porque exigem menos memória sempre",
+          "Porque dispensam balanceador de carga",
+          "Porque não precisam de banco de dados",
+        ],
+        c: 0,
+        e: "Serviços stateless não guardam estado local de sessão. Isso permite adicionar/remover instâncias livremente, mantendo consistência com estado em banco, cache distribuído ou token.",
+        x: "Uma API com JWT pode escalar de 2 para 20 réplicas durante pico sem sessão fixa (sticky session), pois qualquer réplica valida o token e processa a requisição.",
+      },
+      {
+        q: "O que caracteriza um componente desacoplado em uma arquitetura cloud moderna?",
+        o: [
+          "Baixa dependência direta entre serviços e comunicação por contratos estáveis",
+          "Uso obrigatório do mesmo banco para todos os serviços",
+          "Deploy único de todos os módulos juntos",
+          "Ausência de versionamento de API",
+        ],
+        c: 0,
+        e: "Desacoplamento reduz impacto de mudanças e falhas, pois cada serviço evolui de forma independente usando APIs/eventos com contratos claros.",
+        x: "O serviço de faturamento publica evento 'fatura_gerada'; o serviço de notificações consome o evento sem depender de chamadas síncronas diretas.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quando a estratégia active-active entre regiões é mais indicada que active-passive?",
+        o: [
+          "Quando se busca menor latência global e failover quase imediato",
+          "Quando se quer custo mínimo em qualquer cenário",
+          "Quando não há necessidade de alta disponibilidade",
+          "Quando a aplicação só aceita tráfego em uma AZ",
+        ],
+        c: 0,
+        e: "Active-active atende tráfego simultâneo em múltiplas regiões, melhorando latência e continuidade. Active-passive tende a ser mais simples e barato, porém com failover mais lento.",
+        x: "Um SaaS global atende usuários da Europa em eu-west e das Américas em us-east; se uma região cair, a outra já está quente para absorver tráfego.",
+      },
+      {
+        q: "Qual benefício principal de usar fila assíncrona entre dois microsserviços cloud?",
+        o: [
+          "Absorver picos e reduzir acoplamento temporal entre produtor e consumidor",
+          "Eliminar completamente a necessidade de observabilidade",
+          "Garantir latência menor que chamada local sempre",
+          "Substituir autenticação entre serviços",
+        ],
+        c: 0,
+        e: "Filas desacoplam o ritmo entre serviços: o produtor publica rapidamente e o consumidor processa conforme capacidade, com retries e DLQ.",
+        x: "No pico de pedidos, o checkout publica mensagens na fila; o serviço de faturamento processa gradualmente sem derrubar a API principal.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Por que idempotência é essencial quando há retry automático em sistemas distribuídos na nuvem?",
+        o: [
+          "Porque evita efeitos duplicados quando a mesma operação é executada mais de uma vez",
+          "Porque remove a necessidade de logs",
+          "Porque impede qualquer timeout de rede",
+          "Porque torna transações distribuídas desnecessárias",
+        ],
+        c: 0,
+        e: "Retries são comuns por falhas transitórias. Sem idempotência, uma mesma mensagem pode gerar cobrança ou envio duplicado; com chave idempotente, repetições retornam o mesmo resultado.",
+        x: "A API de pagamento usa `idempotency_key` por pedido. Se ocorrer timeout e cliente reenviar, o gateway retorna a transação já criada, sem nova cobrança.",
+      },
+      {
+        q: "Em quais cenários consistência eventual é uma escolha arquitetural válida em cloud?",
+        o: [
+          "Quando disponibilidade e escala global são prioritárias e pequenas janelas de defasagem são aceitáveis",
+          "Quando toda leitura deve refletir escrita imediatamente",
+          "Quando o domínio exige transações ACID globais em tempo real",
+          "Quando não há particionamento de rede possível",
+        ],
+        c: 0,
+        e: "Sistemas distribuídos globais frequentemente priorizam disponibilidade e latência. Consistência eventual funciona bem para catálogos, timelines e analytics, desde que o negócio aceite atraso curto.",
+        x: "Uma atualização de perfil pode levar alguns segundos para aparecer em todas as regiões, mas o serviço permanece disponível mesmo durante degradações parciais.",
+      },
+    ],
+  },
+
+  "AWS — Fundamentos": {
+    Fácil: [
+      {
+        q: "Qual serviço da AWS é indicado para armazenar segredos de aplicação com rotação automatizada?",
+        o: [
+          "AWS Secrets Manager",
+          "Amazon CloudWatch",
+          "Amazon S3 Glacier",
+          "AWS Auto Scaling",
+        ],
+        c: 0,
+        e: "Secrets Manager armazena credenciais e tokens com criptografia, controle de acesso via IAM e rotação automática integrada para vários bancos.",
+        x: "Uma aplicação lê senha do RDS no Secrets Manager em vez de salvar no código-fonte ou em arquivo `.env` versionado.",
+      },
+      {
+        q: "Na AWS, qual serviço fornece armazenamento em bloco para EC2?",
+        o: ["Amazon EBS", "Amazon S3", "Amazon Athena", "AWS Lambda"],
+        c: 0,
+        e: "EBS (Elastic Block Store) entrega volumes de bloco persistentes para instâncias EC2, com snapshots e diferentes níveis de performance.",
+        x: "Um servidor web em EC2 usa volume EBS gp3 de 100 GB para sistema operacional e dados da aplicação.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual é a principal diferença entre EBS e Instance Store em instâncias EC2?",
+        o: [
+          "EBS é persistente; Instance Store é efêmero e perdido ao parar/encerrar instância",
+          "EBS é efêmero; Instance Store é persistente",
+          "Ambos são idênticos em durabilidade",
+          "Instance Store é um serviço de objetos",
+        ],
+        c: 0,
+        e: "EBS persiste além do ciclo da instância e permite snapshots. Instance Store usa discos locais do host físico e perde dados quando a instância é interrompida/terminada.",
+        x: "Cache temporário pode usar Instance Store; banco de dados de produção deve usar EBS com backup via snapshots.",
+      },
+      {
+        q: "Quando usar URL pré-assinada (pre-signed URL) no Amazon S3?",
+        o: [
+          "Para conceder acesso temporário e restrito a objetos sem expor credenciais AWS",
+          "Para tornar bucket público permanentemente",
+          "Para substituir criptografia em repouso",
+          "Para criar usuários IAM automaticamente",
+        ],
+        c: 0,
+        e: "Pre-signed URL encapsula permissão temporária com expiração, permitindo download/upload controlado sem distribuir chaves de acesso.",
+        x: "Backend gera URL válida por 10 minutos para o cliente enviar um arquivo diretamente ao S3.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como `AssumeRole` do AWS STS melhora segurança em ambientes multi-conta?",
+        o: [
+          "Fornece credenciais temporárias, reduzindo uso de chaves de longo prazo",
+          "Desativa necessidade de IAM",
+          "Replica políticas automaticamente entre regiões",
+          "Elimina logs de auditoria",
+        ],
+        c: 0,
+        e: "STS emite credenciais temporárias com escopo e duração limitados. Isso reduz exposição de segredos estáticos e facilita governança entre contas via roles.",
+        x: "Pipeline na conta de CI assume role na conta de produção por 15 minutos apenas para executar deploy autorizado.",
+      },
+      {
+        q: "Por que separar contas de segurança, produção e desenvolvimento no AWS Organizations é boa prática?",
+        o: [
+          "Porque isola blast radius, melhora governança e permite aplicar SCPs por OU",
+          "Porque reduz latência de rede automaticamente",
+          "Porque elimina necessidade de backups",
+          "Porque evita uso de IAM",
+        ],
+        c: 0,
+        e: "A segmentação por contas limita impacto de incidentes e facilita políticas distintas de acesso, custos, auditoria e conformidade por ambiente.",
+        x: "Conta dedicada de logs centraliza CloudTrail/Config e impede que workloads de dev alterem trilhas de auditoria de produção.",
+      },
+    ],
+  },
+
+  "AWS — Serviços Avançados": {
+    Fácil: [
+      {
+        q: "Qual serviço da AWS migra bancos de dados com replicação contínua e baixo downtime?",
+        o: [
+          "AWS Database Migration Service (DMS)",
+          "Amazon Route 53",
+          "AWS WAF",
+          "Amazon CloudFront",
+        ],
+        c: 0,
+        e: "O AWS DMS suporta migração homogênea e heterogênea, permitindo full load com CDC (change data capture) para minimizar indisponibilidade.",
+        x: "Uma empresa migra Oracle on-prem para Aurora com DMS replicando mudanças até o momento do cutover.",
+      },
+      {
+        q: "Qual serviço da AWS entrega dados de streaming diretamente para S3, Redshift ou OpenSearch de forma gerenciada?",
+        o: [
+          "Amazon Kinesis Data Firehose",
+          "AWS CodePipeline",
+          "Amazon EC2",
+          "AWS CloudFormation",
+        ],
+        c: 0,
+        e: "Kinesis Data Firehose coleta, transforma opcionalmente e entrega streams em destinos analíticos sem gerenciar consumidores customizados.",
+        x: "Eventos de clique chegam no Firehose e são gravados no S3 em lotes comprimidos para análise posterior.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Em leitura escalável na AWS, quando usar réplica de leitura no Aurora/RDS?",
+        o: [
+          "Quando há alto volume de leitura e necessidade de aliviar a instância primária",
+          "Quando o objetivo é aumentar escrita transacional",
+          "Quando se quer substituir backups automáticos",
+          "Quando não existe aplicação de banco de dados",
+        ],
+        c: 0,
+        e: "Read replicas distribuem consultas de leitura, preservando o nó primário para escrita e reduzindo contenção de recursos.",
+        x: "Relatórios e dashboards apontam para read replica, enquanto operações de checkout seguem no writer.",
+      },
+      {
+        q: "Para fan-out com múltiplos consumidores e desacoplamento, qual abordagem AWS é mais comum?",
+        o: [
+          "Publicar no SNS e assinar filas SQS por consumidor",
+          "Enviar tudo para uma única instância EC2",
+          "Substituir mensageria por tabelas temporárias",
+          "Usar apenas CloudWatch Logs como broker",
+        ],
+        c: 0,
+        e: "SNS distribui mensagens para vários assinantes e cada consumidor pode ter sua própria fila SQS, com retries e DLQ independentes.",
+        x: "Evento 'pedido_confirmado' é publicado no SNS; faturamento, antifraude e analytics consomem em filas separadas.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como a escolha da shard key no Kinesis impacta throughput e latência?",
+        o: [
+          "Chaves mal distribuídas geram hot shards e gargalo; boa distribuição equilibra carga",
+          "Shard key afeta apenas criptografia",
+          "Shard key não influencia particionamento",
+          "Toda chave cria throughput ilimitado",
+        ],
+        c: 0,
+        e: "No Kinesis, partição é definida pela shard key. Baixa cardinalidade concentra tráfego em poucos shards; alta cardinalidade distribui melhor ingestão e consumo.",
+        x: "Usar `customerId` com poucos valores cria hot shard; combinar `customerId#timestampBucket` melhora balanceamento.",
+      },
+      {
+        q: "Qual trade-off aparece ao buscar semântica quase exactly-once com SQS FIFO e deduplicação?",
+        o: [
+          "Maior garantia de ordem/deduplicação com menor throughput e maior complexidade de idempotência",
+          "Throughput máximo sem qualquer custo",
+          "Eliminação total de necessidade de DLQ",
+          "Substituição de observabilidade por padrão",
+        ],
+        c: 0,
+        e: "SQS FIFO melhora ordem e deduplicação, mas possui limites de throughput e ainda exige consumidores idempotentes para lidar com reentregas e falhas.",
+        x: "Processamento financeiro usa FIFO por grupo de pedido para preservar ordem, aceitando menor taxa de mensagens por segundo.",
+      },
+    ],
+  },
+
+  "Azure — Fundamentos": {
+    Fácil: [
+      {
+        q: "No Azure, qual serviço é usado para guardar segredos, chaves e certificados com segurança?",
+        o: [
+          "Azure Key Vault",
+          "Azure Monitor",
+          "Azure DNS",
+          "Azure DevTest Labs",
+        ],
+        c: 0,
+        e: "Azure Key Vault centraliza gerenciamento de segredos e chaves com controle de acesso, auditoria e integração com managed identities.",
+        x: "Uma API no App Service busca string de conexão no Key Vault durante startup, sem expor segredo no código.",
+      },
+      {
+        q: "Qual recurso do Azure organiza serviços de um projeto para facilitar gestão e billing?",
+        o: [
+          "Resource Group",
+          "Availability Zone",
+          "Subscription Policy",
+          "Tenant",
+        ],
+        c: 0,
+        e: "Resource Group é contêiner lógico para recursos relacionados, simplificando permissões, tags, automação e custo por projeto.",
+        x: "App, banco e storage de 'crm-prod' ficam no mesmo Resource Group para aplicar RBAC e políticas em conjunto.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quando Azure Files é mais adequado que Blob Storage?",
+        o: [
+          "Quando aplicações precisam de compartilhamento SMB/NFS como file server",
+          "Quando só há acesso HTTP a objetos imutáveis",
+          "Quando é necessário data warehouse",
+          "Quando se busca mensageria pub/sub",
+        ],
+        c: 0,
+        e: "Azure Files expõe share de arquivos por SMB/NFS; Blob é armazenamento de objetos via API/HTTP, ideal para conteúdo estático e data lake.",
+        x: "Sistemas legados que dependem de unidade de rede mapeada usam Azure Files; imagens de site público ficam em Blob.",
+      },
+      {
+        q: "Qual benefício do Azure Policy para equipes de plataforma?",
+        o: [
+          "Aplicar governança contínua com regras de conformidade em escala",
+          "Aumentar vCPU de VMs automaticamente",
+          "Substituir RBAC para autenticação",
+          "Eliminar auditoria de recursos",
+        ],
+        c: 0,
+        e: "Azure Policy avalia recursos contra regras (ex.: exigir tags, bloquear SKU proibida, forçar criptografia), evitando drift de compliance.",
+        x: "Uma política 'Deny' impede criação de Storage sem TLS mínimo 1.2 em todas as subscriptions de produção.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como o Privileged Identity Management (PIM) no Entra ID reduz risco de privilégios excessivos?",
+        o: [
+          "Concede acesso administrativo just-in-time e com expiração",
+          "Cria usuários locais para cada VM",
+          "Desabilita MFA para administradores",
+          "Replica permissões sem aprovação",
+        ],
+        c: 0,
+        e: "PIM reduz privilégios permanentes, exigindo elevação temporária com aprovação, justificativa e auditoria para funções sensíveis.",
+        x: "Um operador ativa role de Contributor por 1 hora para manutenção e depois o acesso retorna automaticamente ao estado mínimo.",
+      },
+      {
+        q: "Em rede Azure hub-and-spoke, qual vantagem principal do modelo?",
+        o: [
+          "Centralizar serviços compartilhados e segurança no hub, isolando workloads nos spokes",
+          "Eliminar necessidade de roteamento",
+          "Forçar todos os serviços na mesma VNet",
+          "Substituir completamente Azure Firewall",
+        ],
+        c: 0,
+        e: "Hub-and-spoke melhora governança de rede ao concentrar inspeção, DNS e conectividade híbrida no hub, mantendo segmentação por ambiente nos spokes.",
+        x: "Spokes de dev/prod usam peering com hub que hospeda firewall e gateway VPN, reduzindo regras duplicadas.",
+      },
+    ],
+  },
+
+  "Azure — Serviços Avançados": {
+    Fácil: [
+      {
+        q: "Qual serviço do Azure é voltado para ingestão de eventos em alto volume (telemetria/streaming)?",
+        o: ["Azure Event Hubs", "Azure Key Vault", "Azure Policy", "Azure DNS"],
+        c: 0,
+        e: "Event Hubs é plataforma de streaming com alta taxa de ingestão para cenários como IoT, logs e telemetria.",
+        x: "Milhares de dispositivos enviam eventos por segundo para Event Hubs antes do processamento analítico.",
+      },
+      {
+        q: "Qual serviço Azure fornece busca full-text gerenciada para aplicações?",
+        o: [
+          "Azure AI Search",
+          "Azure Batch",
+          "Azure Firewall",
+          "Azure Private DNS",
+        ],
+        c: 0,
+        e: "Azure AI Search indexa dados e oferece consultas textuais avançadas com filtros, ranking e recursos semânticos.",
+        x: "Portal de produtos usa AI Search para autocomplete e filtragem por preço/categoria em milissegundos.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quando escolher Azure Functions no plano Premium em vez de Consumption?",
+        o: [
+          "Quando precisa evitar cold start e usar VNet com escala previsível",
+          "Quando não há qualquer requisito de latência",
+          "Quando quer custo fixo zero em todos os cenários",
+          "Quando a função nunca recebe tráfego",
+        ],
+        c: 0,
+        e: "Premium mantém instâncias pré-aquecidas e suporta cenários de rede avançados, adequado para workloads sensíveis a latência.",
+        x: "API de pagamentos com p95 rigoroso migra de Consumption para Premium para reduzir variação por cold start.",
+      },
+      {
+        q: "No Azure Service Bus, quando usar Topic em vez de Queue?",
+        o: [
+          "Quando a mesma mensagem precisa ser consumida por múltiplos assinantes independentes",
+          "Quando apenas um consumidor processa cada mensagem",
+          "Quando não há necessidade de mensageria",
+          "Quando se quer armazenar blobs grandes",
+        ],
+        c: 0,
+        e: "Queue é ponto-a-ponto; Topic permite pub/sub com subscriptions filtradas, ideal para fan-out entre domínios.",
+        x: "Evento 'pedido_pago' é publicado em Topic; faturamento e analytics recebem cópias em subscriptions distintas.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como combinar API Management e Private Endpoint para expor APIs com backend privado no Azure?",
+        o: [
+          "Publica gateway controlado e mantém tráfego até o backend por rede privada",
+          "Expõe backend diretamente na internet sem autenticação",
+          "Substitui necessidade de DNS interno",
+          "Remove completamente RBAC",
+        ],
+        c: 0,
+        e: "API Management pode atuar como fachada pública/privada com políticas, enquanto backends permanecem isolados via Private Endpoint e VNet integration.",
+        x: "Consumidores externos acessam APIM com OAuth; o App Service de backend aceita tráfego apenas privado via endpoint interno.",
+      },
+      {
+        q: "No Cosmos DB, qual risco de uma partição quente (hot partition) e como mitigar?",
+        o: [
+          "Concentração de RU em uma chave de partição; mitiga-se com chave de alta cardinalidade e bom acesso",
+          "Aumento automático de consistência forte",
+          "Perda imediata de replicação geográfica",
+          "Eliminação de latência de leitura",
+        ],
+        c: 0,
+        e: "Chaves mal escolhidas geram distribuição desigual e throttling local. Projetar partição com boa cardinalidade melhora throughput efetivo.",
+        x: "Usar `tenantId` único para milhões de registros cria hotspot; combinar `tenantId#month` distribui carga.",
+      },
+    ],
+  },
+
+  "Containers e Kubernetes": {
+    Fácil: [
+      {
+        q: "Qual prática reduz tamanho da imagem Docker e melhora segurança?",
+        o: [
+          "Usar build multi-stage e imagem base mínima",
+          "Executar tudo como root",
+          "Copiar código de testes para produção",
+          "Instalar ferramentas de debug em runtime",
+        ],
+        c: 0,
+        e: "Build multi-stage separa etapa de compilação da imagem final, reduzindo superfície de ataque e tempo de download.",
+        x: "Aplicação Go compila em imagem grande de build e publica artefato final em `distroless`, com poucos MB.",
+      },
+      {
+        q: "No Kubernetes, para que serve o comando `kubectl get pods`?",
+        o: [
+          "Listar pods e seus estados no namespace atual",
+          "Criar deployment automaticamente",
+          "Expor serviço externo",
+          "Escalar cluster de nós",
+        ],
+        c: 0,
+        e: "É um comando de inspeção operacional para verificar status, reinícios e saúde de workloads executando como pods.",
+        x: "Após deploy, o time roda `kubectl get pods` para confirmar se todos os pods estão em `Running`.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual diferença entre readiness probe e liveness probe no Kubernetes?",
+        o: [
+          "Readiness controla recebimento de tráfego; liveness decide reinício do container",
+          "Readiness reinicia pod e liveness publica serviço",
+          "Ambas fazem autoscaling horizontal",
+          "Não há diferença funcional",
+        ],
+        c: 0,
+        e: "Readiness evita enviar tráfego para pods não prontos. Liveness detecta travamentos e reinicia containers quando necessário.",
+        x: "API pode levar 20s para aquecer: readiness aguarda; se entrar em deadlock depois, liveness dispara restart.",
+      },
+      {
+        q: "Quando usar um DaemonSet em vez de Deployment?",
+        o: [
+          "Quando é necessário um pod por nó, como agentes de log/monitoramento",
+          "Quando precisa de escala por requisição HTTP",
+          "Quando quer apenas um pod no cluster",
+          "Quando precisa de banco stateful",
+        ],
+        c: 0,
+        e: "DaemonSet garante instância por nó elegível, ideal para componentes de infraestrutura que devem rodar em toda a frota.",
+        x: "Promtail/Fluent Bit em DaemonSet coleta logs de cada nó e envia para sistema central.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual papel do PodDisruptionBudget (PDB) em operações de manutenção do cluster?",
+        o: [
+          "Limitar quantos pods podem ficar indisponíveis durante interrupções voluntárias",
+          "Impedir qualquer rollout de aplicação",
+          "Substituir readiness probes",
+          "Escalar nós automaticamente",
+        ],
+        c: 0,
+        e: "PDB protege disponibilidade durante drain/upgrade, definindo mínimo de pods disponíveis ou máximo indisponível por workload.",
+        x: "Com 10 réplicas e `minAvailable: 8`, o cluster não remove mais de 2 pods simultaneamente em manutenção.",
+      },
+      {
+        q: "Como requests e limits de CPU/memória influenciam QoS e estabilidade no Kubernetes?",
+        o: [
+          "Definem agendamento e risco de throttling/eviction, impactando prioridade de sobrevivência",
+          "Servem apenas para documentação",
+          "Eliminam necessidade de monitoramento",
+          "Substituem autoscaling",
+        ],
+        c: 0,
+        e: "Requests orientam scheduler; limits impõem teto. Configuração incorreta pode causar OOMKill, throttling e baixa previsibilidade sob carga.",
+        x: "Pod sem request adequado é preterido no agendamento; com limit muito baixo sofre throttling em picos.",
+      },
+    ],
+  },
+
+  "DevOps e CI/CD": {
+    Fácil: [
+      {
+        q: "Em fluxo com pull request, qual prática ajuda a evitar quebra da branch principal?",
+        o: [
+          "Exigir checks obrigatórios de testes e lint antes do merge",
+          "Permitir merge direto sem validação",
+          "Ignorar revisão de código",
+          "Desativar pipeline em horários de pico",
+        ],
+        c: 0,
+        e: "Gates de qualidade automáticos evitam que código com falhas óbvias chegue à main, reduzindo incidentes e retrabalho.",
+        x: "Repositório só permite merge após aprovação + CI verde com testes unitários e análise estática.",
+      },
+      {
+        q: "O que significa tratar pipeline como código (Pipeline as Code)?",
+        o: [
+          "Versionar e revisar definição do pipeline no mesmo repositório da aplicação",
+          "Executar deploy apenas manualmente",
+          "Guardar pipeline em planilha",
+          "Evitar qualquer automação",
+        ],
+        c: 0,
+        e: "Pipeline as Code aumenta rastreabilidade e colaboração, pois mudanças em CI/CD seguem revisão, histórico e rollback como qualquer código.",
+        x: "Arquivo YAML de workflow é alterado via PR, com revisão do time de plataforma.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quando a estratégia trunk-based development tende a funcionar melhor?",
+        o: [
+          "Quando o time integra mudanças pequenas e frequentes com automação robusta",
+          "Quando features ficam meses em branches longas",
+          "Quando não há testes automatizados",
+          "Quando releases são sempre manuais",
+        ],
+        c: 0,
+        e: "Trunk-based reduz divergência de branches longas. Requer disciplina de integração contínua, testes confiáveis e uso de feature flags.",
+        x: "Equipe integra diariamente na main e ativa funcionalidades gradualmente por flag.",
+      },
+      {
+        q: "Qual impacto do cache de dependências no tempo de execução de pipelines CI?",
+        o: [
+          "Reduz etapas repetitivas de download/instalação, acelerando builds",
+          "Aumenta obrigatoriamente tempo de build",
+          "Substitui todos os testes",
+          "Elimina versionamento de pacotes",
+        ],
+        c: 0,
+        e: "Cache bem configurado reaproveita artefatos entre execuções, diminuindo latência e custo sem alterar qualidade das validações.",
+        x: "Pipeline Node reaproveita cache de `~/.npm`, reduzindo instalação de 4 min para 40 s.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como métricas DORA ajudam a priorizar melhorias de engenharia em CI/CD?",
+        o: [
+          "Medem lead time, frequência de deploy, taxa de falha e MTTR para guiar gargalos",
+          "Servem apenas para cobrança individual",
+          "Substituem observabilidade de produção",
+          "Eliminam necessidade de retrospectiva",
+        ],
+        c: 0,
+        e: "DORA oferece visão sistêmica de fluxo e confiabilidade. Times usam essas métricas para atacar causas-raiz em vez de otimizar etapas irrelevantes.",
+        x: "Após observar MTTR alto, equipe automatiza rollback e playbooks, reduzindo recuperação média de 45 para 12 minutos.",
+      },
+      {
+        q: "Qual combinação aumenta segurança de rollout progressivo com baixa exposição a risco?",
+        o: [
+          "Canary deployment com feature flags, métricas de erro e rollback automático",
+          "Big-bang deploy sem monitoramento",
+          "Deploy em produção sem testes de fumaça",
+          "Liberação de 100% do tráfego imediatamente",
+        ],
+        c: 0,
+        e: "Progressive delivery limita blast radius: libera para pequena fatia, observa SLOs e reverte automaticamente se houver degradação.",
+        x: "Nova versão começa com 5% do tráfego; aumento para 25/50/100% só ocorre se erro e latência permanecerem dentro do limite.",
+      },
+    ],
+  },
+
+  "Google Cloud Platform": {
+    Fácil: [
+      {
+        q: "No GCP, qual serviço armazena segredos de forma gerenciada e auditável?",
+        o: [
+          "Google Secret Manager",
+          "Cloud Logging",
+          "Cloud Scheduler",
+          "Cloud Armor",
+        ],
+        c: 0,
+        e: "Secret Manager protege segredos com IAM, versionamento e integração com workloads sem hardcode de credenciais.",
+        x: "Função serverless lê token de API no Secret Manager e registra acesso em auditoria.",
+      },
+      {
+        q: "Qual serviço do Google Cloud fornece DNS autoritativo gerenciado?",
+        o: ["Cloud DNS", "Cloud Build", "Cloud Run", "Bigtable"],
+        c: 0,
+        e: "Cloud DNS hospeda zonas DNS com alta disponibilidade global e integração com outros recursos do GCP.",
+        x: "Domínio `api.exemplo.com` aponta para load balancer global via registro em Cloud DNS.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual vantagem do Cloud Load Balancing global com Anycast no GCP?",
+        o: [
+          "Roteamento para ponto de presença mais próximo, reduzindo latência percebida",
+          "Obrigar tráfego a uma única região",
+          "Eliminar necessidade de health checks",
+          "Substituir IAM em aplicações",
+        ],
+        c: 0,
+        e: "Anycast usa um IP global e direciona usuários ao edge adequado, aumentando desempenho e resiliência regional.",
+        x: "Usuários da Ásia e Europa acessam o mesmo IP, mas são atendidos por backends regionais distintos.",
+      },
+      {
+        q: "Quando Memorystore (Redis) é indicado no GCP?",
+        o: [
+          "Para cache de baixa latência, sessões e dados efêmeros de alto throughput",
+          "Para armazenar arquivos de data lake",
+          "Para substituir IAM e autenticação",
+          "Para executar jobs batch longos",
+        ],
+        c: 0,
+        e: "Memorystore oferece Redis gerenciado para acelerar leituras e reduzir carga em bancos transacionais.",
+        x: "E-commerce guarda carrinho e cache de catálogo em Redis, diminuindo chamadas repetidas ao banco principal.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como Workload Identity Federation no GCP melhora segurança em integração com CI externo?",
+        o: [
+          "Evita chaves estáticas de service account, trocando por credenciais temporárias federadas",
+          "Exige salvar JSON de credencial no repositório",
+          "Remove auditoria de acesso",
+          "Desativa políticas IAM",
+        ],
+        c: 0,
+        e: "A federação confia em identidade externa (ex.: OIDC do GitHub) para emitir token temporário, reduzindo risco de vazamento de chave longa.",
+        x: "Pipeline GitHub Actions autentica no GCP sem arquivo de chave, usando trust configurado no workload identity pool.",
+      },
+      {
+        q: "Qual trade-off de usar reservas de slots no BigQuery em vez de cobrança puramente on-demand?",
+        o: [
+          "Maior previsibilidade de custo/performance com risco de subutilização se mal dimensionado",
+          "Sempre reduz custo independentemente do uso",
+          "Elimina necessidade de particionamento",
+          "Impede escalabilidade horizontal",
+        ],
+        c: 0,
+        e: "Reservas dedicam capacidade analítica para workloads críticos, melhorando previsibilidade, mas exigem planejamento para evitar ociosidade.",
+        x: "Time de BI reserva slots para relatórios de manhã e monitora utilização para ajustar capacidade contratada.",
+      },
+    ],
+  },
+
+  "Infrastructure as Code": {
+    Fácil: [
+      {
+        q: "O que significa dizer que uma ferramenta de IaC é idempotente?",
+        o: [
+          "Aplicar o mesmo código repetidas vezes converge para o mesmo estado desejado",
+          "Executa apenas uma vez e falha depois",
+          "Cria recursos duplicados em toda execução",
+          "Não precisa de controle de versão",
+        ],
+        c: 0,
+        e: "Idempotência evita mudanças desnecessárias e reduz risco operacional: se o estado já está correto, a execução não altera recursos.",
+        x: "Rodar `terraform apply` duas vezes seguidas sem mudanças deve resultar em 'no changes'.",
+      },
+      {
+        q: "Por que versionar módulos IaC é uma boa prática em times?",
+        o: [
+          "Para garantir reprodutibilidade e evitar quebra por alterações inesperadas",
+          "Para impedir reutilização entre projetos",
+          "Para remover revisão de código",
+          "Para dispensar testes de infraestrutura",
+        ],
+        c: 0,
+        e: "Versionamento semântico de módulos permite atualizações controladas, rollback e adoção gradual em múltiplos ambientes.",
+        x: "Produção usa módulo de rede v2.3.1 enquanto desenvolvimento testa v2.4.0 antes da promoção.",
+      },
+    ],
+    Médio: [
+      {
+        q: "No Terraform, quando `for_each` costuma ser preferível a `count`?",
+        o: [
+          "Quando recursos têm identidade estável por chave e podem mudar sem recriação em massa",
+          "Quando só existe um recurso",
+          "Quando não se usa variáveis",
+          "Quando estado remoto está desabilitado",
+        ],
+        c: 0,
+        e: "`for_each` usa chaves explícitas, reduzindo drift e recriações desnecessárias ao adicionar/remover elementos intermediários.",
+        x: "Mapear sub-redes por nome com `for_each` evita renumeração problemática que acontece com `count`.",
+      },
+      {
+        q: "Qual problema backend remoto com state locking resolve em IaC colaborativo?",
+        o: [
+          "Evita escrita concorrente no estado e corrupção por execuções simultâneas",
+          "Aumenta latência de aplicação em produção",
+          "Substitui revisão de pull request",
+          "Desativa auditoria de mudanças",
+        ],
+        c: 0,
+        e: "State remoto centraliza verdade do ambiente e locking impede corrida entre dois `apply` ao mesmo tempo.",
+        x: "Enquanto uma pipeline aplica mudanças, outra execução aguarda lock para não sobrescrever estado.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Em migração de state Terraform entre backends, qual prática reduz risco de downtime?",
+        o: [
+          "Planejar janela, validar `plan`, fazer backup do state e migrar com bloqueio controlado",
+          "Editar state manual em produção sem backup",
+          "Ignorar drift antes da migração",
+          "Executar múltiplos apply concorrentes",
+        ],
+        c: 0,
+        e: "Migrar state requer governança: backup, validação prévia e serialização de mudanças para evitar divergência entre estado real e declarado.",
+        x: "Equipe exporta cópia do `tfstate`, executa `init -migrate-state` em ambiente controlado e valida `plan` limpo após migração.",
+      },
+      {
+        q: "Como Policy as Code melhora segurança antes do `apply` em pipelines IaC?",
+        o: [
+          "Bloqueia configurações não conformes automaticamente durante revisão/CI",
+          "Substitui completamente monitoramento pós-deploy",
+          "Permite qualquer recurso em produção",
+          "Remove necessidade de tags e padrões",
+        ],
+        c: 0,
+        e: "Regras codificadas (OPA, Sentinel etc.) impedem infra insegura desde o ciclo de entrega, reduzindo retrabalho e incidentes.",
+        x: "Policy reprova plano que cria bucket público sem criptografia ou sem tags obrigatórias de conformidade.",
+      },
+    ],
+  },
+
+  "Monitoramento e Observabilidade": {
+    Fácil: [
+      {
+        q: "Em observabilidade, para que servem logs estruturados em formato JSON?",
+        o: [
+          "Facilitam busca, filtro e correlação automática por campos",
+          "Substituem totalmente métricas e traces",
+          "Reduzem a necessidade de timestamp",
+          "Impedem indexação em ferramentas de log",
+        ],
+        c: 0,
+        e: "Logs estruturados carregam campos padronizados (nível, serviço, trace_id, usuário), permitindo consultas rápidas e análises consistentes.",
+        x: "Com JSON, o time filtra `service=checkout` e `status=500` em segundos para investigar um incidente.",
+      },
+      {
+        q: "Qual é o objetivo de um health check sintético em monitoramento?",
+        o: [
+          "Executar testes periódicos simulando usuário para detectar indisponibilidade cedo",
+          "Apenas medir uso de CPU no servidor",
+          "Substituir logs de aplicação",
+          "Desligar alertas durante horário comercial",
+        ],
+        c: 0,
+        e: "Monitoramento sintético valida disponibilidade de ponta a ponta, mesmo sem tráfego real, ajudando a detectar falhas antes de usuários reportarem.",
+        x: "A cada minuto, um robô faz login e consulta saldo; se falhar três vezes, abre alerta crítico automaticamente.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como alertas de burn rate ajudam a evitar fadiga de alertas (alert fatigue)?",
+        o: [
+          "Disparam com base no consumo do error budget e severidade temporal, não em ruído pontual",
+          "Alertam toda variação mínima de CPU",
+          "Ignoram completamente SLO",
+          "Substituem investigação de causa-raiz",
+        ],
+        c: 0,
+        e: "Burn rate conecta incidentes ao orçamento de erro, priorizando sinais que realmente ameaçam metas de confiabilidade.",
+        x: "Regra multi-janela alerta rápido se burn rate em 5 min for muito alto e confirma persistência em janela de 1 h.",
+      },
+      {
+        q: "Qual é a diferença prática entre head sampling e tail sampling em tracing distribuído?",
+        o: [
+          "Head decide no início da requisição; tail decide após conhecer resultado final do trace",
+          "Head coleta mais contexto de erro sempre",
+          "Tail ignora traces lentos",
+          "Não há diferença de custo",
+        ],
+        c: 0,
+        e: "Head sampling é mais simples e barato; tail sampling preserva melhor traces raros/importantes (erros/lentos), porém exige processamento adicional.",
+        x: "Em alto volume, o time usa head 5% + tail para manter 100% dos traces com erro.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como a correlação por `trace_id` entre logs, métricas e traces acelera diagnóstico?",
+        o: [
+          "Permite navegar do sintoma ao ponto exato da falha entre camadas do sistema",
+          "Substitui totalmente testes de carga",
+          "Elimina necessidade de retenção de logs",
+          "Impede uso de APM",
+        ],
+        c: 0,
+        e: "Com contexto unificado, o time liga erro de negócio a spans e logs específicos, reduzindo MTTR e suposições durante incidentes.",
+        x: "Alerta de latência aponta `trace_id`; analista abre o trace e encontra consulta SQL lenta no serviço de inventário.",
+      },
+      {
+        q: "Por que SLO com alerta multi-janela (curta + longa) é mais robusto?",
+        o: [
+          "Detecta degradações agudas e problemas persistentes, equilibrando sensibilidade e precisão",
+          "Gera menos contexto para incidentes",
+          "Funciona sem métricas históricas",
+          "Serve apenas para ambientes de teste",
+        ],
+        c: 0,
+        e: "Combinar janelas evita tanto atraso na detecção quanto excesso de falso positivo por picos breves sem impacto duradouro.",
+        x: "Regra de 5 min captura queda abrupta de disponibilidade; janela de 6 h confirma tendência antes de escalar severidade.",
+      },
+    ],
+  },
+
+  "Serverless e Functions": {
+    Fácil: [
+      {
+        q: "O que é cold start em plataformas serverless?",
+        o: [
+          "Latência adicional quando a plataforma cria/aquece instância para executar a função",
+          "Falha permanente de execução",
+          "Erro de autenticação no banco",
+          "Rollback automático de deploy",
+        ],
+        c: 0,
+        e: "Cold start ocorre quando não há instância pronta e o runtime precisa inicializar ambiente, dependências e código antes de responder.",
+        x: "Primeira chamada após período sem tráfego demora 700 ms; chamadas seguintes ficam em ~80 ms com instância quente.",
+      },
+      {
+        q: "Por que funções serverless devem ser preferencialmente stateless?",
+        o: [
+          "Porque execuções são efêmeras e podem ocorrer em instâncias diferentes",
+          "Porque estado local é replicado automaticamente entre regiões",
+          "Porque elimina necessidade de banco",
+          "Porque impede paralelismo",
+        ],
+        c: 0,
+        e: "A plataforma pode reiniciar ou mover execuções a qualquer momento; estado persistente deve ficar em serviços externos (DB, cache, storage).",
+        x: "Função grava progresso em DynamoDB/Firestore em vez de depender de variável global em memória.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quando inserir uma fila entre API e função serverless melhora robustez?",
+        o: [
+          "Quando há picos de tráfego e processamento assíncrono com retry controlado",
+          "Quando toda requisição exige resposta síncrona imediata",
+          "Quando não se quer observabilidade",
+          "Quando se precisa de estado local durável",
+        ],
+        c: 0,
+        e: "Fila desacopla ingestão e processamento, absorvendo bursts e permitindo retentativas com DLQ sem derrubar a API de entrada.",
+        x: "Endpoint recebe 10 mil uploads/min e enfileira jobs; funções consumidoras processam no ritmo disponível.",
+      },
+      {
+        q: "Como memória configurada em função serverless pode impactar desempenho?",
+        o: [
+          "Muitas plataformas atrelam mais CPU à memória, reduzindo tempo de execução",
+          "Memória afeta apenas logging",
+          "Menor memória sempre melhora latência",
+          "Memória não influencia custo",
+        ],
+        c: 0,
+        e: "Ajuste de memória altera recursos computacionais e custo/execução. Benchmark é necessário para achar ponto ótimo de preço-performance.",
+        x: "Função em 128 MB leva 4 s; em 512 MB cai para 900 ms e custo final por requisição pode até reduzir.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Por que chave de idempotência é crítica em processamento assíncrono serverless?",
+        o: [
+          "Porque eventos podem ser reentregues e a chave evita efeitos duplicados",
+          "Porque elimina necessidade de fila",
+          "Porque impede qualquer timeout",
+          "Porque substitui autenticação",
+        ],
+        c: 0,
+        e: "Mensageria e funções distribuídas seguem semântica at-least-once com reentrega. Idempotência garante consistência funcional diante de retries.",
+        x: "Consumidor grava `eventId` processado em tabela de dedupe antes de faturar para não cobrar duas vezes.",
+      },
+      {
+        q: "Qual estratégia melhora observabilidade fim a fim em arquitetura serverless orientada a eventos?",
+        o: [
+          "Propagar correlation ID e coletar traces/logs estruturados em cada salto",
+          "Registrar somente logs locais sem contexto",
+          "Desabilitar métricas para reduzir custo",
+          "Evitar DLQ para simplificar pipeline",
+        ],
+        c: 0,
+        e: "Sem correlação, eventos assíncronos viram caixa-preta. IDs propagados e telemetria padronizada facilitam rastrear atrasos e falhas entre serviços.",
+        x: "Evento entra no API Gateway com `correlation_id`; fila, função e banco registram o mesmo valor para diagnóstico rápido.",
+      },
+    ],
+  },
+
+  "Segurança em Cloud": {
+    Fácil: [
+      {
+        q: "Qual princípio de segurança recomenda conceder apenas o acesso estritamente necessário?",
+        o: [
+          "Princípio do menor privilégio",
+          "Acesso total por padrão",
+          "Segurança por obscuridade",
+          "Permissão herdada irrestrita",
+        ],
+        c: 0,
+        e: "Menor privilégio reduz superfície de ataque e impacto de credenciais comprometidas ao limitar ações permitidas por usuário/serviço.",
+        x: "Uma função só recebe permissão de leitura no bucket específico em vez de `s3:*` na conta inteira.",
+      },
+      {
+        q: "Por que habilitar MFA em contas administrativas cloud é essencial?",
+        o: [
+          "Porque adiciona um segundo fator e reduz risco de takeover por senha vazada",
+          "Porque substitui políticas de senha",
+          "Porque elimina auditoria",
+          "Porque dispensa gestão de identidade",
+        ],
+        c: 0,
+        e: "MFA dificulta acesso indevido mesmo quando senha é comprometida, especialmente em contas privilegiadas com alto impacto.",
+        x: "Admin com senha exposta em phishing ainda bloqueia invasão porque atacante não possui token MFA válido.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual vantagem de armazenar credenciais em cofre de segredos em vez de variável de ambiente fixa?",
+        o: [
+          "Permite rotação centralizada, auditoria e controle fino de acesso",
+          "Torna vazamento impossível em qualquer cenário",
+          "Elimina necessidade de criptografia em trânsito",
+          "Substitui autenticação de aplicação",
+        ],
+        c: 0,
+        e: "Cofres de segredos melhoram governança e ciclo de vida das credenciais, reduzindo exposição em código, imagens e pipelines.",
+        x: "Senha do banco é rotacionada no Key Vault/Secrets Manager sem rebuild da aplicação.",
+      },
+      {
+        q: "O que é rotação automática de chaves/segredos e qual benefício principal?",
+        o: [
+          "Troca periódica de credenciais para limitar janela de exploração em caso de vazamento",
+          "Aumentar latência da aplicação",
+          "Desativar logs de auditoria",
+          "Remover necessidade de IAM",
+        ],
+        c: 0,
+        e: "Rotação automática diminui tempo de exposição de segredos comprometidos e padroniza higiene de segurança sem operação manual constante.",
+        x: "Token de integração é renovado a cada 30 dias e versões antigas são invalidadas automaticamente.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como modelagem de ameaças (ex.: STRIDE) contribui para segurança em arquitetura cloud?",
+        o: [
+          "Ajuda a identificar vetores de ataque por componente e definir controles preventivos",
+          "Substitui testes de segurança e pentest",
+          "Elimina necessidade de monitoramento contínuo",
+          "Serve apenas para documentação final",
+        ],
+        c: 0,
+        e: "Threat modeling antecipa riscos de spoofing, tampering, repúdio, disclosure, DoS e elevação de privilégio, guiando decisões de design seguro.",
+        x: "Ao modelar API pública, equipe adiciona mTLS interno, rate limit e assinatura de mensagens antes do go-live.",
+      },
+      {
+        q: "Em Zero Trust cloud, qual combinação melhor representa o modelo?",
+        o: [
+          "Verificação contínua de identidade, contexto e postura antes de cada acesso",
+          "Confiar automaticamente em todo tráfego interno",
+          "Liberar acesso amplo após login inicial",
+          "Concentrar defesa apenas no perímetro",
+        ],
+        c: 0,
+        e: "Zero Trust assume que nenhuma rede é implicitamente confiável; acesso é concedido de forma adaptativa por identidade, dispositivo, risco e política.",
+        x: "Mesmo dentro da VNet, serviço precisa autenticar com identidade gerenciada e cumprir política de device compliance para acessar dados sensíveis.",
+      },
+    ],
+  },
+};
+
+function mergeCloudRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  extras: Record<string, Record<UserLevel, SeedCard[]>>,
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const merged: Record<
+    string,
+    Record<UserLevel, SeedCard[]>
+  > = Object.fromEntries(
+    Object.entries(base).map(([category, levels]) => [
+      category,
+      {
+        Fácil: [...levels.Fácil],
+        Médio: [...levels.Médio],
+        Difícil: [...levels.Difícil],
+      },
+    ]),
+  );
+
+  const difficulties: UserLevel[] = ["Fácil", "Médio", "Difícil"];
+
+  for (const [category, levels] of Object.entries(extras)) {
+    if (!merged[category]) continue;
+
+    for (const difficulty of difficulties) {
+      const existing = new Set(
+        merged[category][difficulty].map((card) => card.q.trim().toLowerCase()),
+      );
+
+      for (const candidate of levels[difficulty]) {
+        const normalized = candidate.q.trim().toLowerCase();
+        if (!existing.has(normalized)) {
+          merged[category][difficulty].push(candidate);
+          existing.add(normalized);
+        }
+      }
+    }
+  }
+
+  return merged;
+}
+
+export const cloudBank: Record<
+  string,
+  Record<UserLevel, SeedCard[]>
+> = mergeCloudRounds(cloudBankBase, cloudRound1Extras);

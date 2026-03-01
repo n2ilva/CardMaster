@@ -4,10 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Machine Learning e IA · 10 categorias × 3 níveis × 7 questões (rodada 4/30) ───) ───
 
-export const machineLearningBank: Record<
-  string,
-  Record<UserLevel, SeedCard[]>
-> = {
+const machineLearningBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── Algoritmos de Classificação ──
   "Algoritmos de Classificação": {
     Fácil: [
@@ -2613,3 +2610,481 @@ export const machineLearningBank: Record<
     ],
   },
 };
+
+// ─── Round 1 · +1 questão por nível por categoria ───
+
+const machineLearningRound1Extras: Record<
+  string,
+  Record<UserLevel, SeedCard[]>
+> = {
+  "Algoritmos de Classificação": {
+    Fácil: [
+      {
+        q: "O que é a acurácia (accuracy) e quando ela pode ser uma métrica enganosa?",
+        o: [
+          "Proporção de previsões corretas; enganosa em classes desbalanceadas (ex: 99% classe A, 1% B — prever sempre A dá 99% accuracy sem aprender nada)",
+          "Média das probabilidades de cada previsão estar correta",
+          "Proporção de verdadeiros positivos sobre o total de positivos",
+          "Sempre a métrica mais confiável independentemente da distribuição das classes",
+        ],
+        c: 0,
+        e: "Accuracy = (TP+TN)/(TP+TN+FP+FN). Problemática em datasets desbalanceados: fraude bancária com 0,1% de fraudes — modelo que nunca prevê fraude tem 99,9% de accuracy mas é inútil. Alternativas: F1-score (harmônica de precision e recall), AUC-ROC, precision e recall separados por classe.",
+        x: "Detecção de câncer: 990 negativos, 10 positivos. Modelo 'sempre negativo': accuracy=99% mas recall=0% (não detecta nenhum câncer). F1-score=0 revela o problema. Use precision (dos que previ positivo, quantos eram?) e recall (dos positivos reais, quantos peguei?).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como o SVM (Support Vector Machine) usa o conceito de margem máxima e kernel trick?",
+        o: [
+          "Encontra hiperplano que maximiza a margem entre classes; kernel trick mapeia dados para espaço de maior dimensão para separar classes não-linearmente separáveis sem calcular explicitamente esse espaço",
+          "Usa gradiente descendente para minimizar erro quadrático médio em classificação binária",
+          "Cria ensemble de árvores de decisão com votação por maioria para maximizar separação",
+          "Aplica bayes theorem para calcular probabilidade posterior de cada classe",
+        ],
+        c: 0,
+        e: "SVM: suporte vectors = pontos mais próximos do hiperplano. Margem = distância entre suporte vectors das duas classes. Objetivo: maximizar essa margem. Kernel trick (RBF, polinomial): K(x,y) = φ(x)·φ(y) calcula produto interno no espaço transformado sem computar φ explicitamente. Permite decisões não-lineares com custo computacional linear no espaço original.",
+        x: "Dados circulares (círculo dentro de círculo): linearmente inseparáveis em 2D. Kernel RBF mappa para 3D onde se tornam separáveis por hiperplano. SVM com kernel linear para texto (alta dimensionalidade já é linear). C (regularização): alto C = menos erros no treino, mais overfitting.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é o problema de imbalanced classes e quais técnicas de reamostragem e de loss function existem para tratá-lo?",
+        o: [
+          "Classes desbalanceadas enviesam o modelo para a majoritária; técnicas: SMOTE (oversampling sintético), undersampling, class_weight, focal loss e threshold tuning",
+          "Apenas aumentar o dataset com mais dados reais da classe minoritária resolve o problema",
+          "Normalizar features resolve o desbalanceamento antes do treinamento",
+          "Usar accuracy como métrica de avaliação compensa automaticamente o desbalanceamento",
+        ],
+        c: 0,
+        e: "Desbalanceamento: modelo aprende a ignorar classe minoritária. SMOTE: gera amostras sintéticas interpolando vizinhos da classe minoritária. Undersampling: remove exemplos da majoritária (perda de dados). class_weight='balanced': penaliza erros na minoritária proporcionalmente. Focal Loss: (1-pt)^γ × CE — foca em exemplos difíceis (mal classificados). Threshold tuning: mover threshold de 0.5 para aumentar recall.",
+        x: "Fraude: 10k normal, 100 fraude. SMOTE gera 9.9k fraudes sintéticas (interpolação kNN). class_weight={0:1, 1:100}. Focal Loss γ=2: erros em fraudes pesam muito mais. Após treino: threshold=0.3 em vez de 0.5 para capturar mais fraudes (aumenta recall, reduz precision). PR-AUC melhor métrica que ROC-AUC para desbalanceados.",
+      },
+    ],
+  },
+  "Algoritmos de Regressão": {
+    Fácil: [
+      {
+        q: "O que é o coeficiente de determinação R² e como interpretar seus valores?",
+        o: [
+          "Proporção da variância da variável dependente explicada pelo modelo; R²=1 ajuste perfeito, R²=0 o modelo não explica nada, R²<0 é pior que a média",
+          "Correlação entre features e target, sempre entre 0 e 1",
+          "Erro médio quadrático normalizado pelo desvio padrão dos dados",
+          "Número de features que o modelo usa efetivamente para predição",
+        ],
+        c: 0,
+        e: "R² = 1 - SS_res/SS_tot. SS_res = soma dos quadrados dos resíduos. SS_tot = variância total dos dados (desvio em relação à média). R²=0.85: modelo explica 85% da variação. R²<0: possível com dados de teste se modelo treinou em distribuição diferente. Adjusted R² penaliza features irrelevantes adicionadas.",
+        x: "Previsão de preço de imóvel: R²=0.78 — 78% da variação de preço explicada por área, localização, quartos. 22% por fatores não capturados (reforma recente, vizinhança específica). R²=0.3 em previsão de ações: normal, pois mercado tem alta aleatoriedade. Sempre comparar R² treino vs teste para detectar overfitting.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como Ridge e Lasso diferem na regularização e qual a diferença prática no comportamento dos coeficientes?",
+        o: [
+          "Ridge (L2) encolhe coeficientes sem zerar; Lasso (L1) pode zerar coeficientes completamente (feature selection implícita) por ser geometricamente anguloso",
+          "Ridge remove features; Lasso encolhe uniformemente; Elastic Net combina as duas sem zerar nenhum coeficiente",
+          "São idênticos matematicamente; a diferença é apenas computacional",
+          "Ridge funciona somente para regressão logística; Lasso somente para regressão linear",
+        ],
+        c: 0,
+        e: "Ridge (L2): penalidade = λΣβ². Gradiente suave: coeficientes tendem a zero mas nunca chegam lá — todos pequenos, nenhum exatamente zero. Lasso (L1): penalidade = λΣ|β|. Geometria rômbica: ótimo frequentemente cai em vértice com β=0. Feature selection automática. Elastic Net = αL1 + (1-α)L2: combina estabilidade de Ridge com esparsidade de Lasso.",
+        x: "10 features, 8 irrelevantes. Lasso (λ=0.1): 8 coeficientes zeraram automaticamente, modelo usa apenas 2 features relevantes. Ridge com mesmo λ: todos os 10 coeficientes continuam (mas pequenos). Quando features correlacionadas: Ridge distribui peso entre elas; Lasso escolhe uma arbitrariamente. Elastic Net: melhor nesse caso de multicolinearidade.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é heteroscedasticidade em regressão e como diagnosticar e tratar?",
+        o: [
+          "Variância dos resíduos não é constante (varia com o valor previsto ou uma feature); diagnóstico: Breusch-Pagan test, gráfico resíduos vs fitted; tratamento: transformação log(y), WLS ou modelos robustos",
+          "Correlação serial entre resíduos em séries temporais; tratamento com ARIMA",
+          "Multicolinearidade severa entre features; diagnosticada por VIF alto",
+          "Ausência de linearidade entre features e target; tratada com features polinomiais",
+        ],
+        c: 0,
+        e: "Homocedasticidade (pressuposto OLS): Var(ε)=σ² constante. Heterocedasticidade: Var(ε) varia — ex: resíduos maiores para valores maiores de Y. Consequências: OLS ainda não-enviesado mas não mais BLUE, p-values e IC inválidos. Diagnóstico: resíduo vs fitted plot (cone), Breusch-Pagan, White test. Tratamentos: transformar Y (log, sqrt), WLS (pesos inversamente proporcionais à variância), HC standard errors (erros robustos).",
+        x: "Preço de casas: resíduos menores para imóveis baratos, maiores para mansões. Plot cone crescente. log(preço) como target: heterocedasticidade frequentemente desaparece. WLS: peso_i = 1/variancia_i para imóvel i. statsmodels: sm.OLS(...).fit(cov_type='HC3') para inferência robusta sem transformar Y.",
+      },
+    ],
+  },
+  "Aprendizado Não Supervisionado": {
+    Fácil: [
+      {
+        q: "Como o algoritmo K-Means define e atualiza os clusters iterativamente?",
+        o: [
+          "Inicializa K centroides aleatórios, atribui cada ponto ao centroide mais próximo, recalcula centroides como média do cluster; repete até convergência",
+          "Constrói dendrograma hierárquico mesclando os dois pontos mais próximos a cada passo",
+          "Usa rede neural para aprender representação comprimida e agrupa no espaço latente",
+          "Calcula a densidade de pontos em cada região e marca regiões densas como clusters",
+        ],
+        c: 0,
+        e: "K-Means: minimiza a inércia (soma das distâncias quadráticas ao centroide). Passos: 1) Inicializar K centroides (K-Means++ melhora inicialização). 2) Atribuição: cada ponto vai ao centroide mais próximo (distância euclidiana). 3) Atualização: centroide = média de todos os pontos do cluster. Repetir 2 e 3 até centroides não moverem. Sensível a outliers e escala — normalizar antes.",
+        x: "Segmentação de clientes: K=3. Iter 1: centroide aleatório. Iter 2: clientes de alta renda agrupam perto de um centroide, jovens próximos de outro. Convergência em ~20 iterações. Elbow method: testar K=1..10, plot inércia — cotovelo indica K ótimo. K-Means++ evita inicialização ruim com centroides espalhados.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é PCA (Principal Component Analysis) e como interpretar os componentes principais?",
+        o: [
+          "PCA encontra combinações lineares das features (componentes) que maximizam variância explicada em ordem decrescente; componentes são ortogonais entre si",
+          "Algoritmo de clustering que projeta dados em k dimensões maximizando separabilidade",
+          "Técnica de regularização que remove features correlacionadas diretamente",
+          "Rede neural de compressão que aprende representação não-linear dos dados",
+        ],
+        c: 0,
+        e: "PCA: decomposição espectral da matriz de covariância. Autovalores = variância capturada. Autovetores = direções (componentes principais). PC1 = maior variância. PC2 = segunda maior, ortogonal à PC1. Scree plot: variância acumulada por componente. Escolha: componentes que explicam 90-95% da variância total. Interpretação: cada PC é combinação linear de features originais com pesos (loadings).",
+        x: "Dataset com 50 features de imagens faciais. PCA: PC1 explica 40% (iluminação geral), PC2 12% (orientação facial), PC3 8% (expressão). Com 10 componentes: 85% da variância. Reduz de 50 para 10 dimensões. Biplot: loadings mostram quais features originais mais influenciam cada PC. Normalizar antes (Z-score).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como o algoritmo DBSCAN difere do K-Means e quais tipos de clusters ele consegue detectar?",
+        o: [
+          "DBSCAN detecta clusters de forma arbitrária e identifica outliers via densidade; não requer K predefindo; falha em clusters de densidades muito diferentes (problema de densidade variável)",
+          "DBSCAN é hierárquico e requer K assim como K-Means; diferença é na métrica de distância",
+          "É variante do K-Means com inicialização determinística que elimina sensibilidade ao ponto inicial",
+          "Algoritmo espectral que usa grafo de vizinhança; clusters sempre esféricos como K-Means",
+        ],
+        c: 0,
+        e: "DBSCAN: parâmetros ε (raio) e minPts (mínimo de pontos no raio). Core point: tem ≥minPts em ε. Border point: está em ε de core point mas tem <minPts. Noise (outlier): não é core nem border. Clusters: regiões densas conectadas de core points. Detecta formas arbitrárias (lua crescente, espiral). Não escala bem para alta dimensionalidade (curse of dimensionality afeta métrica de distância).",
+        x: "Dados em forma de espiral: K-Means falha (assume esférico). DBSCAN ε=0.5, minPts=5: segue a densidade da espiral. Anomalia detection: pontos de ruído = outliers naturais. HDBSCAN: extensão hierárquica que lida com densidade variável entre clusters. scikit-learn: DBSCAN(eps=0.5, min_samples=5).fit(X).",
+      },
+    ],
+  },
+  "Deep Learning e Redes Neurais": {
+    Fácil: [
+      {
+        q: "O que é a função de ativação ReLU e por que substituiu a sigmoid em redes profundas?",
+        o: [
+          "ReLU(x)=max(0,x); resolve o problema de vanishing gradient da sigmoid (gradiente ~0 para valores extremos) e é computacionalmente mais eficiente",
+          "ReLU é uma função probabilística que normaliza ativações entre 0 e 1",
+          "Substitui sigmoid pois produz outputs sempre positivos, eliminando gradientes negativos",
+          "ReLU é usada apenas na camada de saída para classificação binária",
+        ],
+        c: 0,
+        e: "Sigmoid: f(x) = 1/(1+e^-x). Gradiente máximo 0.25. Em redes profundas: gradientes multiplicados camada a camada → vanishing gradient (gradientes próximos de 0 nas primeiras camadas). ReLU: gradiente = 1 se x>0, 0 se x<0. Não satura em positivos. Rápido de computar. Problema: Dying ReLU (neurônio sempre produz 0). Variantes: Leaky ReLU, ELU, GELU (usado em Transformers).",
+        x: "Rede de 10 camadas com sigmoid: gradiente na entrada = 0.25^10 ≈ 0.000001 (impraticável). Com ReLU: gradiente flui sem atenuação para x>0. GELU (BERT/GPT): suave, diferenciável em zero. Leaky ReLU: f(x) = max(0.01x, x) — evita Dying ReLU permitindo gradiente pequeno em x<0.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como o mecanismo de Dropout funciona como regularização e por que só é aplicado no treino?",
+        o: [
+          "Desativa neurônios aleatoriamente com probabilidade p durante o treino, forçando redundância e independência entre neurônios; no teste usa todos os neurônios com pesos escalados por (1-p)",
+          "Remove permanentemente os neurônios menos ativos do modelo para reduzir parâmetros",
+          "Cria ensemble de modelos menores treinados em subsets de dados usando subconjuntos de neurônios",
+          "Aplica ruído gaussiano às ativações durante treino e teste para robustez",
+        ],
+        c: 0,
+        e: "Dropout (Srivastava 2014): cada neurônio é zerado com p (ex: p=0.5) independentemente a cada batch. Efeito: rede não pode depender de neurônio específico → aprende representações redundantes e robustas. Equivale a treinar 2^n sub-redes diferentes. Na inferência: todos ativos, pesos multiplicados por (1-p) para compensar escala — ou inverted dropout escala durante treino.",
+        x: "Camada com 100 neurônios, p=0.3: cada forward pass desativa ~30 neurônios aleatórios. Rede aprende a funcionar com qualquer subconjunto. Treino: output × (1/(1-p)). Teste: sem Dropout. Típico: p=0.5 em FC layers, p=0.1-0.2 em conv layers. Batch Normalization + Dropout: cuidado com interação, geralmente BatchNorm depois do Dropout.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é batch normalization e como resolve o problema de internal covariate shift?",
+        o: [
+          "Normaliza ativações de cada camada para média 0 e variância 1 por mini-batch (parâmetros γ e β aprendíveis); estabiliza treino, permite learning rates maiores e reduz sensibilidade à inicialização",
+          "Normaliza os dados de entrada antes do treino para acelerar convergência do gradiente descendente",
+          "Técnica de regularização que adiciona ruído normalizado às ativações durante o treino",
+          "Balanceia gradientes entre camadas usando normalização por camada ao invés de por batch",
+        ],
+        c: 0,
+        e: "Internal covariate shift: distribuição das ativações de camadas intermediárias muda durante o treino (parâmetros das camadas anteriores mudam). BatchNorm: para cada mini-batch, normaliza (x - μ_batch)/σ_batch, depois escala com γ e desloca com β (learnable). Na inferência: usa média/variância do treino (running statistics). Benefícios: permite LR maiores, menos sensível à inicialização, leve efeito regularizador.",
+        x: "Sem BatchNorm: LR=0.001 obrigatório para estabilidade. Com BatchNorm: LR=0.01 funciona, treino 10× mais rápido. Posicionar: antes ou depois da ativação (debate — antes mais comum). Layer Normalization (Transformers): normaliza ao longo das features, não do batch — funciona com batch_size=1. Group Norm: alternativa para visão com batch pequeno.",
+      },
+    ],
+  },
+  "Estatística para ML": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre viés (bias) e variância (variance) no contexto de modelos de ML?",
+        o: [
+          "Viés: erro sistemático por suposições simplificadoras (underfitting); variância: sensibilidade excessiva aos dados de treino (overfitting); tradeoff entre os dois define a complexidade ideal do modelo",
+          "Viés é erro de medição nos dados; variância é o desvio padrão das predições",
+          "Variância indica a quantidade de parâmetros do modelo; viés é o erro no conjunto de treino",
+          "São sinônimos estatísticos para o erro total do modelo de ML",
+        ],
+        c: 0,
+        e: "Erro total = Bias² + Variance + Ruído irredutível. High bias (underfitting): modelo muito simples, erra sistematicamente em treino e teste. High variance (overfitting): modelo memoriza treino, generaliza mal. Complexity trade-off: modelo simples (linear) → high bias, low variance. Modelo complexo (deep NN) → low bias, high variance. Regularização, dropout, early stopping: reduzem variância.",
+        x: "Regressão linear para dados polinomiais: high bias (linha reta não captura curva). Polinômio grau 15 no mesmo dataset: ajusta perfeitamente o treino, oscila absurdamente no teste (high variance). Grau 3: equilíbrio. Cross-validation mede variância (desvio padrão do score entre folds) e viés (score médio vs ótimo esperado).",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o teorema de Bayes e qual sua aplicação no classificador Naive Bayes?",
+        o: [
+          "P(A|B) = P(B|A)×P(A)/P(B); Naive Bayes usa independência condicional das features para calcular P(classe|features) de forma eficiente mesmo com muitas features",
+          "Define probabilidade condicional como produto das probabilidades marginais de cada feature",
+          "Teorema de convergência de estimadores de máxima verossimilhança para grandes amostras",
+          "Fundamenta redes bayesianas que modelam dependências causais entre variáveis",
+        ],
+        c: 0,
+        e: "Bayes: P(Y|X) = P(X|Y)×P(Y)/P(X). Naive Bayes assume P(X1,X2,...Xn|Y) = ∏P(Xi|Y) (features condicionalmente independentes dado a classe). 'Naive' porque raro na prática, mas funciona surpreendentemente bem. P(X) = denominador constante, ignorado na classificação. Eficiente: estima P(Xi|Y) separadamente. Gaussian NB, Multinomial NB (texto), Bernoulli NB.",
+        x: "Spam: P(spam|'venda','grátis') ∝ P('venda'|spam)×P('grátis'|spam)×P(spam). Treino: conta frequência de palavras por classe. Teste: multiplica probabilidades. 'Naive': assume 'venda' e 'grátis' independentes dado spam (falso, mas funciona). Laplace smoothing: P(palavra|classe) = (count+1)/(total+vocab) para evitar probabilidade zero.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é validação cruzada k-fold e como corrigir o data leakage em pipelines com feature engineering?",
+        o: [
+          "Divide dados em k folds; treina em k-1 e valida em 1 repetindo k vezes; leakage é prevenido encapsulando TODA transformação (scaler, imputer, encoder) dentro do pipeline que é ajustado somente no fold de treino",
+          "Particiona dados aleatoriamente k vezes com reposição para estimativa de bootstrap",
+          "Data leakage é prevenido normalizando todos os dados antes de criar qualquer fold",
+          "Aplica transformações no dataset completo antes de qualquer split, depois faz k-fold",
+        ],
+        c: 0,
+        e: "k-fold: estimativa de generalização mais confiável. Leakage: fit de scaler/imputer no dataset COMPLETO inclui estatísticas do fold de teste → modelo parece melhor que realmente é. Correto: Pipeline([(scaler, StandardScaler()), (model, SVC())]); cross_val_score(pipeline, X, y, cv=5) — scaler.fit_transform só vê X_train de cada fold. StratifiedKFold para classificação desbalanceada.",
+        x: "ERRADO: scaler.fit(X_all); cross_val_score(model, X_scaled, y). CORRETO: pipe = Pipeline([('scaler', StandardScaler()), ('clf', LR())]); cross_val_score(pipe, X, y, cv=10). fold de teste nunca influencia a normalização. Time Series: TimeSeriesSplit (fold de teste sempre depois do treino — sem shuffling). Nested CV para hyperparameter tuning simultâneo.",
+      },
+    ],
+  },
+  "IA Generativa e LLMs": {
+    Fácil: [
+      {
+        q: "O que é um Large Language Model (LLM) e como ele gera texto token a token?",
+        o: [
+          "Modelo de linguagem treinado com bilhões de tokens que prevê o próximo token baseado no contexto anterior; usa distribuição de probabilidade para escolher cada token",
+          "Modelo que gera imagens a partir de descrições textuais usando difusão",
+          "Banco de dados de frases pré-escritas que recupera respostas por similaridade",
+          "Assistente de voz com reconhecimento de fala integrado e busca na internet",
+        ],
+        c: 0,
+        e: "LLM (ex: GPT-4, Llama3): treinado para prever P(próximo_token | contexto). Na geração: dado prompt, calcula distribuição sobre vocabulário (32k+ tokens), amostra um token, adiciona ao contexto, repete. Temperature: alto → mais aleatório, baixo → mais determinístico. Top-p (nucleus sampling): considera tokens com probabilidade acumulada ≥ p. Tokenização: byte-pair encoding, ~4 chars/token.",
+        x: "Prompt 'O céu é': LLM calcula P(azul|...) alto, P(pizza|...) baixo. Temperature=0: escolhe sempre 'azul'. Temperature=1: amostragem da distribuição. Temperature=2: respostas criativas/caóticas. Tokens ≠ palavras: 'ChatGPT' = 2 tokens. GPT-4 context window: 128k tokens (~96k palavras). Geração de 1 token por vez = autoregressive.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é fine-tuning supervisionado de LLMs e como difere de RAG (Retrieval-Augmented Generation)?",
+        o: [
+          "Fine-tuning atualiza pesos do modelo com exemplos do domínio (conhecimento no parâmetro); RAG recupera documentos relevantes em tempo real e os injeta no contexto (conhecimento externo e atualizável)",
+          "Fine-tuning é para classificação; RAG é para geração de texto",
+          "São equivalentes — ambos armazenam conhecimento externo nos embeddings",
+          "RAG modifica os pesos do modelo com documentos; fine-tuning usa contexto expandido",
+        ],
+        c: 0,
+        e: "Fine-tuning SFT: continua treinamento com pares (instrução, resposta desejada) do domínio. Conhecimento gravado nos pesos. Desvantagem: requer retreinamento para atualizar info, caro, risco de catastrophic forgetting. RAG: embedding dos documentos → banco vetorial. Query time: recupera top-k por similaridade → injeta no prompt. Vantagem: conhecimento atualizado sem retreinar. Desvantagem: qualidade depende do retrieval.",
+        x: "Chatbot jurídico. Fine-tuning: treinar com 10k Q&A de leis → modelo 'sabe' direito. RAG: embedar todas as leis no Pinecone → query 'direito trabalhista' recupera artigos relevantes → LLM responde com base nos documentos. Fine-tuning: estável, sem latência de busca. RAG: atualiza banco vetorial quando lei muda sem retreinar modelo.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é RLHF (Reinforcement Learning from Human Feedback) e como o PPO é aplicado para alinhar LLMs?",
+        o: [
+          "RLHF: treina reward model com preferências humanas e usa PPO para otimizar a política (LLM) maximizando reward com penalidade KL para não desviar muito do modelo base",
+          "Fine-tuning supervisionado com anotações humanas binárias de certo/errado",
+          "Técnica de data augmentation onde humanos corrigem outputs do modelo iterativamente",
+          "Método de destilação de conhecimento de modelos grandes para pequenos com feedback humano",
+        ],
+        c: 0,
+        e: "RLHF (InstructGPT/ChatGPT): 1) SFT: fine-tuning com demonstrações humanas. 2) Reward Model: treinar RM para prever qual resposta humanos preferem (comparações pairwise). 3) PPO: otimizar LLM para maximizar RM(resposta) - β×KL(π||π_SFT). KL penalty evita o modelo colapsar para exploits do RM (reward hacking). DPO (Direct Preference Optimization): alternativa mais simples sem RM explícito.",
+        x: "ChatGPT: SFT em diálogos curados, depois RM treinado em 50k comparações humanas (qual resposta é melhor?). PPO: LLM gera resposta → RM pontua → gradiente ajusta LLM para respostas mais bem pontuadas. KL divergência: impede LLM de gerar texto estranho que engana o RM. Constitutional AI (Anthropic): substitui humanos por princípios no feedback.",
+      },
+    ],
+  },
+  "MLOps e Deploy de Modelos": {
+    Fácil: [
+      {
+        q: "O que é model drift e qual a diferença entre data drift e concept drift?",
+        o: [
+          "Data drift: distribuição das features muda em produção vs treino; concept drift: relação entre features e target muda; ambos degradam performance do modelo com o tempo",
+          "Model drift é a redução de performance por underfitting; corrigido com mais dados de treino",
+          "Data drift ocorre apenas em séries temporais; concept drift em dados categóricos",
+          "São sinônimos para overfitting do modelo nos dados de produção",
+        ],
+        c: 0,
+        e: "Data drift (covariate shift): P(X) muda — ex: perfil demográfico dos usuários muda. Concept drift: P(Y|X) muda — ex: padrões de fraude evoluem, comportamento de compra muda em crise. Prior probability drift: P(Y) muda — mais usuários premium. Detecção: PSI (Population Stability Index), KS test, monitoramento de distribuições. Resposta: retreinamento periódico, trigger por threshold de degradação.",
+        x: "Modelo de crédito treinado em 2020: data drift em 2022 (inflação muda perfil de inadimplência). Concept drift: padrões de calote antes vs depois da pandemia. Monitor: PSI > 0.25 = data drift severo → alertar. Evidently AI, WhyLabs, Arize: ferramentas de monitoramento de ML. Retreino automático quando accuracy cai abaixo de threshold.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é um feature store e qual problema ele resolve em pipelines de ML em produção?",
+        o: [
+          "Repositório centralizado de features computadas e versionadas; resolve inconsistência treino-serviço (training-serving skew) garantindo que treino e inferência usem as mesmas transformações",
+          "Banco de dados de hiperparâmetros e métricas de experimentos de ML",
+          "Repositório de modelos treinados com versionamento e rollback automático",
+          "Cache de predições recentes para reduzir latência de inferência em tempo real",
+        ],
+        c: 0,
+        e: "Training-serving skew: feature computada diferente em treino vs produção → degradação silenciosa. Feature store: features pré-computadas e armazenadas offline (batch) e online (baixa latência). Partes: feature registry (catálogo), offline store (histórico, warehouse), online store (Redis, DynamoDB para inferência). Point-in-time correctness: features históricas sem data leakage futuro em treino.",
+        x: "Feature 'média de compras dos últimos 30 dias'. Treino: computa com SQL offline no warehouse. Produção: sem feature store → reimplementa em Python → resultado levemente diferente (timezone, arredondamento). Feature store (Feast, Tecton, Vertex): compute once, serve everywhere. Treino e serving usam mesmo pipeline. feature_store.get_online_features(['avg_purchase_30d'], entity_rows=[{'user_id': 123}]).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é shadow deployment e como difere de canary release e A/B testing em ML?",
+        o: [
+          "Shadow: novo modelo recebe tráfego real mas não serve ao usuário (comparação silenciosa); Canary: portion pequena de usuários recebe novo modelo; A/B: split controlado para teste de hipótese estatístico",
+          "São estratégias equivalentes de rollout; a escolha depende apenas do time de engenharia",
+          "Shadow deployment não registra métricas; Canary usa feature flags; A/B usa ML para otimizar split",
+          "A/B testing é para produto; Shadow e Canary são exclusivos para infraestrutura",
+        ],
+        c: 0,
+        e: "Shadow: replica requisições para novo modelo em paralelo, compara predictions sem risco de usuário. Identifica bugs, diferenças de predictions, latência. Canary: 5% do tráfego para novo modelo com monitoramento intensivo. Rollback rápido se métricas pioram. A/B test: split por holdout, mede impacto em KPI de negócio (conversão, receita) com significância estatística. Interleaving: mais eficiente para ranqueamento (tanto modelo A quanto B servem para mesmo usuário).",
+        x: "Novo modelo de recomendação: Shadow (1 semana) → validar latência p99, verificar que não crasha. Canary 5% → monitorar CTR, conversion rate vs controle. A/B formal 50/50 → 2 semanas para significância estatística (α=0.05, potência=0.8). Se lift positivo: rollout 100%. Netflix, Spotify: centenas de A/B tests simultâneos com mutual exclusion de experimentos.",
+      },
+    ],
+  },
+  "Pré-processamento de Dados": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre normalização (min-max scaling) e padronização (z-score standardization)?",
+        o: [
+          "Normalização escala para [0,1] e é afetada por outliers; padronização transforma para média 0, desvio 1 e é mais robusta; StandardScaler para algoritmos baseados em distância e gradiente",
+          "São equivalentes — qualquer uma pode ser usada em qualquer algoritmo sem diferença",
+          "Normalização é somente para dados categóricos; padronização para dados numéricos contínuos",
+          "Padronização elimina outliers; normalização apenas reescala sem tratar valores extremos",
+        ],
+        c: 0,
+        e: "Min-max: x' = (x - min)/(max - min) → [0,1]. Afetado por outliers (um valor extremo comprime todos os outros). Z-score: x' = (x - μ)/σ → média 0, dp 1. Mais robusto. RobustScaler: usa mediana e IQR, mais resistente a outliers extremos. Quando usar: SVM, KNN, Regressão, Redes Neurais (gradiente) precisam de escala. Árvores de decisão e Random Forest: invariantes à escala.",
+        x: "Renda: [1000, 2000, 3000, 1000000]. Min-max: [0, 0.001, 0.002, 1.0] — todos comprimidos. Z-score: [-0.57, -0.57, -0.57, 1.71] — menos distorcido. RobustScaler: usa mediana=2000, IQR=1000 — (x-2000)/1000. Feature age em [18,90]: normalizar para [0,1]. KNN com age e renda sem scaler: renda domina completamente a distância.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é one-hot encoding e quando label encoding pode causar problemas em variáveis categóricas nominais?",
+        o: [
+          "One-hot cria coluna binária por categoria (sem ordem implícita); label encoding atribui inteiro por categoria e implica ordem/magnitude que modelos paramétricos interpretam incorretamente",
+          "Label encoding cria mais features; one-hot é mais compacto e eficiente em memória",
+          "São equivalentes para árvores de decisão mas diferentes apenas para redes neurais",
+          "One-hot fica inviável com alta cardinalidade; label encoding é sempre preferível nesse caso",
+        ],
+        c: 0,
+        e: "Label encoding: cor = {'azul':0, 'verde':1, 'vermelho':2}. Problema: modelo interpreta vermelho (2) como 'maior que' azul (0). Regressão linear/logística, SVM, KNN: afetados. One-hot: cria coluna is_azul, is_verde, is_vermelho — sem ordem implícita. Dummy variable trap: retirar uma coluna (k-1) em modelos com intercepto. Alta cardinalidade: target encoding, embedding.",
+        x: "Cidade: São Paulo, Rio, Belo Horizonte. Label: SP=0, RJ=1, BH=2. Regressão linear: BH = 2×SP, o que não faz sentido. One-hot: is_SP, is_RJ, is_BH (dropar is_BH para evitar multicolinearidade). 1000 cidades: one-hot cria 999 colunas → target encoding ou embedding layer em deep learning.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Quais estratégias existem para imputação de dados faltantes (missing values) e como o tipo de missingness (MCAR, MAR, MNAR) influencia a estratégia?",
+        o: [
+          "MCAR (totalmente aleatório): qualquer imputação; MAR (aleatório dado outras vars): imputação múltipla ou MICE; MNAR (não-aleatório): requer modelagem explícita do mecanismo de ausência ou coleta de dados",
+          "Sempre deletar linhas com missing — não faz diferença o mecanismo de ausência",
+          "One-hot encoding de missing resolve qualquer tipo de missingness sem viés",
+          "MCAR e MAR são resolvidos com média; MNAR com mediana dos dados disponíveis",
+        ],
+        c: 0,
+        e: "MCAR: P(missing) constante, independente de qualquer variável. Listwise deletion válida mas desperdiça dados. MAR: P(missing|outras_vars) — ex: renda falta mais para jovens. Imputação com outras variáveis como preditores (MICE/IterativeImputer) é válida. MNAR: P(missing|valor_próprio) — ex: pessoas com renda alta não informam. Imputação padrão gera viés. Necesita: survey redesign, modelo de seleção (Heckman), indicador binário de missingness como feature.",
+        x: "Pressão arterial falta mais para pacientes saudáveis (não vão ao médico) = MNAR. Imputar com média subestima pressão média da população. Solução: adicionar feature is_pa_missing (captura padrão de ausência). MICE: itera, imputa cada feature usando as outras como preditores, repete até convergência. scikit-learn: IterativeImputer (experimental) ou MissForest (RF como imputer).",
+      },
+    ],
+  },
+  "Processamento de Linguagem Natural": {
+    Fácil: [
+      {
+        q: "O que são word embeddings e qual problema eles resolvem em relação à representação one-hot?",
+        o: [
+          "Vetores densos em espaço contínuo que capturam semântica; one-hot: esparso, sem relação semântica entre palavras; embeddings: 'rei' - 'homem' + 'mulher' ≈ 'rainha'",
+          "Compressão de one-hot usando PCA para reduzir dimensionalidade sem perda semântica",
+          "Tabelas de hash que mapeiam palavras para IDs numéricos com colisão mínima",
+          "Tokens BPE que subdividem palavras em subunidades morfológicas para vocabulários menores",
+        ],
+        c: 0,
+        e: "One-hot: vocabulário de 50k palavras → vetores de 50k dimensões, todos zeros exceto um 1. Sem relação entre palavras semelhantes (cosseno entre qualquer par = 0). Word2Vec, GloVe, FastText: mapeiam palavra → vetor denso (300 dimensões), palavras similares têm vetores próximos. Treinados para prever contexto (CBOW) ou palavra central (Skip-gram).",
+        x: "Word2Vec: 'paris' - 'france' + 'italy' ≈ 'rome' (analogias aritméticas no espaço vetorial). Cosseno('gato','felino') ≈ 0.85 (alta similaridade). Cosseno('gato','carro') ≈ 0.1. OOV (out of vocabulary): FastText usa n-gramas de caracteres → representa palavras novas. Contextualizados (BERT): mesmo token tem embedding diferente conforme contexto (banco da praça vs banco financeiro).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funciona o mecanismo de atenção (Attention) e por que é mais eficaz que RNNs para dependências de longo alcance?",
+        o: [
+          "Attention calcula peso de cada token em relação a todos os outros diretamente (O(n²)); RNN processa sequencialmente degradando gradiente em longas sequências; atenção acessa qualquer posição em 1 passo",
+          "RNNs usam atenção internamente para resolver dependências longas com custo O(n)",
+          "Atenção só funciona com textos curtos; RNN é mais eficaz para documentos longos",
+          "Ambos têm mesma capacidade de longas dependências; atenção é mais rápida por paralelismo apenas",
+        ],
+        c: 0,
+        e: "Attention: Query, Key, Value. Score = softmax(QK^T/√d_k)×V. Cada token atende a outros com pesos aprendidos. Long-range: 'O banco que fica na margem do rio transbordou' — 'banco' resolve referência em 1 hop. RNN: gradiente de posição 1 passa por M passos até posição M → vanishing gradient. Self-attention: paralelizável (vs RNN sequencial) → treino mais rápido em GPUs. Custo O(n²) em comprimento de sequência.",
+        x: "Tradução: 'The cat sat on the mat, it was comfortable' — resolver 'it'. RNN LSTM: gradiente de 'cat' passou por 8 tokens, fraco. Transformer: atenção de 'it' para 'cat' com score alto (peso 0.92). Long document: Longformer usa atenção esparsa (local+global) para reduzir O(n²). Flash Attention: otimização GPU para O(n²) manejável.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é transfer learning com BERT e como o fine-tuning de camadas superiores vs completo ('full fine-tuning') diferem?",
+        o: [
+          "BERT pré-treinado captura representações gerais; fine-tuning completo atualiza todos os pesos (alto custo, melhor performance); fine-tuning de camadas superiores prezerva representações gerais e adapta apenas as últimas camadas",
+          "BERT nunca deve ter todos os pesos atualizados — apenas a camada de classificação final",
+          "Fine-tuning de camadas superiores é exclusivo para classificação; camadas inferiores para geração",
+          "Transfer learning com BERT só funciona para inglês; idiomas diferentes requerem treino do zero",
+        ],
+        c: 0,
+        e: "BERT: pré-treinado com Masked LM + Next Sentence Prediction em 3.3B tokens. Camadas inferiores: representações sintáticas/morfológicas. Superiores: semânticas. Full fine-tuning: atualiza todos os 110M parâmetros com baixo LR (2-5e-5). Dataset pequeno: risk of catastrophic forgetting, preferir congelar camadas inferiores. LoRA: fine-tuning eficiente em parâmetros (apenas matrizes de baixo rank), reduz 100× os parâmetros treináveis.",
+        x: "Classificação de sentimento em reviews médicas (dataset 10k). Full fine-tuning BERT: 92% F1. Freeze camadas 1-8, fine-tune 9-12: 89% F1, treina 3× mais rápido. LoRA rank=8: 91% F1, apenas 2% dos parâmetros treináveis. Dataset muito pequeno (<1k): congelar mais camadas, apenas classificador. mBERT/XLM-R: BERT multilíngue, fine-tune em português.",
+      },
+    ],
+  },
+  "Visão Computacional": {
+    Fácil: [
+      {
+        q: "O que é uma Convolutional Neural Network (CNN) e qual a função das camadas convolucionais e de pooling?",
+        o: [
+          "CNN usa conv layers com filtros que detectam features locais (bordas, texturas) compartilhando pesos; pooling reduz dimensionalidade preservando features mais relevantes",
+          "Rede que processa pixels em sequência como texto — cada pixel é um token de entrada",
+          "Rede totalmente conectada com regularização específica para processamento de imagens",
+          "Algoritmo que comprime imagens usando transformada de Fourier discreta para extração de features",
+        ],
+        c: 0,
+        e: "Convolução: filtro (kernel) 3×3 desliza sobre a imagem calculando produto escalar — detecta padrões locais. Weight sharing: mesmo filtro aplicado em toda a imagem (translational invariance). Camadas iniciais: bordas e cantos. Camadas profundas: formas e partes de objetos. MaxPooling 2×2: reduz dimensão à metade tomando o máximo de cada janela — invariância a pequenas translações.",
+        x: "Imagem 224×224×3. Conv 64 filtros 3×3 → 224×224×64. MaxPool 2×2 → 112×112×64. Conv 128×3×3 → 112×112×128. MaxPool → 56×56×128. Flatten + FC + Softmax. AlexNet (2012) provou eficácia de CNNs no ImageNet. ResNet-50: 50 camadas com skip connections para gradiente fluir. Transfer learning: usar ResNet pré-treinado como extrator de features.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funciona o algoritmo YOLO (You Only Look Once) e por que é mais rápido que abordagens de two-stage como R-CNN?",
+        o: [
+          "YOLO divide imagem em grid e prevê bounding boxes e classes em um único forward pass; two-stage extrai propostas de regiões depois classifica — mais lento mas mais preciso em objetos pequenos",
+          "YOLO usa sliding window denso com CNN; R-CNN usa atenção para localizar objetos",
+          "YOLO é mais lento que R-CNN mas mais preciso; a diferença é na métrica de avaliação usada",
+          "YOLO processa cada região independentemente enquanto R-CNN faz uma única passagem",
+        ],
+        c: 0,
+        e: "R-CNN: 1) Selective Search gera ~2k propostas de região. 2) CNN classifica cada proposta. ~47s por imagem (treinamento). Two-stage, alta precisão. YOLO: divide imagem em S×S grid. Cada célula prevê B bounding boxes (x,y,w,h,confidence) + C class probabilities. Uma única passagem pela rede. YOLOv8: ~2ms por imagem em GPU, suficiente para vídeo em tempo real. Trade-off: precisão ligeiramente menor em objetos muito pequenos.",
+        x: "Câmera de segurança 30fps: R-CNN = impossível (~47s/frame). YOLOv8 = detecta em 2ms, 500fps. mAP@50 em COCO: YOLOv8x = 53.9, Faster-RCNN = 42. NMS (Non-Maximum Suppression): remove bounding boxes sobrepostas, guarda a de maior confiança. Anchor boxes: prior shapes para objetos de diferentes aspectos (carros largos, pessoas altas).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que são Generative Adversarial Networks (GANs) e qual o problema de mode collapse?",
+        o: [
+          "GAN: Generator tenta enganar o Discriminator que distingue real de falso; mode collapse: generator aprende produzir poucas variações que enganam o discriminator, ignorando diversidade dos dados reais",
+          "GAN é rede que gera dados via difusão progressiva; mode collapse é instabilidade de gradiente",
+          "Generator e Discriminator são treinados em datasets diferentes sem interação direta",
+          "Mode collapse refere-se ao colapso dos pesos do discriminator para zero durante o treino",
+        ],
+        c: 0,
+        e: "GAN: minimax game. G minimiza, D maximiza log D(x) + log(1-D(G(z))). Nash equilibrium: G gera distribuição idêntica à real. Mode collapse: G descobre subconjunto de outputs que consistentemente engana D (ex: sempre gera mesmo dígito '7'). D evolui para rejeitar '7' → G migra para '3' → ciclagem. Soluções: Wasserstein GAN (WGAN), minibatch discrimination, progressive training (ProGAN), diferentes arquiteturas (StyleGAN).",
+        x: "GAN de dígitos MNIST: mode collapse = sempre gera '4'. WGAN usa Wasserstein distance em vez de JS divergence — gradientes mais estáveis, mode collapse menos frequente. StyleGAN2 (NVIDIA): rostos humanos foto-realistas (este-rosto-não-existe.com). Conditional GAN (cGAN): gera imagem condicionada em label (gerar 'gato' especificamente). Discriminator saturação = gradiente zero para G.",
+      },
+    ],
+  },
+};
+
+function mergeMLBankRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  ...extras: Record<string, Record<UserLevel, SeedCard[]>>[]
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const result: Record<string, Record<UserLevel, SeedCard[]>> = {};
+  for (const cat of Object.keys(base)) {
+    result[cat] = {} as Record<UserLevel, SeedCard[]>;
+    for (const level of ["Fácil", "Médio", "Difícil"] as UserLevel[]) {
+      const baseCards = base[cat]?.[level] ?? [];
+      const seen = new Set(baseCards.map((c) => c.q.trim().toLowerCase()));
+      const merged = [...baseCards];
+      for (const extra of extras) {
+        for (const card of extra[cat]?.[level] ?? []) {
+          if (!seen.has(card.q.trim().toLowerCase())) {
+            seen.add(card.q.trim().toLowerCase());
+            merged.push(card);
+          }
+        }
+      }
+      result[cat][level] = merged;
+    }
+  }
+  return result;
+}
+
+export const machineLearningBank = mergeMLBankRounds(
+  machineLearningBankBase,
+  machineLearningRound1Extras,
+);

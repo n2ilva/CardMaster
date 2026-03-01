@@ -4,7 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Matemática · 12 categorias × 3 níveis × 7 questões (rodada 4/30) ───
 
-export const matematicaBank: Record<string, Record<UserLevel, SeedCard[]>> = {
+const matematicaBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── Análise Combinatória ──
   "Análise Combinatória": {
     Fácil: [
@@ -2059,3 +2059,426 @@ export const matematicaBank: Record<string, Record<UserLevel, SeedCard[]>> = {
     ],
   },
 };
+
+// ─── Round 1 · +1 questão por nível por categoria ───
+
+const matematicaRound1Extras: Record<string, Record<UserLevel, SeedCard[]>> = {
+  "Análise Combinatória": {
+    Fácil: [
+      {
+        q: "Quantas diagonais tem um hexágono regular?",
+        o: ["9", "6", "12", "18"],
+        c: 0,
+        e: "Fórmula: n(n−3)/2. Para n=6: 6×3/2 = 9. Subtrai-se as n arestas do total de combinações C(n,2) = n(n−1)/2: C(6,2)−6 = 15−6 = 9.",
+        x: "C(6,2) = 15 segmentos. 6 são lados (arestas). 15−6 = 9 diagonais. Polígono de 10 lados: 10×7/2 = 35 diagonais. Triângulo: 0 diagonais. Quadrilátero: 2. Pentágono: 5.",
+      },
+    ],
+    Médio: [
+      {
+        q: "De quantas maneiras pode-se escolher uma comissão de 3 membros de um grupo de 8 pessoas, sendo que 2 delas são incompatíveis e não podem estar juntas?",
+        o: ["46", "56", "42", "50"],
+        c: 3,
+        e: "Total sem restrição C(8,3)=56. Combinações com os 2 incompatíveis juntos: C(6,1)=6 (escolher 1 dos 6 restantes). Válidas: 56-6=50.",
+        x: "C(8,3)=56. Proibidas (A e B juntos + 1 dos 6 restantes): C(6,1)=6. Válidas: 56-6=50. Método complementar. Verificação: se A e B forem obrigatoriamente incluídos, sobram 6 para escolher 1 \u2192 6 combinações proibidas.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual o coeficiente de x³y² no desenvolvimento de (2x + y)⁵ pelo Binômio de Newton?",
+        o: ["40", "80", "10", "20"],
+        c: 1,
+        e: "Termo geral: C(5,k)×(2x)^(5-k)×y^k. Para x³y²: 5-k=3 ⇒ k=2. C(5,2)×2³ = 10×8 = 80.",
+        x: "(2x+y)^5: k=2 ⇒ C(5,2)×(2x)^3×y^2 = 10×8x^3×y^2 = 80x³y². Coeficiente = 80. Verify: k=0 ⇒ 32x^5; k=1 ⇒ C(5,1)×16x^4y=80x^4y; k=2 ⇒ 80x^3y^2 ✓.",
+      },
+    ],
+  },
+  "Equações e Inequações": {
+    Fácil: [
+      {
+        q: "Qual o conjunto solução da inequação 2x - 5 > 3?",
+        o: ["x > 4", "x > √2", "x < 4", "x ≥ 4"],
+        c: 0,
+        e: "2x - 5 > 3 ⇒ 2x > 8 ⇒ x > 4. Conjunto solução: (4, +∞). Lembrar: ao dividir por número negativo, inverte o sinal da desigualdade.",
+        x: "2x > 3+5 = 8; x > 4. Na reta numérica: intervalo aberto à direita de 4. Teste: x=5: 2(5)-5=5>3 ✓. x=4: 2(4)-5=3, não é maior que 3. x=3: 1>3? ✗.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quantas raízes reais tem a equação x´ - 5x² + 4 = 0?",
+        o: [
+          "4 raízes reais",
+          "2 raízes reais",
+          "Nenhuma raiz real",
+          "1 raiz real",
+        ],
+        c: 0,
+        e: "Substituição: u = x². u² - 5u + 4 = 0. Δ = 25-16 = 9. u = (5±3)/2: u=4 ou u=1. x²=4 ⇒ x=±2; x²=1 ⇒ x=±1. Total: 4 raízes reais.",
+        x: "u=4: x=+2 e x=-2. u=1: x=+1 e x=-1. Confirmar: (4)²-5(4)+4=16-20+4=0 ✓. (1)²-5(1)+4=0 ✓. Equação biquadrada: sempre substituir x²=u primeiro.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O sistema { x + y = 5; xy = 6 } tem solução real? Quais os pares (x,y)?",
+        o: [
+          "(2,3) e (3,2)",
+          "(1,4) e (4,1)",
+          "Sem solução real",
+          "(2,2) e (3,3)",
+        ],
+        c: 0,
+        e: "x e y são raízes de t² - 5t + 6 = 0. Δ = 25-24 = 1. t = (5±1)/2: t=3 ou t=2. Pares: (2,3) e (3,2).",
+        x: "Relações de Girard: soma = 5 (coef linear com sinal trocado), produto = 6 (termo independente). Equação: t²-5t+6=0. Δ=1>0 ⇒ 2 raízes reais. Verificação: 2+3=5 ✓, 2×3=6 ✓.",
+      },
+    ],
+  },
+  "Estatística e Probabilidade": {
+    Fácil: [
+      {
+        q: "Em um saco com 4 bolas vermelhas e 6 azuis, qual a probabilidade de retirar uma bola azul?",
+        o: ["3/5", "2/5", "1/2", "4/10"],
+        c: 0,
+        e: "P(azul) = 6/10 = 3/5. Total de bolas = 10. Casos favoráveis = 6.",
+        x: "P(azul) = 6/10 = 0,6 = 60%. P(vermelha) = 4/10 = 2/5. P(azul) + P(vermelha) = 1 ✓. Evento complementar: P(não azul) = 1 - 3/5 = 2/5.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Dados os valores 2, 4, 4, 4, 5, 5, 7, 9, qual a média e mediana?",
+        o: [
+          "Média = 5, Mediana = 4,5",
+          "Média = 4, Mediana = 5",
+          "Média = 5, Mediana = 5",
+          "Média = 4,5, Mediana = 4",
+        ],
+        c: 0,
+        e: "Média: (2+4+4+4+5+5+7+9)/8 = 40/8 = 5. Mediana (n=8 par): média dos termos 4º e 5º ordenados: (4+5)/2 = 4,5.",
+        x: "Ordenados: 2,4,4,4,5,5,7,9. Soma=40. Média=40/8=5. Mediana: posicões 4 e 5 = 4 e 5. (4+5)/2=4,5. Moda=4 (aparece 3x). Desvio padrão: variância = média dos quadrados das diferenças.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Uma moeda é lançada 3 vezes. Qual a probabilidade de obter exatamente 2 caras usando a distribuição binomial?",
+        o: ["3/8", "1/4", "1/2", "3/4"],
+        c: 0,
+        e: "P(X=2) = C(3,2) × (1/2)² × (1/2)¹ = 3 × 1/4 × 1/2 = 3/8.",
+        x: "Binomial B(n=3, p=1/2). C(3,2)=3. p^2=1/4. q^1=1/2. P=3×1/4×1/2=3/8=0,375. Espaço amostral: HHH, HHT, HTH, HTT, THH, THT, TTH, TTT — 8 resultados. Casos (2 caras): HHT, HTH, THH = 3. 3/8 ✓.",
+      },
+    ],
+  },
+  Funções: {
+    Fácil: [
+      {
+        q: "Qual o domínio da função f(x) = √(x − 3)?",
+        o: ["x ≥ 3", "x > 3", "x ≠ 3", "Todo real"],
+        c: 0,
+        e: "Para a raiz quadrada ser real, o radicando deve ser ≥ 0: x - 3 ≥ 0 ⇒ x ≥ 3. Domínio: [3, +∞).",
+        x: "f(3) = √0 = 0 (válido). f(7) = √4 = 2. f(2) = √(-1) — não real. Domínio: [3,+∞). Para f(x)=√(x²-9): x²≥9 ⇒ x≤-3 ou x≥3 ⇒ D=(-∞,-3]∪[3,+∞).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Dada f(x) = 2x + 1 e g(x) = x², quanto vale (f∘g)(3)?",
+        o: ["19", "49", "7", "10"],
+        c: 0,
+        e: "(f∘g)(x) = f(g(x)) = f(x²) = 2x² + 1. (f∘g)(3) = 2(9) + 1 = 19.",
+        x: "g(3) = 9. f(9) = 2(9)+1 = 19. Atenção: (g∘f)(3) = g(f(3)) = g(7) = 49 — composicão não é comutativa. f∘g ≠ g∘f em geral.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual o periódo e amplitude da função f(x) = 3 sen(2x + π/4)?",
+        o: [
+          "Período = π, Amplitude = 3",
+          "Período = 2π, Amplitude = 3",
+          "Período = π, Amplitude = 6",
+          "Período = 4π, Amplitude = 3",
+        ],
+        c: 0,
+        e: "f(x)=A·sen(Bx+C): Amplitude = |A| = 3. Período = 2π/B = 2π/2 = π. Fase = C/B = (π/4)/2 = π/8 (deslocamento horizontal).",
+        x: "A=3: oscila entre -3 e +3. B=2: comprime o período pela metade (f(x)=sen(x) tem período 2π; B=2 ⇒ período = 2π/2 = π). C=π/4: fase. Gráfico: 2 ciclos completos em [0, 2π].",
+      },
+    ],
+  },
+  "Geometria Plana": {
+    Fácil: [
+      {
+        q: "Qual a área de um triângulo com base 8 cm e altura 5 cm?",
+        o: ["20 cm²", "40 cm²", "13 cm²", "10 cm²"],
+        c: 0,
+        e: "A = base × altura / 2 = 8 × 5 / 2 = 20 cm².",
+        x: "A = (b×h)/2 = 40/2 = 20 cm². Para qualquer triângulo (equilátero, retângulo, etc.) a fórmula é a mesma. Área por Heron: A=√(s(s-a)(s-b)(s-c)), s=semi-perímetro.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Um círculo tem área igual a 36π cm². Qual o comprimento de seu diâmetro?",
+        o: ["12 cm", "6 cm", "18 cm", "9 cm"],
+        c: 0,
+        e: "Área = πr² = 36π ⇒ r² = 36 ⇒ r = 6 cm. Diâmetro = 2r = 12 cm.",
+        x: "πr²=36π ⇒ r²=36 ⇒ r=6. Diâmetro=12 cm. Circunferência: C=2πr=12π cm. Setor circular: A_setor = (θ/360)×πr² para θ em graus.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Num trapézio retângulo, as bases medem 10 e 6 cm, e a altura é 4 cm. Qual a área?",
+        o: ["32 cm²", "40 cm²", "24 cm²", "28 cm²"],
+        c: 0,
+        e: "A = (B+b) × h / 2 = (10+6) × 4 / 2 = 16 × 2 = 32 cm².",
+        x: "(B+b)/2 é a média das bases = média lógica (mediana do trapézio). (10+6)/2=8. 8×4=32 cm². Trapézio retângulo: dois ângulos retos (um lado perpendicular às bases). Área independe do tipo de trapézio.",
+      },
+    ],
+  },
+  "Geometria Espacial": {
+    Fácil: [
+      {
+        q: "Qual o volume de um cubo de aresta 4 cm?",
+        o: ["64 cm³", "48 cm³", "96 cm³", "16 cm³"],
+        c: 0,
+        e: "V = a³ = 4³ = 64 cm³.",
+        x: "Cubo: todas as arestas iguais. V=a³. Área total = 6a² = 6×16 = 96 cm². Diagonal do cubo: d=a√3=4√3. Diagonal da face: d_f=a√2=4√2.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Uma esfera tem raio 3 cm. Qual seu volume (use π = 3)?",
+        o: ["108 cm³", "36 cm³", "72 cm³", "324 cm³"],
+        c: 0,
+        e: "V = (4/3)πr³ = (4/3)×3×27 = 4×27 = 108 cm³.",
+        x: "V=(4/3)πr³=(4/3)×3×3³=(4/3)×3×27. (4/3)×3=4. 4×27=108. Área da superfície: A=4πr²=4×3×9=108 cm² (coincidência neste caso). Com π=3,14159: V≈113,1 cm³.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Um cilindro tem raio 5 cm e altura 10 cm. Qual a área total de sua superfície (use π = 3,14)?",
+        o: ["471 cm²", "314 cm²", "628 cm²", "942 cm²"],
+        c: 0,
+        e: "A_lat = 2πrh = 2×3,14×5×10 = 314. A_bases = 2πr² = 2×3,14×25 = 157. Total = 314 + 157 = 471 cm².",
+        x: "A_lateral = 2πrh = 2×3,14×5×10 = 314 cm². A_base = πr² = 3,14×25 = 78,5 cm². 2 bases = 157 cm². Total = 314+157 = 471 cm².",
+      },
+    ],
+  },
+  "Juros Simples e Compostos": {
+    Fácil: [
+      {
+        q: "Um capital de R$ 2.000 é aplicado a juros simples de 3% ao mês por 4 meses. Qual o montante final?",
+        o: ["R$ 2.240", "R$ 2.060", "R$ 2.400", "R$ 2.120"],
+        c: 0,
+        e: "Juros = P×i×n = 2000×0,03×4 = 240. Montante = 2000 + 240 = R$ 2.240.",
+        x: "J = 2000×3%×4 = 2000×0,12 = 240. M = 2000+240 = 2240. Taxa mensal 3%, período 4 meses: simples não capitaliza juros. Composto: M = 2000×(1,03)^4 = 2000×1,1255 ≈ 2251.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual o capital inicial que, aplicado a 2% ao mês por 6 meses a juros compostos, resulta em R$ 2.252,32?",
+        o: ["R$ 2.000", "R$ 2.100", "R$ 1.900", "R$ 2.250"],
+        c: 0,
+        e: "M = C×(1+i)^n ⇒ C = M/(1+i)^n = 2252,32/(1,02)^6. (1,02)^6 ≈ 1,1262. C = 2252,32/1,1262 ≈ 2000.",
+        x: "(1,02)^6 = 1,126162. C = 2252,32/1,126162 ≈ 2000,00. Verificação: 2000×1,126162 = 2252,32 ✓. Capitalização composta: juros sobre juros — difere de simples que seria 2000×1,12=2240.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Em quanto tempo um capital dobra aplicado a juros compostos de 10% ao ano (use regra do 72)?",
+        o: [
+          "Aproximadamente 7,2 anos",
+          "Exatamente 10 anos",
+          "Aproximadamente 10 anos",
+          "5 anos",
+        ],
+        c: 0,
+        e: "Regra do 72: t ≈ 72/taxa = 72/10 = 7,2 anos. Valor exato: 2 = (1,10)^t ⇒ t = ln(2)/ln(1,10) = 0,693/0,0953 ≈ 7,27 anos.",
+        x: "Regra do 72: hâ (um heurística): t = 72/r%. Para 10%: 7,2 anos. Para 6%: 12 anos. Para 12%: 6 anos. Exato: ln(2)/ln(1+i). Diferença: regra 72 dá 7,2; valor exato 7,27 — erro de 1%. Útil para cálculos rápidos de finanças pessoais.",
+      },
+    ],
+  },
+  "Lógica Matemática": {
+    Fácil: [
+      {
+        q: "Qual a negação da proposição 'Todos os alunos passaram na prova'?",
+        o: [
+          "Existe pelo menos um aluno que não passou na prova",
+          "Nenhum aluno passou na prova",
+          "A maioria dos alunos não passou na prova",
+          "Todos os alunos não passaram na prova",
+        ],
+        c: 0,
+        e: "Negação do quantificador universal [∀x P(x)]: ∃x ¬P(x). 'Todos passaram' ⇒ 'Existe ao menos um que não passou'.",
+        x: "'Todos aprovados' → nega: 'existe algum reprovado'. Erro comum: 'nenhum passou' é mais forte que a negação. Negação exata: pelo menos 1 não passou. Quantificador existencial [∃x P(x)] → nega: ∀x ¬P(x) = 'nenhum'.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Dadas as proposições p = V e q = F, qual o valor de (p → q) ∧ (¬q → p)?",
+        o: ["V ∧ V = V", "F ∧ V = F", "V ∧ F = F", "F ∧ F = F"],
+        c: 1,
+        e: "p→q: V→F = F. ¬q=V; V→V = V. (F)∧(V) = F.",
+        x: "p=V, q=F. p→q: só falsa quando V→F: F. ¬q=¬F=V. V→p=V→V=V. Conjunção F∧V=F.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Qual das afirmações representa corretamente a lei do silogismo hipotético?",
+        o: [
+          "Se p→q e q→r, então p→r",
+          "Se p→q e p, então q (modus ponens)",
+          "Se ¬q e p→q, então ¬p (modus tollens)",
+          "p∨q e ¬p, então q (silogismo disjuntivo)",
+        ],
+        c: 0,
+        e: "Silogismo hipotético: [(p→q) ∧ (q→r)] → (p→r). Transitividade da implicação. As outras descrevem modus ponens, modus tollens e silogismo disjuntivo.",
+        x: "Ex: p='Estuda', q='Passa', r='Formatura'. Estuda→Passa; Passa→Formatura; logo Estuda→Formatura. Modus ponens: p→q; p; logo q. Modus tollens: p→q; ¬q; logo ¬p. Silogismo disjuntivo: p∨q; ¬p; logo q.",
+      },
+    ],
+  },
+  "Matrizes e Determinantes": {
+    Fácil: [
+      {
+        q: "Qual o determinante da matriz [[3, 1], [2, 4]]?",
+        o: ["10", "12", "14", "8"],
+        c: 0,
+        e: "det = ad - bc = 3×4 - 1×2 = 12 - 2 = 10.",
+        x: "Regra para matriz 2x2: [[a,b],[c,d]] → det = ad-bc. 3×4=12; 1×2=2; det=12-2=10. det=0 ⇒ matriz singular (não invertível). det≠0 ⇒ sistema tem solução única.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Qual a soma dos elementos da diagonal principal da matriz produto A×B, onde A = [[1,2],[3,4]] e B = [[2,0],[1,3]]?",
+        o: ["16", "18", "20", "14"],
+        c: 0,
+        e: "A×B: linha 1 de A × colunas de B. (1,2)×(2,1)T=4; (1,2)×(0,3)T=6. (3,4)×(2,1)T=10; (3,4)×(0,3)T=12. Diagonal: 4 e 12. Soma=16.",
+        x: "C[1][1]=1×2+2×1=4; C[1][2]=1×0+2×3=6; C[2][1]=3×2+4×1=10; C[2][2]=3×0+4×3=12. Traço (traço = soma diagonal): 4+12=16. Traço tem propriedade: tr(AB)=tr(BA).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Usando a Regra de Cramer, qual o valor de x no sistema: x+2y=5 e 3x+4y=7?",
+        o: ["x = -3", "x = 1", "x = 3", "x = -1"],
+        c: 0,
+        e: "D = det([[1,2],[3,4]]) = 4-6 = -2. Dx = det([[5,2],[7,4]]) = 20-14 = 6. x = Dx/D = 6/(-2) = -3.",
+        x: "D = 1×4 - 2×3 = -2. Dx: substitui 1ª coluna pelos termos independentes: [[5,2],[7,4]]. det=20-14=6. x=6/(-2)=-3. Dy: [[1,5],[3,7]]. det=7-15=-8. y=(-8)/(-2)=4. Verificação: (-3)+2(4)=-3+8=5 ✓; 3(-3)+4(4)=-9+16=7 ✓.",
+      },
+    ],
+  },
+  "Porcentagem e Regra de Três": {
+    Fácil: [
+      {
+        q: "Um produto custava R$ 80 e teve aumento de 15%. Qual o novo preço?",
+        o: ["R$ 92", "R$ 88", "R$ 90", "R$ 95"],
+        c: 0,
+        e: "Aumento = 80 × 0,15 = 12. Novo preço = 80 + 12 = R$ 92. Ou: 80 × 1,15 = 92.",
+        x: "Multiplicador: 1 + 15% = 1,15. 80×1,15=92. Desconto de 15%: 80×0,85=68. Aumentos sucessivos de 10% e 10%: 80×1,1×1,1=96,8 (não é 80×1,2=96).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Se 3 trabalhadores constroem uma parede em 8 dias, em quantos dias 6 trabalhadores constroem a mesma parede?",
+        o: ["4 dias", "6 dias", "16 dias", "12 dias"],
+        c: 0,
+        e: "Regra de três inversa (mais trabalhadores = menos dias). 3×8 = 6×x ⇒ x = 24/6 = 4 dias.",
+        x: "Grandezas inversamente proporcionais: 3×8=24 (total de dias-homem). 6 trabalhadores: 24/6=4 dias. Direto seria 16 dias (errado). Checar: inversamente prop. pois dobrar trabalho à metade do tempo.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Uma peça sofreu desconto de 20% e depois aumento de 20%. Qual a variação percentual total?",
+        o: ["-4%", "0%", "+4%", "-20%"],
+        c: 0,
+        e: "Multiplicadores: 0,80 × 1,20 = 0,96. Variação: 0,96 - 1 = -0,04 = -4% (redução de 4%).",
+        x: "P’ = P×0,8×1,2 = P×0,96. Não é 0%! Desconto e aumento iguais resultam em perda líquida. Ex: 100×0,8=80; 80×1,2=96. Perda: R$4 (4%). Quanto seria necessário para voltar ao original após 20% de desconto: 80×x=100 ⇒ x=1,25 (aumento de 25%).",
+      },
+    ],
+  },
+  "Progressões (PA e PG)": {
+    Fácil: [
+      {
+        q: "Numa PA de primeiro termo 3 e razão 4, qual o 6º termo?",
+        o: ["23", "27", "19", "24"],
+        c: 0,
+        e: "a_n = a_1 + (n-1)×r = 3 + (6-1)×4 = 3 + 20 = 23.",
+        x: "a_1=3, r=4. Sequência: 3,7,11,15,19,23. a_6=23. Soma dos n primeiros: S_n = n(a_1+a_n)/2 = 6(3+23)/2 = 6×13 = 78.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Numa PG de primeiro termo 2 e razão 3, qual a soma dos 4 primeiros termos?",
+        o: ["80", "40", "26", "54"],
+        c: 0,
+        e: "S_n = a_1(q^n - 1)/(q - 1) = 2(3^4 - 1)/(3-1) = 2×80/2 = 80.",
+        x: "Termos: 2, 6, 18, 54. Soma = 2+6+18+54 = 80. Fórmula: S = a_1×(q^n-1)/(q-1) = 2×(81-1)/2 = 2×40 = 80 ✓.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "A soma de uma PG infinita de primeiro termo 10 e razão 1/2 é qual?",
+        o: ["20", "15", "30", "Infinita"],
+        c: 0,
+        e: "PG infinita converge quando |q| < 1. S = a_1 / (1 - q) = 10 / (1 - 1/2) = 10 / (1/2) = 20.",
+        x: "q=1/2 < 1 ⇒ converge. S = 10/(1-0,5) = 10/0,5 = 20. Termos: 10+5+2,5+1,25+...= 20. Zeno's paradox: soma infinita de frações pode convergir. |q|≥1 ⇒ diverge para infinito.",
+      },
+    ],
+  },
+  "Razão e Proporção": {
+    Fácil: [
+      {
+        q: "Se x/4 = 3/6, qual o valor de x?",
+        o: ["2", "3", "4", "8"],
+        c: 0,
+        e: "Proporção: meios e extremos. 6x = 4×3 = 12. x = 2.",
+        x: "Produto cruzado (médio por extremo): x×6 = 4×3 ⇒ 6x=12 ⇒ x=2. Verificação: 2/4=0,5 e 3/6=0,5 ✓. Proporção: a/b = c/d ⇒ ad = bc.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Divida R$ 280 em partes diretamente proporcionais a 2, 3 e 5.",
+        o: [
+          "R$ 56, R$ 84, R$ 140",
+          "R$ 70, R$ 70, R$ 140",
+          "R$ 50, R$ 90, R$ 140",
+          "R$ 56, R$ 98, R$ 126",
+        ],
+        c: 0,
+        e: "Soma das partes: 2+3+5=10. Valor da unidade: 280/10=28. Partes: 2×28=56; 3×28=84; 5×28=140. Total: 56+84+140=280 ✓.",
+        x: "Proporcional a 2:3:5. Unidade=28. 2u=56, 3u=84, 5u=140. Dividir em partes inversamente proporcionais a 2,3,5: 1/2:1/3:1/5 ⇒ mão-comúm 30 ⇒ 15:10:6 ⇒ soma=31 ⇒ 280/31... diferente.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Uma máquina produz 300 peças em 5 horas com 4 operários. Quantas peças produzem 6 operários em 8 horas?",
+        o: ["720 peças", "900 peças", "600 peças", "480 peças"],
+        c: 0,
+        e: "Taxa: 300/(5×4) = 15 peças/hora/operário. 6 operários × 8 horas × 15 = 720 peças.",
+        x: "300 peças = 4 operários × 5 horas ⇒ 1 opérário×1 hora = 15 peças. 6×8 = 48 opérário-horas. 48×15 = 720. Regra de três dupla direta: X/300 = (6/4)×(8/5). X = 300×1,5×1,6 = 300×2,4 = 720.",
+      },
+    ],
+  },
+};
+
+function mergeMathBankRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  ...extras: Record<string, Record<UserLevel, SeedCard[]>>[]
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const result: Record<string, Record<UserLevel, SeedCard[]>> = {};
+  for (const cat of Object.keys(base)) {
+    result[cat] = {} as Record<UserLevel, SeedCard[]>;
+    for (const level of ["Fácil", "Médio", "Difícil"] as UserLevel[]) {
+      const baseCards = base[cat]?.[level] ?? [];
+      const seen = new Set(baseCards.map((c) => c.q.trim().toLowerCase()));
+      const merged = [...baseCards];
+      for (const extra of extras) {
+        for (const card of extra[cat]?.[level] ?? []) {
+          if (!seen.has(card.q.trim().toLowerCase())) {
+            seen.add(card.q.trim().toLowerCase());
+            merged.push(card);
+          }
+        }
+      }
+      result[cat][level] = merged;
+    }
+  }
+  return result;
+}
+
+export const matematicaBank = mergeMathBankRounds(
+  matematicaBankBase,
+  matematicaRound1Extras,
+);

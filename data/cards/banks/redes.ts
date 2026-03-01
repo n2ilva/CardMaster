@@ -4,7 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Rede de Computadores · 12 categorias × 3 níveis × 7 questões (rodada 4/30) ───
 
-export const redesBank: Record<string, Record<UserLevel, SeedCard[]>> = {
+const redesBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── Cabeamento Estruturado ──
   "Cabeamento Estruturado": {
     Fácil: [
@@ -3049,3 +3049,554 @@ export const redesBank: Record<string, Record<UserLevel, SeedCard[]>> = {
     ],
   },
 };
+
+// ─── Round 1 · +1 questão por nível por categoria ───
+
+const redesRound1Extras: Record<string, Record<UserLevel, SeedCard[]>> = {
+  "Cabeamento Estruturado": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre catária Cat 5e e Cat 6 em cabeamento estético?",
+        o: [
+          "Cat 5e: até 1 Gbps em 100m; Cat 6: até 10 Gbps em 55m / 1 Gbps em 100m com menor interferência (spline interno)",
+          "Cat 5e: até 10 Gbps; Cat 6: somente Fast Ethernet (100 Mbps)",
+          "São equivalentes; a diferença é apenas no conector RJ45",
+          "Cat 6 usa fibra óptica; Cat 5e usa par trançado de cobre",
+        ],
+        c: 0,
+        e: "Cat 5e (Enhanced Category 5): 1 Gbps em 100m, 350 MHz. Cat 6: 10 Gbps em até 55m (10GBase-T), 1 Gbps em 100m, 250 MHz (algumas 550 MHz). Cat 6A: 10 Gbps em 100m, 500 MHz. Spline no Cat 6 separa os 4 pares reduzindo NEXT (Near-End CrossTalk). Janélas de fixação e bending radius também diferem.",
+        x: "Data center 10GBase-T: Cat 6A ou Cat 7 (até 100m). Cat 5e: adequado para 1 GbE corporativo. Cat 7: blindagem individual por par (S/FTP), 10 GbE em 100m, 600 MHz. Conector Cat 7: GG45 ou TERA (não RJ45). Planejamento: testar com certificador Fluke LinkIQ após instalação.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o DMБББ (IDF/MDF) e como se organiza a hierarquia de cabeamento estruturado?",
+        o: [
+          "MDF (Main Distribution Frame): sala principal de telecomunicações; IDF (Intermediate): distribuição por andar/ala; hierarquia: MDF → IDF → TO (tomada de trabalho)",
+          "MDF é o rack de servidores; IDF é o switch de acesso",
+          "IDF é principal; MDF é secundário; hierarquia é invertida",
+          "MDF e IDF são sinonímos para a mesma sala de equipamentos",
+        ],
+        c: 0,
+        e: "Cableamento estruturado (EIA/TIA 568): subsistemas. MDF (ou TR Principal): conexão com operadora, equipamentos core. IDF (TR Intermediário): distribuição por andar (backbone vertical até MDF). TO: Tomada de Telecomunicações até 90m do IDF. Backbone horizontal: IDF → TO (até 100m total incluindo patchcords).",
+        x: "EIA/TIA 568C: define tipos de cabo, comprimentos, métodos de teste. Área de trabalho: até 10m (patchcord de equipamento + TO). Horizontal: 90m máximo (cobre). Backbone vertical: fibra multimodo (MDF-IDF) ou monomodo (entre edifícios). Certificação: Fluke DSX-8000.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Quais os parâmetros medidos numa certificção de par trançado Cat 6A e o que cada um representa?",
+        o: [
+          "Comprimento, atraso de propagação, NEXT, FEXT, attenuation, return loss, PS-ANEXT; medem capacidade de transmissão e amplitude de crosstalk em todos os pares",
+          "Somente comprimento e continuidade elétrica",
+          "Apenas NEXT e atenuação; os demais são opcionais",
+          "Potência de sinal óptico e birrefringência (apenas para fibra)",
+        ],
+        c: 0,
+        e: "Parâmetros Cat 6A (TIA-1096-A): attenuation (perda por m), NEXT (cross-talk na origem), FEXT (na extremidade distante), return loss (reflexão), insertion loss, prop. delay, delay skew entre pares, PS-ANEXT (alien crosstalk dos cabos adjacentes). Todos medidos em MHz até 500 MHz.",
+        x: "PS-ANEXT (Power Sum Alien NEXT): crosstalk de cabos nas proximidades nas bandejas. Impacto em 10GBase-T: requer blindagem S/FTP ou distanciamento adequado. Fluke DTX/DSX: certifica automaticamente todos os parâmetros com resultado PASS/FAIL por parâmetro e frequência.",
+      },
+    ],
+  },
+  "DNS DHCP e NAT": {
+    Fácil: [
+      {
+        q: "O que é um registro MX no DNS e para que serve?",
+        o: [
+          "Mail Exchanger: aponta para o servidor de e-mail responsável por receber mensagens do domínio; tem prioridade numérica (menor = preferido)",
+          "Registro que mapeia IP para hostname (DNS reverso)",
+          "Configura o roteamento interno do domínio",
+          "Define o servidor DNS secundário do domínio",
+        ],
+        c: 0,
+        e: "Tipos de registro DNS: A (IPv4), AAAA (IPv6), CNAME (alias), MX (mail), NS (name server), TXT (verificação/SPF/DKIM), SOA (start of authority), PTR (reverso), SRV (serviço). MX: 'empresa.com IN MX 10 mail.empresa.com'. Prioridade: menor valor = maior preferência. Múltiplos MX = redundância.",
+        x: "'empresa.com MX 10 mail1.empresa.com; empresa.com MX 20 mail2.empresa.com'. Se mail1 indisponível, tenta mail2. SPF em TXT: 'v=spf1 mx ~all' autoriza servidores MX a enviar e-mail. DKIM: assinatura criptográfica em TXT. DMARC: política de autenticação de e-mail em TXT.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o DHCP Snooping e como protege contra ataques DHCP Starvation e Rogue DHCP?",
+        o: [
+          "Switch filtra mensagens DHCP: só trusts portas trunk/uplink (servidor DHCP); portas de acesso só recebem OFFER/ACK; previne DHCP falso e esgotamento de pool",
+          "Protocolo que replica o banco de dados DHCP entre servidores redundantes",
+          "Função do servidor para registrar todos os leases em syslog",
+          "Filtra endereços MAC para impedir clientes não autorizados de obter IP",
+        ],
+        c: 0,
+        e: "DHCP Starvation: atacante envia milhares de DISCOVER com MAC spoofed esgotando o pool. Rogue DHCP: servidor falso responde OFFER com gateway/DNS do atacante (man-in-the-middle). DHCP Snooping: switch cria binding table (MAC, IP, porta, VLAN); descarta OFFER nas portas untrusted; rate-limits DISCOVERs.",
+        x: "Cisco IOS: 'ip dhcp snooping; ip dhcp snooping vlan 10; interface gi0/1; ip dhcp snooping trust'. Binding table: usado também por Dynamic ARP Inspection (DAI) e IP Source Guard. Combinação DHCP Snooping + DAI + IP Source Guard: proteção completa no nível de acesso.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é DNSSEC e como as assinaturas RRSIG protegem a integridade das respostas DNS?",
+        o: [
+          "DNSSEC assina registros DNS com criptografia assímétrica (RSA/ECDSA); RRSIG: assinatura digital do ownser sobre cada resource record set; validadores verificam com DNSKEY; NSEC/NSEC3 garantem negação autenticada",
+          "DNSSEC cifra o conteúdo das respostas DNS prevenindo escuta",
+          "RRSIG é um tipo de registro para redundância de servidores DNS",
+          "DNSSEC funciona apenas em zonas internas (split-DNS)",
+        ],
+        c: 0,
+        e: "DNSSEC: não criptografa (confid.), garante integridade e autentia. DNSKEY: chave pública da zona. ZSK (Zone Signing Key) assina RRSets; KSK (Key Signing Key) assina ZSK. RRSIG: assinatura sobre o RRSet. DS (Delegation Signer): liga zona filha ao pai. Chain of trust: raiz (ICANN) → TLD → domínio. NSEC/NSEC3: nega existência autenticada.",
+        x: "Ataque DNS cache poisoning (Kaminsky, 2008): inserir registros falsos no cache. DNSSEC previne: validação de assinatura no recursive resolver. Alg: RSASHA256 (RSA+SHA256) ou ECDSAP256SHA256 (menor chave, mais eficiente). Ferramentas: dig +dnssec, delv, dnsviz.net. Deployment: ~30% dos domínios TLD assinados.",
+      },
+    ],
+  },
+  "Endereçamento IP e Sub-redes": {
+    Fácil: [
+      {
+        q: "Qual o número de hosts úteis em uma sub-rede /28?",
+        o: ["14 hosts", "16 hosts", "30 hosts", "254 hosts"],
+        c: 0,
+        e: "/28 = 32-28 = 4 bits para hosts. 2^4 = 16 endereços totais. Hosts úteis = 16 - 2 = 14 (subtrai endereço de rede e broadcast).",
+        x: "Máscara /28 = 255.255.255.240. Bloco de 16. Rede: .0, Broadcast: .15, Hosts: .1 a .14 (14 úteis). VLSM: /28 em ambiente com 10 hosts (pede /28); /26 para 60 hosts (2^6-2=62). /30: 2 hosts (links ponto-a-ponto).",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o IPv6 EUI-64 e como ele gera o identificador de interface a partir do MAC address?",
+        o: [
+          "EUI-64: expande MAC de 48 bits para 64 bits inserindo FFFE no meio e invertendo o bit U/L (bit 7); composto com prefixo /64 forma o IPv6 completo",
+          "EUI-64 é um algoritmo de hash SHA64 aplicado ao MAC address",
+          "O router gera o identificador aleatoriamente sem relação com o MAC",
+          "EUI-64 usa os últimos 64 bits do MAC truncando os primeiros",
+        ],
+        c: 0,
+        e: "MAC: AA:BB:CC:DD:EE:FF (48 bits). EUI-64: AA:BB:CC:FF:FE:DD:EE:FF (64 bits). Processo: divide MAC em duas metades (3B cada), insere FF:FE no meio, inverte bit 7 do primeiro byte (bit U/L: 0=universal, 1=local administrado). Prefixo /64 + EUI-64 ID = endereço IPv6 SLAAC.",
+        x: "MAC AA:BB:CC:DD:EE:FF \u2192 bit7 de AA (=10101010): bit7=1\u21920 \u2192 A8. EUI-64: A8:BB:CC:FF:FE:DD:EE:FF. Endereço: 2001:db8::/64 \u2192 2001:db8::a8bb:ccff:fedd:eeff. Privacidade: RFC 4941 gera identificadores temporários aleatórios (privacy extensions). DHCPv6 stateful: servidor atribui manualmente.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o VLSM (Variable Length Subnet Masking) e por que é mais eficiente que classful routing?",
+        o: [
+          "VLSM: cada sub-rede pode ter máscara diferente; permite alocar exatamente o espaço necessário evitando desperdício; classful usa máscaras fixas por classe (A/B/C)",
+          "VLSM divide a rede apenas em blocos iguais de 2^n",
+          "Classless routing e VLSM são sinônimos; não há diferença prática",
+          "VLSM exige roteamento classful como RIP v1 que carrega a máscara nos updates",
+        ],
+        c: 0,
+        e: "Classful: Classe C = /24 fixo (254 hosts). Se precisar de 2 links WAN e 50 hosts: 2+50 = 52 + desperdiça 202. VLSM: 50 hosts \u2192 /26 (62 hosts), link WAN \u2192 /30 (2 hosts). Protocolos classless (OSPF, EIGRP, RIPv2, BGP): enviam a máscara junto com o prefixo nas atualizações. RIPv1: classful (n\u00e3o envia máscara).",
+        x: "Projeto VLSM: bloco 192.168.1.0/24. Sub-rede 1 (60 hosts): /26 = 192.168.1.0/26. Sub-rede 2 (30 hosts): /27 = 192.168.1.64/27. Link WAN: /30 = 192.168.1.96/30. Sub-rede 3 (12 hosts): /28 = 192.168.1.100/28. Alocar do maior ao menor para não fragmentar.",
+      },
+    ],
+  },
+  "Equipamentos de Rede": {
+    Fácil: [
+      {
+        q: "Qual a diferença funcional entre Hub, Switch e Roteador?",
+        o: [
+          "Hub: broadcast físico (camada 1) para todas as portas; Switch: comuta por MAC (camada 2) para a porta correta; Roteador: encaminha por IP (camada 3) entre redes diferentes",
+          "Hub e Switch são idênticos; só o roteador difere",
+          "Switch opera na camada 3; roteador na camada 2",
+          "Hub verifica colisões; Switch e Roteador não têm domínio de colisão",
+        ],
+        c: 0,
+        e: "Hub (camada 1): repassa o sinal elétrico para todas as portas \u2014 domínio de colisão único (CSMA/CD), half-duplex. Switch (camada 2): aprende tabela MAC, encaminha somente para porta de destino \u2014 cada porta = domínio de colisão isolado, full-duplex. Roteador (camada 3): encaminha pacotes IP, separa domínios de broadcast (uma tabela de roteamento por interface).",
+        x: "Switch Camada 3 (multilayer): faz roteamento IP internamente ao hardware (linha rate). Router-on-a-stick: roteador com subinterfaces para inter-VLAN routing. Hub: desapareceu do mercado (domínio de colisão elimina performance). Microsegmentação: switch dedica banda por porta.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é Spanning Tree Protocol (STP) e por que é necessário em redes comutadas?",
+        o: [
+          "STP (802.1D): previne loops em redes com caminhos redundantes bloqueando portas redundantes; elege root bridge e determina portas Designated/Root/Blocked",
+          "STP balanceia carga entre todos os links redundantes simultaneamente",
+          "STP é usado somente em WAN; LAN com switches não tem risco de loop",
+          "STP opera na camada 3; roteadores também participam da eleição do root",
+        ],
+        c: 0,
+        e: "Loop de camada 2: broadcast storm (frame se propaga infinitamente), instabilidade de tabela MAC, duplicação de frames. STP: root bridge (menor Bridge ID = prioridade+MAC). Root Port: porta mais próxima do root em switches não-root. Designated Port: melhor caminho por segmento. Blocked Port: descarta frames de dados. Estados: Blocking/Listening/Learning/Forwarding (Disabled).",
+        x: "RSTP (802.1w): convergencia < 1s. MSTP (802.1s): múltiplas STP per VLAN-group. PVST+ (Cisco): STP por VLAN. PortFast: pula estados no acesso (hosts). BPDU Guard: desabilita porta se receber BPDU (previne rouge switch). Loop Guard: previne root port de transicionar por falta de BPDU.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o mecanismo de ECMP (Equal-Cost Multi-Path) e quais algoritmos de balanceamento são usados?",
+        o: [
+          "ECMP instala múltiplas rotas de mesmo custo na tabela de roteamento; balanceamento por per-packet, per-flow (5-tuple hash) ou per-destination; per-flow é o default para manter ordering TCP",
+          "ECMP ativo somente com OSPF; BGP não suporta multi-path por padrão",
+          "ECMP usa STP para bloquear caminhos redundantes em IPv6",
+          "Somente 2 caminhos simultâneos; não há limite de sub três",
+        ],
+        c: 0,
+        e: "ECMP: roteadores com OSPF/EIGRP/BGP multi-path instalam N rotas de custo idêntico. Algoritmos: per-packet (round-robin, pode reordenar \u2014 problema TCP), per-destination (hash IP src/dst \u2014 simple), per-flow (hash 5-tuple: src/dst IP+port+proto \u2014 evita reordenamento, default Linux/Cisco). Cisco EIGRP: variancea permite ECMP e desbalancedo (unequal-cost).",
+        x: "Linux ECMP: ip route add via + routing table com nexthops. BGP multipath: 'maximum-paths 4'. Hashing assimetria: flows concentrados num caminho (elephant flows). ECMP com LAG (Link Aggregation): nível de enlace, ECMP em nível de rede. SD-WAN: ECMP por políticas de aplicação (latency, jitter).",
+      },
+    ],
+  },
+  "Firewall e Proxy": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre firewall stateless e stateful?",
+        o: [
+          "Stateless: filtra pacote a pacote por regras (src/dst IP+porta) sem rastrear conexões; Stateful: rastreia o estado da conexão (SYN/SYN-ACK/established) permitindo retorno automático",
+          "Stateful bloqueia mais tráfego; stateless é mais permissivo por padrão",
+          "São idênticos; 'stateful' é apenas o nome comercial de firewalls de nova geração",
+          "Stateless examina conteúdo do payload; stateful apenas cabeçalhos IP",
+        ],
+        c: 0,
+        e: "Stateless (ACL simples): regra srcIP/dstIP/dstPort/protocol. Retorno: precisa de regra explícita para established. Stateful: Connection Tracking Table (CTT) guarda estado (NEW, ESTABLISHED, RELATED, INVALID). Retorno automático: conexões established são permitidas sem regra explícita. NGFW: adiciona inspeção Layer 7 (DPI).",
+        x: "iptables Linux: stateful com conntrack. 'iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' permite retorno. ACL Cisco: sem estado. ASA, Palo Alto: stateful. Stateful inspection: Checkpoint (1993). UDP, ICMP: stateful ainda rastreia 'pseudo-conexoes' por timeout.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é Web Application Firewall (WAF) e como difere de NGFW?",
+        o: [
+          "WAF: inspeção de camada 7 HTTP/HTTPS focada em ataques de aplicação web (SQLi, XSS, OWASP Top 10); NGFW: inspeção multicamada (L3-L7) de qualquer aplicação, IDS/IPS, URL filtering",
+          "WAF e NGFW são sinônimos; diferem apenas no fabricante",
+          "WAF opera na camada 4; NGFW na camada 7",
+          "NGFW substitui completamente o WAF; não há razão para usar ambos",
+        ],
+        c: 0,
+        e: "WAF: especialista em HTTP. Inspeção de body, headers HTTP, regex contra SQL injection, XSS, path traversal, CSRF. Regras OWASP Core Rule Set (CRS). Modo: proxy reverso, inline, sniffing passivo. NGFW: Palo Alto, Fortinet \u2014 app-ID, user-ID, content-ID. WAF: Cloudflare WAF, AWS WAF, ModSecurity, F5 BIG-IP ASM. Deploy conjunto: NGFW no perímetro, WAF na DMZ para cada aplicação web.",
+        x: "ModSecurity + OWASP CRS: WAF open-source. Rate limiting: WAF pode bloquear DDoS HTTP (flood). False positives: WAF em modo log antes de blocking. NGFW: não inspeciona payload HTTP com profundidade de WAF. PCI-DSS: exige WAF para ambientes card data (ou code review). Bot management: CAPTCHA, fingerprinting.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o Transparent Proxy e quando usar SSL Inspection (MITM) corporativo?",
+        o: [
+          "Transparent Proxy intercepta TCP 80/443 sem configurar cliente; SSL Inspection re-assina certificados com CA corporativa instalado nos clientes; permite inspeção de conteúdo criptografado",
+          "Transparent Proxy só funciona para HTTP; HTTPS exige proxy explícito com autenticação",
+          "SSL Inspection quebra certificate pinning sem impacto em aplicações móveis",
+          "Transparent Proxy requer configuração manual em cada cliente",
+        ],
+        c: 0,
+        e: "Transparent Proxy: redirecionamento por política no firewall (iptables REDIRECT ou policy route). Cliente não sabe do proxy. SSL/TLS Inspection (MITM): proxy termina TLS com cliente (CA corporativa), re-estabelece TLS com servidor original. Inspeção de conteúdo (DLP, AV) em tráfego criptografado. Compliance: LGPD, regras de privacidade.",
+        x: "Bypass por Certificate Pinning: apps móveis com pinning rejeitam CA corp. Solução: exemption list (banking apps). CA corp instalada via MDM/GPO nos endpoints gerenciados. Squid+SSL_bump: proxy open-source com SSL inspection. Categorização de URL: Brightcloud, Webroot. DLP: identifica uploads de dados sensíveis.",
+      },
+    ],
+  },
+  "Modelo OSI e TCP/IP": {
+    Fácil: [
+      {
+        q: "Qual a função da camada de Transporte no modelo OSI?",
+        o: [
+          "Prover comunicação fim-a-fim entre processos, controle de fluxo, controle de erros e multiplexacao por portas (TCP e UDP)",
+          "Definir o endereçamento físico (MAC) e acesso ao meio",
+          "Roteamento de pacotes entre redes diferentes por endereço IP",
+          "Estabelecer sessões e controle de diálogo entre aplicações",
+        ],
+        c: 0,
+        e: "Camada 4 (Transporte): TCP (confiável, orientado a conexão, controle de congestionamento) e UDP (não confiável, sem conexão, mais rápido). Portas: multiplexam aplicações no mesmo host. Segmentos TCP: número de seq, ACK, janelas, flags (SYN, FIN, RST, ACK). Cama 3: IP (roteamento). Camada 2: Ethernet/MAC.",
+        x: "TCP three-way handshake: SYN, SYN-ACK, ACK. Four-way termination: FIN, ACK, FIN, ACK. Portas well-known: HTTP 80, HTTPS 443, SSH 22, DNS 53. Half-open connections: SYN flood ataque (mitigation: SYN cookies). UDP: DNS, DHCP, TFTP, VoIP (RTP), streaming.",
+      },
+    ],
+    Médio: [
+      {
+        q: "No modelo TCP/IP moderno, quais são as quatro camadas e como se mapeiam ao modelo OSI de 7 camadas?",
+        o: [
+          "Network Access (OSI 1+2), Internet (OSI 3), Transport (OSI 4), Application (OSI 5+6+7)",
+          "Physical (1), DataLink (2), Network (3), Application (5+6+7)",
+          "Link (1), Network (2+3), Transport (4), Application (5+6+7)",
+          "As quatro camadas TCP/IP correspondem diretamente às quatro primeiras do OSI",
+        ],
+        c: 0,
+        e: "Modelo TCP/IP (RFC 1122): Network Access/Link (OSI 1-2), Internet/Network (OSI 3), Transport (OSI 4), Application (OSI 5-6-7). OSI tem 7 camadas por questões didáticas. Na prática: implementações seguem TCP/IP. Camada de sessão (5) e apresentação (6) do OSI: mapeadas para a camada Application.",
+        x: "Encapsulamento: App (dados) \u2192 Transport (segmento TCP) \u2192 Internet (pacote IP) \u2192 Link (frame Ethernet). PDUs: stream (L5-7), segmento (L4), pacote (L3), frame (L2), bit (L1). MTU: 1500 bytes Ethernet. Fragmentação IP: quando pacote > MTU. Path MTU Discovery: evita fragmentação.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o TCP Slow Start, Congestion Avoidance e Fast Retransmit?",
+        o: [
+          "Slow Start: cresce cwnd exponencialmente até ssthresh; Congestion Avoidance: crescimento linear após ssthresh; Fast Retransmit: retransmite ao receber 3 ACKs duplicados sem esperar timeout",
+          "Slow Start: espera 1 RTT antes de cada segmento; Congestion Avoidance: para o envio temporariamente",
+          "Fast Retransmit reinicia conexao TCP após perda; Slow Start é somente para UDP",
+          "cwnd cresce linearmente em Slow Start; exponencialmente em Congestion Avoidance",
+        ],
+        c: 0,
+        e: "Slow Start: cwnd=1 MSS; por ACK, cwnd++; por RTT, cwnd*2 (exponencial). Ao atingir ssthresh, entra em Congestion Avoidance (cwnd++ por RTT, linear). Perda detectada por timeout: ssthresh=cwnd/2, cwnd=1, volta Slow Start. 3 ACKdups (Fast Retransmit): ssthresh=cwnd/2, cwnd=ssthresh (RFC 5681 CUBIC). Fast Recovery: não chega a cwnd=1.",
+        x: "TCP Reno: slow start + cong. avoidance + fast retransmit + fast recovery. TCP CUBIC (Linux default): janela cresce como função cúbica do tempo, melhor em redes de alta largura de banda e latencia. BBR (Google): modelo de rede baseado em BDP. iperf3: mede throughput TCP e visualiza cwnd.",
+      },
+    ],
+  },
+  "Protocolos de Roteamento": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre roteamento estático e dinâmico?",
+        o: [
+          "Estático: rotas configuradas manualmente; dinâmico: protocolos (OSPF, BGP) trocam informações e atualizam tabelas automaticamente",
+          "Dinâmico é mais seguro; estático é somente para redes grandes",
+          "São equivalentes; a diferença é apenas na nomenclatura do fabricante",
+          "Estático usa tabelas ARP; dinâmico usa tabelas MAC",
+        ],
+        c: 0,
+        e: "Estático: 'ip route 10.0.2.0/24 via 192.168.1.1'. Vantagens: simples, determinístico, sem overhead de protocolo. Desvantagens: não se adapta a falhas. Dinâmico: protocolos IGP (OSPF, EIGRP, RIP) e EGP (BGP) calculam melhor caminho. Adaptação automática a failover.",
+        x: "Default route: 0.0.0.0/0 via ISP. Administrative distance: estática=1, OSPF=110, RIP=120, BGP externo=20. OSPF SPF (Dijkstra): calcula menor custo. BGP path vector: melhor caminho baseado em atributos. Floating static: estática com AD alto como backup.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o protocolo OSPF Area e como as áreas reduzem a utilização da CPU e da largura de banda?",
+        o: [
+          "OSPF Area segmenta o domínio OSPF; cada área mantm LSDB local; LSA propagados só dentro da área; Area 0 (backbone) obrigatória; inter-area routing via ABR",
+          "OSPF áreas são sinonímos de VLANs; cada VLAN é uma área OSPF",
+          "Area 0 é opcional; qualquer roteador pode ser o backbone",
+          "Todas as áreas têm a mesma LSDB global; áreas são apenas organização administrativa",
+        ],
+        c: 0,
+        e: "OSPF hierarquia: Area 0 (backbone) obrigatória. Outras áreas conectam via ABR (Area Border Router). LSA intrá-área (tipo 1, 2) ficam dentro da área. LSA inter-área (tipo 3) resumidos pelo ABR. LSDB reduzida = menor SPF. Stub Area: bloqueia LSA externos. Totally Stubby: bloqueia inter-área e externos (default route injected).",
+        x: "10k routers single area: LSDB enorme, SPF custoso. Partição em 100 áreas de 100 roteadores: SPF local menor. ASBR: injeta rotas externas (redistribução). NSSA (Not-So-Stubby Area): permite ASBRs mas com LSA tipo 7. Virtual Link: conecta área descontínua ao backbone. OSPF v3: IPv6.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o BGP route selection process e quais são os principais atributos em ordem de preferência?",
+        o: [
+          "BGP seleciona rota com: maior Weight (Cisco), maior Local Preference, Locally Originated, menor AS-Path, menor Origin, menor MED, eBGP sobre iBGP, menor IGP metric, menor Router-ID",
+          "BGP escolhe apenas pelo menor AS-Path; os demais atributos são opcionais",
+          "Local Preference só se aplica a rotas iBGP; AS-Path somente a eBGP",
+          "Weight e Local Preference têm a mesma prioridade; MED é o tiebreaker final",
+        ],
+        c: 0,
+        e: "BGP decision process (Cisco): 1. Peso (Weight, local Cisco); 2. LP (Local Preference, maior melhor, propagado iBGP); 3. Originated locally; 4. AS-Path comprimento (menor melhor); 5. Origin (IGP>EGP>Incomplete); 6. MED (menor melhor); 7. eBGP > iBGP; 8. IGP metric ao next-hop; 9. ECMP/multipath; 10. Menor Router-ID.",
+        x: "Políticas BGP: community, route-map, prefix-list. LP alto=preferência de saída. MED=preferência de entrada (informativo). AS-Path prepend: engana parceiros a não preferir pelo caminho mais longo. BGP communities: 65001:100 (sinalizador de rota). RPKI: validação de origem de prefixos contra hijacking.",
+      },
+    ],
+  },
+  "Redes Sem Fio": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre os padrões Wi-Fi 802.11n (Wi-Fi 4) e 802.11ac (Wi-Fi 5)?",
+        o: [
+          "802.11n: 2,4/5 GHz, MIMO 4×4, até 600 Mbps; 802.11ac: somente 5 GHz, MU-MIMO, canais de 80/160 MHz, beamforming, até 3,5 Gbps",
+          "802.11n opera só em 5 GHz; 802.11ac em 2,4 e 5 GHz",
+          "São equivalentes; a diferença é apenas o nome de marketing",
+          "802.11ac tem alcance maior em 2,4 GHz por usar menor frequência",
+        ],
+        c: 0,
+        e: "802.11n (Wi-Fi 4): MIMO espacial (SU-MIMO) até 4 streams, canais 20/40 MHz, 2,4 ou 5 GHz, agregação de frames (A-MPDU). 802.11ac (Wi-Fi 5): somente 5 GHz, canais até 160 MHz, MU-MIMO (até 4 clientes simultâneos), beamforming explícito, modulation 256-QAM, 8 streams.",
+        x: "Wi-Fi 6 (802.11ax): OFDMA, BSS Coloring, TWT, 2,4+5 GHz, 1024-QAM. Wi-Fi 6E: adiciona 6 GHz. Canal 40 MHz: 'bonding' de dois canais de 20 MHz. 5 GHz: menos interferência, mais canais não sobrepostos (1,6,11 em 2,4 GHz). Seleção de banda: steering por RSSI e load.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é WPA3 e como ele melhora a segurança em relação ao WPA2?",
+        o: [
+          "WPA3: SAE (Dragonfly) substitui PSK/4-way handshake, resistente a offline dictionary attack; PMF obrigatório; WPA3-Enterprise: 192-bit security suite",
+          "WPA3 é apenas WPA2 com senha mínima de 12 caracteres",
+          "WPA3 remove criptografia para acelerar conexões em ambientes públicos",
+          "WPA2 e WPA3 usam o mesmo handshake; WPA3 apenas aumenta o tamanho da chave CCMP",
+        ],
+        c: 0,
+        e: "WPA2-PSK: 4-way handshake vulnerável a offline dictionary attack (captura handshake, força bruta offline). WPA3-Personal: SAE (Simultaneous Authentication of Equals) = handshake Dragonfly com PFS (forward secrecy). WPA3-Enterprise: suites de 192 bits (GCMP-256, HMAC-SHA384). PMF (Protected Management Frames, 802.11w): obrigatório no WPA3.",
+        x: "KRACK (2017): ataque a WPA2 via reinstalação de chave no handshake. SAE: mesmo com senha fraca, captura não permite brute force offline. PMF protege deauth/disassoc frames (previne deauth flood). OWE (Opportunistic Wireless Encryption): criptografia sem senha para redes abertas (Wi-Fi Enhanced Open). Transição mode: WPA2/WPA3 misto.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o OFDMA no Wi-Fi 6 e como ele melhora o desempenho em ambientes densos?",
+        o: [
+          "OFDMA divide o canal em Resource Units (RUs) permitindo transmitir para múltiplos clientes simultaneamente no mesmo canal; reduz latência e overhead em ambientes com muitos dispositivos IoT/móveis",
+          "OFDMA é apenas uma nova versão do MIMO com mais antenas por AP",
+          "OFDMA funciona somente em downlink; uplink continua CSMA/CA individual",
+          "OFDMA usa múltiplos canais de rádio de forma exclusiva; não compartilha o espectro",
+        ],
+        c: 0,
+        e: "OFDM (Wi-Fi 5): canal inteiro alocado para um cliente por vez. OFDMA (Wi-Fi 6): subdivide canal em RUs (Resource Units, grupos de subcarriers). Downlink MU-OFDMA: AP envia para vários clientes no mesmo TXOP em RUs diferentes. Uplink MU-OFDMA: clientes respondem simultaneamente (UL MU). BSS Coloring: diminui CCA desnecessário entre BSSs. TWT (Target Wake Time): agenda wake-up de IoT.",
+        x: "26-tone RU: menor unidade (2 MHz equiv). 242-tone RU: canal 20 MHz completo. AP agenda quais clientes usam quais RUs no próximo TXOP. Ganho: reduz contention (CSMA overhead) de 30–40 clientes. Spatial Reuse: BSS Color permite reutilizar espectro quando RSSI do BSS vizinho < threshold. Analisador Wi-Fi: Wireshark + 802.11 radiotap headers.",
+      },
+    ],
+  },
+  "Segurança de Redes": {
+    Fácil: [
+      {
+        q: "O que é uma VLAN e como ela contribui para a segurança em redes locais?",
+        o: [
+          "VLAN segmenta logicamente a rede em domínios de broadcast isolados; impede comunicação direta entre segmentos sem passar pelo firewall/roteador",
+          "VLAN criptografa o tráfego entre switches para proteção interna",
+          "VLAN é uma tecnologia de roteamento para separar redes WAN",
+          "VLANs permitem que qualquer host da rede acesse outros hosts diretamente",
+        ],
+        c: 0,
+        e: "VLAN (IEEE 802.1Q): tag de 12 bits no frame Ethernet identifica a VLAN (4094 VLANs possíveis). Isolamento de broadcast: dispositivos em VLANs diferentes não recebem broadcasts uns dos outros. Segurança: hosts de diferentes departamentos (RH, TI, Finanças) em VLANs separadas; comunicação inter-VLAN exige L3 (roteador ou switch L3) + ACL/firewall.",
+        x: "Port-based VLAN: porta 1-10 VLAN10 (RH), portas 11-20 VLAN20 (TI). Trunk (802.1Q): carrega múltiplas VLANs entre switches. Native VLAN: tráfego sem tag (risco: VLAN hopping via double-tagging se native VLAN = VLAN de dados). Mitigação: native VLAN dedicada e não utilizada (ex: VLAN 999). Private VLAN: isolamento dentro da mesma VLAN.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é um ataque de ARP Spoofing e como o Dynamic ARP Inspection (DAI) previne esse ataque?",
+        o: [
+          "ARP Spoofing: atacante envia ARP Reply falso associando seu MAC ao IP do gateway (MitM); DAI: switch valida ARP contra binding table do DHCP Snooping, descartando ARPs inválidos",
+          "ARP Spoofing exige acesso físico ao switch; DAI não substitui criptografia",
+          "DAI bloqueia todo tráfego ARP na rede; hosts precisam usar ARP estático",
+          "ARP Spoofing só funciona em redes sem fio; DAI é desnecessário em redes cabeadas",
+        ],
+        c: 0,
+        e: "ARP: sem autenticação (stateless). Atacante na mesma VLAN: envia GARP (Gratuitous ARP) ou ARP Reply com MAC=próprio para IP do gateway. Vítimas atualizam ARP cache → tráfego flui pelo atacante (MitM, sniffing, modificação). DAI: compara ARP (sender IP, sender MAC) com binding table do DHCP Snooping (IP+MAC+port). ARP estático em tabela do switch ignora DAI.",
+        x: "Cisco: 'ip arp inspection vlan 10; interface gi0/1; ip arp inspection trust' (uplinks/servers). Limite de rate: 'ip arp inspection limit rate 100'. Ferramentas de ataque: Ettercap, Bettercap, arpspoof. Detecção: XAR (arpwatch), monitoramento de duplicata MAC. Solução complementar: 802.1X + isolamento por porta.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é 802.1X (Port-Based Network Access Control) e como funciona o processo de autenticação EAP-TLS?",
+        o: [
+          "802.1X: supplicant (cliente), authenticator (switch), authentication server (RADIUS); EAP-TLS: autenticação mútua via certificados X.509 client+server, mais seguro que PEAP/MSCHAPv2",
+          "802.1X usa somente senha, sem certificados; EAP-TLS é somente para Wi-Fi",
+          "Authenticator e Authentication Server são o próprio switch; não há servidor externo",
+          "EAP-TLS só valida o certificado do servidor; o cliente não precisa de certificado",
+        ],
+        c: 0,
+        e: "802.1X (IEEE): Supplicant (NIC do cliente), Authenticator (switch/AP), Authentication Server (RADIUS). Fluxo: supplicant envia EAP-Identity → RADIUS desafia → EAP method. EAP-TLS: supplicant apresenta certificado cliente; server apresenta certificado servidor; TLS handshake mútuo; deriva chave de sessão (PMK para Wi-Fi, MAK para wired). Porta bloqueada (uncontrolled) até autenticação.",
+        x: "PKI necessária: CA emite certificados para cada dispositivo (MDM). PEAP-MSCHAPv2: server autentica com cert; cliente com senha AD/LDAP (não recomendado sem validação de cert server). Cisco ISE / FreeRADIUS: RADIUS servers. MAB (MAC Authentication Bypass): fallback para dispositivos sem 802.1X (IoT). CoA (Change of Authorization): RADIUS pode reautenticar ou mover VLAN dinâmica.",
+      },
+    ],
+  },
+  "Serviços de Rede": {
+    Fácil: [
+      {
+        q: "O que é NTP (Network Time Protocol) e por que sincronização de tempo é crítica em redes corporativas?",
+        o: [
+          "NTP sincroniza relógios de dispositivos via hierarquia stratum; sincronização correta é essencial para logs correlativos, Kerberos (±5min), certificados TLS, DNSSEC e forense",
+          "NTP é usado para transferência de arquivos de configuração entre roteadores",
+          "Sincronização de tempo não afeta autenticação; apenas logs precisam de NTP",
+          "NTP opera sobre TCP 123; requer conexão estabelecida com o servidor",
+        ],
+        c: 0,
+        e: "NTP (RFC 5905): UDP porta 123. Stratum 0: relógio de referência (GPS, atomic). Stratum 1: servidor diretamente conectado. Stratum 2: client de stratum 1. Kerberos: tickets inválidos se skew > 5 minutos. DNSSEC: validação de assinatura depende de tempo correto. Logs: correlação de eventos em SIEMs. Certificados TLS: expired por relógio errado.",
+        x: "NTP pool: pool.ntp.org. Cisco: 'ntp server pool.ntp.org'. Linux: chrony ou systemd-timesyncd. NTPsec: versão segura. Ataques NTP: amplification DDoS (monlist), time-shifting (KSK rollover 2018). PTP (IEEE 1588): precisão nanossegundos para telecom/financeiro. GPS disciplined oscillator: stratum 1 interno.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funciona o protocolo LDAP e qual o fluxo de autenticação com Active Directory?",
+        o: [
+          "LDAP (protocolo de diretório TCP 389/636): bind (autenticação), search (consulta de objetos); AD usa LDAP para consultar usuários/grupos; autenticação: client bind com credenciais, AD verifica no DIT",
+          "LDAP é um protocolo de transferência de arquivos entre servidores AD",
+          "LDAP usa UDP 53; é o mesmo protocolo base do DNS",
+          "Active Directory não utiliza LDAP; usa protocolo proprietário SMB",
+        ],
+        c: 0,
+        e: "LDAP (Lightweight Directory Access Protocol): RFC 4511. Porta 389 (plain/StartTLS), 636 (LDAPS). Bind: simples (user/pass em texto) ou SASL (GSSAPI/Kerberos). Search: base DN, scope (base/one/sub), filter (objectClass=user)(cn=joao). Active Directory: DIT hierárquico (DC=empresa, DC=com → OU=TI → CN=joao). NTLM vs Kerberos: Kerberos é padrão AD moderno.",
+        x: "ldapsearch: 'ldapsearch -H ldap://dc01 -b dc=empresa,dc=com (sAMAccountName=joao) -W'. LDAPS: TLS sobre 636 (recomendado). StartTLS: negocia TLS no 389. SASL/GSSAPI: usa ticket Kerberos (SSO). LDAP injection: filter manipulation (semelhante SQLi). Mitigação: validação de entrada. Service account: bind read-only. Azure AD: LDAP via Azure AD DS.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o Kerberos v5 e quais os componentes KDC, TGT, TGS e ST no fluxo de autenticação?",
+        o: [
+          "KDC contém AS+TGS; cliente autentica no AS recebendo TGT criptografado com chave do usuário; usa TGT no TGS para obter ST (service ticket) para o serviço; serviço valida ST sem precisar do KDC",
+          "Kerberos usa canal direto entre cliente e serviço; KDC não participa após o login inicial",
+          "TGT e ST são o mesmo ticket; usados de forma intercambiável",
+          "Kerberos v5 usa criptografia assimétrica RSA; TGT é assinado com chave pública do KDC",
+        ],
+        c: 0,
+        e: "Kerberos v5 (RFC 4120): KDC = AS (Authentication Service) + TGS (Ticket-Granting Service). Fluxo: (1) AS-REQ: client envia user+timestamp cifrado com hash senha. (2) AS-REP: KDC retorna TGT (cifrado com chave do krbtgt) + session key cifrada com hash da senha do usuário. (3) TGS-REQ: client envia TGT ao TGS pedindo ST para serviço. (4) TGS-REP: ST cifrado com chave do serviço. (5) AP-REQ: client apresenta ST ao serviço.",
+        x: "Pass-the-ticket: atacante rouba TGT (mimikatz sekurlsa::tickets). Golden Ticket: forge TGT com hash do krbtgt (persistência). Silver Ticket: forge ST com hash do serviço (sem KDC). Kerberoasting: solicita ST para serviços com SPN, crackeia offline. Mitigação: AES256 (não RC4), LAPS, senha longa do krbtgt rotacionada, Protected Users group, Credential Guard.",
+      },
+    ],
+  },
+  "VPN e Túneis": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre VPN Site-to-Site e VPN de Acesso Remoto (Client VPN)?",
+        o: [
+          "Site-to-Site: conecta duas redes permanentemente via gateways VPN; Client VPN: usuário instala software VPN para acessar a rede corporativa de local remoto",
+          "Site-to-Site requer certificados; Client VPN usa apenas senha",
+          "Site-to-Site é mais lenta; Client VPN usa hardware dedicado dos dois lados",
+          "São equivalentes; a diferença é apenas o número de usuários conectados",
+        ],
+        c: 0,
+        e: "Site-to-Site (LAN-to-LAN): gateway A negocia IPSec/IKE com gateway B; subredes atrás de cada gateway são alcançáveis mutuamente. Gerenciado pela TI, permanente. Client VPN (Remote Access): usuário instala cliente (OpenVPN, Cisco AnyConnect, WireGuard). Split tunneling: só corporativo passa pelo túnel. Full tunnel: todo tráfego passa pelo VPN.",
+        x: "IPSec Site-to-Site: IKEv2 (recomendado) ou IKEv1. Cisco ASA, Fortinet, pfSense. GRE: encapsula multicast/roteamento dinâmico (não criptografado → encapsular em IPSec). SD-WAN: VPN automatizada com policies de QoS. WireGuard: mais simples e rápido que OpenVPN. SSL VPN: HTTP-based (porta 443), atravessa firewall corporativo.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funciona o protocolo IKEv2 e como ele estabelece uma SA (Security Association) IPSec?",
+        o: [
+          "IKEv2: troca inicial IKE_SA_INIT (negotiates crypto, Diffie-Hellman) + IKE_AUTH (autentica identidades, cria CHILD_SA para dados); menos round trips que IKEv1",
+          "IKEv2 usa 6 trocas de mensagens; IKEv1 usa apenas 2",
+          "IKEv2 não suporta certificados; somente PSK (pre-shared key)",
+          "IKE_AUTH é opcional em IKEv2; a autenticação é feita fora de banda",
+        ],
+        c: 0,
+        e: "IKEv2 (RFC 7296): 2 messages IKE_SA_INIT (propõe algoritmos crypto, troca DH pubkeys, nonces) + 2 messages IKE_AUTH (autentica: cert/PSK/EAP, cria primeira CHILD_SA com ESP/AH). CHILD_SA = IPSec SA (SPI, algoritmo, chaves, seletores de tráfego). ESP (Encapsulating Security Payload): criptografia + autenticação. AH: somente autenticação. Modos: Tunnel (encapsula IP completo) ou Transport.",
+        x: "DH groups: 14 (2048-bit MODP, mínimo), 19-21 (ECDH). AEAD: AES-GCM (criptografia+integridade em um). Perfect Forward Secrecy: nova troca DH por CHILD_SA. MOBIKE (RFC 4555): suporte a roaming de IP (IKEv2). Diagnóstico: 'show crypto isakmp sa' (Cisco). strongSwan: IKEv2 Linux. Rekeying: renovação automática de SA antes do lifetime expirar.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como o WireGuard se diferencia de IPSec e OpenVPN em design e segurança criptográfica?",
+        o: [
+          "WireGuard: código minimal (~4000 linhas), crypto moderna fixa (ChaCha20-Poly1305, Curve25519, BLAKE2), sem negociação de cipher; IPSec e OpenVPN: flexíveis mas complexos (maior superfície de ataque), configurações fracas possíveis",
+          "WireGuard usa RSA como IPSec; a única diferença é o tamanho do código",
+          "OpenVPN é mais seguro por ter mais opções de cifra que WireGuard",
+          "WireGuard não suporta autenticação de usuários; IPSec e OpenVPN suportam",
+        ],
+        c: 0,
+        e: "WireGuard (RFC 2019+ , production-ready Linux 5.6): Noise Protocol Framework, ChaCha20-Poly1305 (AEAD), Curve25519 (DH), BLAKE2s (hash), HKDF (key derivation). Sem negociação: apenas um cipher suite. Handshake: 1-RTT. Roaming IP: nativo. Comparação: IPSec (IKEv2) ~100k linhas código, suporta algoritmos fracos (3DES, MD5 se configurado mal). OpenVPN: baseado em OpenSSL, TLS, flexível mas verboso.",
+        x: "WireGuard peers: chaves públicas (Curve25519) configuradas manualmente. AllowedIPs: seletores de tráfego por prefixo. Stealth: sem resposta a pacotes não autenticados (não expõe presença). Linux kernel module: performance nativa no caminho de dados. Mullvad, ProtonVPN: usam WireGuard. Comparação benchmark: WireGuard > 3× mais rápido que OpenVPN em throughput. Limitation: sem PKI nativa; soluções: Tailscale, Netbird.",
+      },
+    ],
+  },
+  VoIP: {
+    Fácil: [
+      {
+        q: "O que é o protocolo SIP e qual sua função em sistemas de telefonia VoIP?",
+        o: [
+          "SIP (Session Initiation Protocol): protocolo de sinalização para estabelecer, modificar e encerrar sessões multimídia (chamadas VoIP); a mídia em si é transportada por RTP",
+          "SIP transporta o áudio da chamada VoIP diretamente em seus pacotes",
+          "SIP é um protocolo proprietário da Cisco; H.323 é o padrão aberto equivalente",
+          "SIP opera sobre TCP somente; UDP não é suportado para chamadas de voz",
+        ],
+        c: 0,
+        e: "SIP (RFC 3261): protocolo de sinalização application-layer (texto, similar HTTP). Funções: REGISTER (registra ramal), INVITE (inicia chamada), BYE (encerra), ACK (confirma), CANCEL, OPTIONS. Portas: UDP/TCP 5060, TLS 5061. Mídia: negociada via SDP (Session Description Protocol) no body do INVITE; transportada por RTP (UDP). Codecs: G.711, G.729, Opus.",
+        x: "Fluxo básico: INVITE → 100 Trying → 180 Ringing → 200 OK → ACK → RTP (mídia) → BYE → 200 OK. H.323: padrão mais antigo (binário, mais complexo). SBC (Session Border Controller): proxy SIP na borda, NAT traversal, segurança. Media gateway: converte PSTN/TDM para VoIP. QoS: DSCP EF (46) para RTP, AF31 para sinalização SIP.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é jitter em VoIP e como os buffers de jitter e QoS mitigam seus efeitos?",
+        o: [
+          "Jitter: variação no atraso de pacotes RTP; jitter buffer absorve variações guardando pacotes antes de reproduzir; QoS (DSCP/WRED) prioriza RTP sobre outros tráfegos na fila",
+          "Jitter ocorre apenas em redes sem fio; redes cabeadas não têm variação de atraso",
+          "Jitter buffer aumenta o atraso total mas não afeta a qualidade percebida",
+          "QoS reduz jitter apenas aumentando a largura de banda do link",
+        ],
+        c: 0,
+        e: "Jitter: pacotes RTP chegam com intervalos irregulares (causas: enfileiramento, congestionamento, múltiplos caminhos). Impacto: descontinuidade no áudio. Jitter buffer: acumula alguns pacotes (10-50ms), reproduz em ritmo constante. Estático: tamanho fixo. Adaptativo: ajusta dinamicamente ao jitter medido. QoS: DSCP EF (Expedited Forwarding): classe priority queuing. LLQ (Low Latency Queuing): garante banda mínima/máxima para voz.",
+        x: "ITU G.114: latência máxima 150ms one-way, jitter < 30ms, perda < 1% para qualidade aceitável. Codec G.729: 8 kbps, tolerante a perdas. G.711: 64 kbps, alta qualidade. RTCP (RTP Control Protocol): reporta estatísticas de jitter/perda em tempo real. Wireshark: analisa streams RTP (Telephony > RTP > Stream Analysis). MOS (Mean Opinion Score): 4+ = excelente, < 3.5 = ruim.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Quais são os principais vetores de ataque em infraestruturas SIP/VoIP e como um SBC mitiga cada um?",
+        o: [
+          "SIP scanning/enumeration, INVITE flooding (DoS), registration hijacking, eavesdropping de RTP sem SRTP, toll fraud; SBC mitiga via rate limiting, topology hiding, autenticação, SRTP/SIPS e ACLs geográficas",
+          "Somente eavesdropping é possível em VoIP; os demais ataques são teóricos",
+          "SBC é apenas um proxy de sinalização sem funções de segurança",
+          "Firewall convencional stateful é suficiente para proteger infraestrutura SIP",
+        ],
+        c: 0,
+        e: "Vetores VoIP: (1) SIP scanning: SIPVicious varre ramais (100-999) via OPTIONS/REGISTER. (2) Brute force REGISTER: força credenciais de ramais. (3) INVITE flood: DoS com INVITEs sem ACK. (4) Registration hijacking: substitui contato de ramal legítimo. (5) Eavesdropping RTP: sem SRTP, mídia em plaintext. (6) Toll fraud: faz chamadas internacionais via ramal comprometido. SBC: stateful SIP proxy com rate limiting, geoblocking, SRTP relay.",
+        x: "SIPVicious: svmap (scan), svwar (extensão enum), svcrack (brute force). Defesas: fail2ban para SIP (parse logs Asterisk/FreeSWITCH), whitelist IPs, SRTP obrigatório, SIPS (TLS), ACL de países. Asterisk: 'deny=0.0.0.0/0; permit=203.0.113.0/24' no sip.conf. CDR analysis: detecção de toll fraud por volume de chamadas internacionais fora do horário. STIR/SHAKEN: autenticação de caller ID.",
+      },
+    ],
+  },
+};
+
+function mergeRedesBankRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  extras: Record<string, Record<UserLevel, SeedCard[]>>,
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const result: Record<string, Record<UserLevel, SeedCard[]>> = { ...base };
+  for (const cat of Object.keys(extras)) {
+    const levels = extras[cat] as Record<UserLevel, SeedCard[]>;
+    if (!result[cat]) result[cat] = { Fácil: [], Médio: [], Difícil: [] };
+    for (const lvl of ["Fácil", "Médio", "Difícil"] as UserLevel[]) {
+      const existing = new Set(
+        (result[cat][lvl] ?? []).map((c) => c.q.trim().toLowerCase()),
+      );
+      const novel = (levels[lvl] ?? []).filter(
+        (c) => !existing.has(c.q.trim().toLowerCase()),
+      );
+      result[cat][lvl] = [...(result[cat][lvl] ?? []), ...novel];
+    }
+  }
+  return result;
+}
+
+export const redesBank = mergeRedesBankRounds(redesBankBase, redesRound1Extras);

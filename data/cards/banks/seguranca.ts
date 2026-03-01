@@ -4,7 +4,7 @@ type UserLevel = "Fácil" | "Médio" | "Difícil";
 
 // ─── Segurança da Informação · 12 categorias × 3 níveis × 7 questões (rodada 4/30) ───
 
-export const segurancaBank: Record<string, Record<UserLevel, SeedCard[]>> = {
+const segurancaBankBase: Record<string, Record<UserLevel, SeedCard[]>> = {
   // ── Certificados Digitais e PKI ──
   "Certificados Digitais e PKI": {
     Fácil: [
@@ -3134,3 +3134,518 @@ export const segurancaBank: Record<string, Record<UserLevel, SeedCard[]>> = {
     ],
   },
 };
+
+// ─── Round 1 · +1 questão por nível por categoria ───
+
+const segurancaRound1Extras: Record<string, Record<UserLevel, SeedCard[]>> = {
+  "Certificados Digitais e PKI": {
+    Fácil: [
+      {
+        q: "O que é uma CA (Certificate Authority) e qual seu papel na PKI?",
+        o: [
+          "CA é a entidade que emite, assina e revoga certificados digitais X.509; sua chave privada garante a cadeia de confiança da PKI",
+          "CA é o servidor que armazena as chaves privadas dos usuários",
+          "CA é um protocolo de troca de chaves como TLS",
+          "CA é sinônimo de servidor LDAP usado para autenticação",
+        ],
+        c: 0,
+        e: "PKI (Public Key Infrastructure): hierarquia de CAs. Root CA: autoassinada, offline (air-gap). Intermediate CA: emite certificados de entidade final. Certificado X.509: Subject, Issuer, Serial, Validity, Public Key, Extensions (SAN, EKU), Signature. Chain of trust: navegador valida até Root CA no trust store.",
+        x: "Root CA offline: chave privada nunca exposta à rede. Intermediate CA online: HSM protege chave. CRL (Certificate Revocation List): lista de certificados revogados. OCSP: verificação online em tempo real. Certificate Transparency (CT logs): lista pública de certificados emitidos. Let's Encrypt: CA pública gratuita com ACME protocol.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é Certificate Pinning e quais os riscos e benefícios dessa prática?",
+        o: [
+          "Certificate Pinning: app embute o hash/cert do servidor esperado; impede MITM com CA comprometida ou SSL inspection; risco: app quebra ao renovar certificado sem atualizar o pin",
+          "Certificate Pinning é uma técnica de compressão de certificados TLS",
+          "Pinning substitui completamente o trust store do sistema operacional",
+          "Certificate Pinning é obrigatório pelo RFC TLS 1.3",
+        ],
+        c: 0,
+        e: "Pin: hash SHA-256 da chave pública (SPKI) ou do certificado. Mobile apps: Android/iOS hardcodam o pin no APK/IPA. Proteção: mesmo com CA corporativa instalada via MDM, o pin rejeita o certificado falso. Risco: se o certificado for renovado com nova chave, app falha conexão até atualização. Backup pins: incluir 2 pins (ativo + backup).",
+        x: "HTTP Public Key Pinning (HPKI): header HTTP (deprecated). Static pinning: hash no código. Dynamic pinning: pin atualizado via API segura. Contornar pinning: Frida, Objection (hook SSL functions). Defesa adicional: certificate transparency monitoring (certspotter). Google removeu HPKP do Chrome em 2018 por risco de lock-out.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona o protocolo OCSP Stapling e como ele melhora desempenho e privacidade sobre OCSP clássico?",
+        o: [
+          "OCSP Stapling: servidor web faz a consulta OCSP antecipadamente e inclui a resposta assinada no handshake TLS; cliente não precisa contactar CA; melhora latência e privacidade",
+          "OCSP Stapling remove completamente a necessidade de verificação de revogação",
+          "OCSP Stapling é consultado pelo cliente diretamente na CA a cada segundo",
+          "OCSP substitui CRL; Stapling é apenas um alias para OCSP clássico",
+        ],
+        c: 0,
+        e: "OCSP clássico: cliente consulta CA a cada handshake TLS (latência extra, privacy leak: CA sabe quem acessa qual site). OCSP Stapling (RFC 6066): servidor consulta CA periodicamente (ex: 1h), cacheia resposta assinada pela CA, inclui no TLS handshake via Certificate Status Request extension. Must-staple (RFC 7633): extensão X.509 que exige OCSP stapling.",
+        x: "Nginx: 'ssl_stapling on; ssl_stapling_verify on; resolver 8.8.8.8'. Apache: 'SSLUseStapling on'. Diagnóstico: 'openssl s_client -connect host:443 -status | grep OCSP'. OCSP response lifetime: 24h típico. Hard-fail vs soft-fail: hard-fail recusa conexão se OCSP indisponível (seguro mas arriscado); soft-fail aceita (Chrome default). CRL Distribution Points: fallback clássico.",
+      },
+    ],
+  },
+  Criptografia: {
+    Fácil: [
+      {
+        q: "Qual a diferença entre criptografia simétrica e assimétrica?",
+        o: [
+          "Simétrica: mesma chave para cifrar e decifrar (AES, velocidade alta); assimétrica: par de chaves pública/privada (RSA/ECC, mais lenta, usada para troca de chaves e assinatura)",
+          "Simétrica usa chave pública; assimétrica usa chave secreta compartilhada",
+          "São equivalentes; a denominação varia por fabricante",
+          "Assimétrica é mais rápida; usada para criptografar grandes volumes de dados",
+        ],
+        c: 0,
+        e: "Simétrica: AES-256 (block cipher), ChaCha20 (stream cipher). Velocidade: GB/s em hardware. Problema: distribuição segura da chave. Assimétrica: RSA-2048+ (fatoração de primos), ECC (curvas elípticas: menor chave, mesma segurança). Velocidade: kB/s (~1000× mais lenta). Uso: assimétrica troca chave simétrica de sessão (híbrido: TLS, PGP).",
+        x: "TLS 1.3: ECDHE para troca de chave (forward secrecy), AES-GCM ou ChaCha20-Poly1305 para dados. PGP: RSA/ECC assimétrica + AES simétrica para corpo. Hash: SHA-256 (não é criptografia, apenas hash). HMAC: integridade com chave simétrica. KDF (Key Derivation Function): PBKDF2, bcrypt, scrypt, Argon2 para derivar chaves de senhas.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é AES-GCM e por que é preferido ao AES-CBC com HMAC em protocolos modernos?",
+        o: [
+          "AES-GCM: AEAD (cifra + autenticação integrada, GCM usa contador+Galois Field); AES-CBC+HMAC: cifra e MAC separados, vulnerável a padding oracle se implementado incorretamente",
+          "AES-GCM é mais lento que AES-CBC; preferido somente por compatibilidade",
+          "AES-CBC é AEAD; GCM não oferece autenticação",
+          "Ambos são equivalentes em segurança; GCM é apenas mais simples de configurar",
+        ],
+        c: 0,
+        e: "AES-GCM (Galois/Counter Mode): modo AEAD (Authenticated Encryption with Associated Data). Em uma operação: cifra (CTR mode) + autenticação (GHASH). IV (nonce) de 96 bits: NUNCA reutilizar com a mesma chave (nonce reuse = catástrofe: chave XOR-able). AES-CBC: não autentica; requer HMAC separado. Padding oracle: CBC vulnerável a ataques de padding (POODLE, Lucky13).",
+        x: "TLS 1.3 remove CBC; somente AEAD (AES-GCM, AES-CCM, ChaCha20-Poly1305). OpenSSL: 'EVP_aes_256_gcm()'. Nonce randomness: 96-bit nonce aleatório para cada mensagem. AES-GCM hardware: AES-NI (Intel/AMD) + PCLMULQDQ para GHASH → throughput 40+ Gbps. CCM: alternativa AEAD para IoT (menor estado).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é criptografia pós-quântica (PQC) e quais algoritmos foram padronizados pelo NIST em 2024?",
+        o: [
+          "PQC: algoritmos resistentes a computadores quânticos (Shor quebra RSA/ECC); NIST 2024: ML-KEM (CRYSTALS-Kyber) para KEM, ML-DSA (CRYSTALS-Dilithium) e SLH-DSA (SPHINCS+) para assinatura",
+          "PQC usa chaves simétricas maiores; RSA-4096 é considerado pós-quântico",
+          "NIST ainda não padronizou nenhum algoritmo PQC; o processo está em fase inicial",
+          "AES-256 é quebrado por computadores quânticos; PQC substitui somente criptografia simétrica",
+        ],
+        c: 0,
+        e: "Shor's algorithm: quebra RSA, DSA, ECDSA, DH em tempo polinomial em QC. Grover's algorithm: reduz segurança simétrica à metade (AES-128 → AES-64-equivalent; AES-256 suficiente). NIST PQC (2024, FIPS 203/204/205): ML-KEM (lattice, key encapsulation), ML-DSA (lattice, digital signature), SLH-DSA (hash-based, stateless). CRYSTALS: Cryptographic Suite for Algebraic Lattices.",
+        x: "'Harvest now, decrypt later': adversários coletam tráfego criptografado atual para decifrar quando QC disponível. TLS PQC: hybrid mode (X25519 + Kyber). CNSA 2.0 (NSA): prazo 2030-2035 para migração. XMSS/LMS: alternativas hash-based stateful para assinatura. OpenSSL 3.x + liboqs: integração PQC. Quantum-safe VPN: implementações piloto na Europa.",
+      },
+    ],
+  },
+  "Controle de Acesso": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre os modelos de controle de acesso DAC, MAC e RBAC?",
+        o: [
+          "DAC: dono do recurso define acesso; MAC: sistema de rótulos de segurança (top secret, classified) define acesso; RBAC: acesso baseado em papéis/funções do usuário na organização",
+          "DAC é o modelo mais seguro; MAC é usado somente em redes sociais",
+          "RBAC e DAC são equivalentes; MAC é somente para ambientes militares online",
+          "MAC controla acesso por endereço MAC de rede; DAC por domínio Active Directory",
+        ],
+        c: 0,
+        e: "DAC (Discretionary Access Control): proprietário controla (chmod Unix, ACLs Windows). MAC (Mandatory Access Control): rótulos de sigilo (SELinux, AppArmor, Trusted Solaris); sistema define, não o usuário. RBAC (Role-Based): roles (administrador, analista); usuários atribuídos a roles; NIST RBAC model. ABAC (Attribute-Based): política baseada em atributos (departamento, local, hora).",
+        x: "SELinux: MAC no Linux (contexts: user:role:type:level). AppArmor: MAC por perfil de aplicação. Active Directory: RBAC via grupos de segurança. Zero Trust: ABAC + identity verification contínua. Princípio do menor privilégio: usuário tem apenas permissões necessárias. Separation of Duties: duas pessoas aprovam ação crítica.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é PAM (Privileged Access Management) e como reduz o risco de contas privilegiadas?",
+        o: [
+          "PAM: solução que controla, monitora e audita acesso de contas privilegiadas (admin, root, SA); cofre de senhas, sessões gravadas, just-in-time access, aprovação para uso de credenciais",
+          "PAM é o módulo de autenticação plugável do Linux (Linux-PAM)",
+          "PAM gerencia apenas senhas de usuários comuns; admins têm acesso irrestrito",
+          "PAM é equivalente a um firewall para tráfego administrativo SSH",
+        ],
+        c: 0,
+        e: "No contexto de segurança corporativa, PAM (Privileged Access Management): CyberArk, BeyondTrust, Thycotic. Cofre de senhas: credenciais privilegiadas armazenadas cifradas; checkout por sessão. Session recording: gravação de terminal/RDP para auditoria e forense. Just-in-time (JIT): acesso temporário com prazo. Privilege escalation justificada + aprovação de gestor.",
+        x: "Threat: credential theft (Pass-the-Hash, Kerberoasting) de contas privilegiadas. PAM mitiga: credenciais rotacionadas automaticamente; humanos nunca veem senha real. PEDM (Privilege Elevation and Delegation Management): sudo com logging. Bastion host: jump server com PAM para acesso a servidores internos. NIST SP 1800-18: guia PAM.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como o modelo Zero Trust Architecture (ZTA) difere do modelo de segurança perimetral e quais seus pilares?",
+        o: [
+          "ZTA: 'nunca confiar, sempre verificar'; sem zona interna confiável; verificação contínua de identidade, dispositivo, contexto; microsegmentação; least-privilege por sessão",
+          "Zero Trust elimina completamente firewalls e proxies na arquitetura",
+          "ZTA é equivalente ao modelo de defesa em profundidade com DMZ",
+          "Zero Trust confia em todos os usuários internos; desconfia somente de externos",
+        ],
+        c: 0,
+        e: "Modelo perimetral: tudo dentro da rede corporativa é confiável (VPN = passa pelo firewall = confiável). Zero Trust (NIST SP 800-207): nenhum usuário/dispositivo é confiável por padrão, mesmo internamente. Pilares: (1) Identity verification (MFA, continuous auth); (2) Device health (EDR, compliance check); (3) Microsegmentation (lateralidade bloqueada); (4) Least-privilege (JIT, RBAC granular); (5) Assume breach (XDR, SIEM, monitoring).",
+        x: "Implementação ZTA: Google BeyondCorp (acesso baseado em device cert + identity, sem VPN). Microsoft ZTA: Conditional Access (Azure AD), Intune (device compliance), Defender. SASE (Secure Access Service Edge): ZTA + SD-WAN como serviço (Zscaler, Cloudflare One). Lateral movement prevention: microsegmentação (VMware NSX, Illumio). Continuous validation: re-autenticação por risco (UEBA).",
+      },
+    ],
+  },
+  "Forense Digital": {
+    Fácil: [
+      {
+        q: "O que é a cadeia de custódia em forense digital e por que é essencial em investigações?",
+        o: [
+          "Cadeia de custódia: documentação cronológica de quem coletou, transportou e acessou a evidência; garante integridade e admissibilidade legal das evidências digitais",
+          "Cadeia de custódia é o registro de todos os arquivos apagados de um sistema",
+          "É um protocolo de comunicação entre peritos forenses via rede cifrada",
+          "Refere-se ao hash MD5 calculado antes e após análise de evidência",
+        ],
+        c: 0,
+        e: "Cadeia de custódia: quem, quando, onde coletou e acessou a evidência. Evidência digital: volátil (RAM, processos, conexões) e não-volátil (disco, logs). Integridade: hash SHA-256 do image antes e após. Admissibilidade: se a cadeia for quebrada, evidência pode ser descartada no processo judicial. ISO/IEC 27037: diretrizes para identificação, coleta e preservação de evidências.",
+        x: "Hash de imagem: 'sha256sum imagem.dd'. Write blocker: hardware que impede escrita no disco original (Tableau, WiebeTech). FTK Imager / dd / dcfldd: ferramentas de imagem forense. Live acquisition: AVML, LiME (RAM acquisition). Formulário de custódia: data, hora, responsável, hashes, assinatura. Evidência original: nunca analisada diretamente (analisa-se cópia).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quais artefatos Windows são mais relevantes em uma investigação de incidente e onde são encontrados?",
+        o: [
+          "Prefetch, LNK files, Registry (UserAssist, MRU, ShimCache), Event Logs (EVTX), $MFT, $LogFile, hiberfil.sys, pagefile.sys, browser history, amcache.hve",
+          "Apenas o Event Log é relevante; outros artefatos não contêm evidências",
+          "Artefatos Windows ficam exclusivamente em C:\\Windows\\System32\\",
+          "RAM não é artefato; somente disco rígido contém evidências relevantes",
+        ],
+        c: 0,
+        e: "Windows forensics: Prefetch (C:\\Windows\\Prefetch\\*.pf): execução de programas. Registry: NTUSER.DAT (UserAssist: execuções GUI), ShimCache (AppCompatCache: execuções + timestamps), Amcache.hve (hash de executáveis). Event Log: Security (4624=logon, 4688=process create), System, Application. $MFT: tabela mestre de arquivos NTFS. LNK files: %APPDATA%\\Recent.",
+        x: "Ferramentas: Autopsy (open-source), FTK (comercial), Volatility (RAM analysis), Eric Zimmermann Tools (MFTECmd, AppCompatCacheParser, LECmd). Timeline: Plaso/Log2Timeline agrega artefatos em linha do tempo. PowerShell history: %APPDATA%\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt. VSS (Volume Shadow Copies): cópias anteriores de arquivos.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona a análise de memória RAM com Volatility e quais plugins são mais úteis em resposta a incidente?",
+        o: [
+          "Volatility analisa dumps de RAM extraindo processos, conexões, DLLs injetadas, handles, credenciais (hashdump, lsadump), código malicioso (malfind); plugins pslist, netscan, cmdline, malfind, dlllist, hashdump",
+          "Volatility analisa somente arquivos de log; não processa imagens de RAM",
+          "Análise de RAM é desnecessária se o disco foi imageado corretamente",
+          "Volatility requer o sistema em execução; não funciona com dumps offline",
+        ],
+        c: 0,
+        e: "Volatility 3: framework Python para análise de dumps de memória (Windows, Linux, macOS). Plugins essenciais: pslist/pstree (processos), netscan (conexões ativas), cmdline (argumentos de processo), malfind (código injetado: PAGE_EXECUTE_READWRITE em regiões sem backing), dlllist (DLLs carregadas), handles, hashdump (NTLM hashes do SAM), lsadump (LSA secrets).",
+        x: "AVML / LiME / WinPmem: acquisition de RAM em sistemas live. malfind: detecta process hollowing, DLL injection (stealthy malware). Credential theft: mimikatz deixa rastros em lsass.exe. Volatility 2 vs 3: V3 é mais rápido, sem Python 2 dependency. Memory forensics cobre: fileless malware, backdoors em memória, rootkits.",
+      },
+    ],
+  },
+  "Gestão de Riscos": {
+    Fácil: [
+      {
+        q: "O que é o processo de gestão de riscos segundo a ISO 31000 e quais suas etapas?",
+        o: [
+          "Identificação → análise (probabilidade × impacto) → avaliação → tratamento (aceitar, mitigar, transferir, eliminar) → monitoramento e revisão contínuos",
+          "Gestão de riscos consiste apenas em instalar antivírus e firewall",
+          "O processo inicia por tratamento; identificação ocorre somente após incidentes",
+          "ISO 31000 é exclusiva para riscos financeiros; não se aplica à segurança da informação",
+        ],
+        c: 0,
+        e: "ISO 31000:2018: Princípios, Framework, Processo. Processo: comunicação e consulta → estabelecimento de contexto → identificação → análise (qualitativa/quantitativa) → avaliação (priorização pelo risk appetite) → tratamento → monitoramento. Opções de tratamento: mitigar (controles), aceitar (risco residual), transferir (seguro), evitar (eliminar atividade).",
+        x: "Análise quantitativa: ALE (Annual Loss Expectancy) = ARO × SLE. ALE: base para ROI de controles. Risk register: documenta riscos, owner, probabilidade, impacto, controles, residual. NIST RMF (SP 800-37): framework de gestão de riscos federais EUA. OCTAVE: metodologia orientada a ativos. Apetite de risco vs tolerância vs capacidade.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é BIA (Business Impact Analysis) e como ele guia a definição de RPO e RTO?",
+        o: [
+          "BIA identifica processos críticos e quantifica impactos de interrupção; RPO (Recovery Point Objective): máximo de dados tolerável a perder; RTO (Recovery Time Objective): tempo máximo aceitável para restaurar operação",
+          "BIA é relatório de vulnerabilidades técnicas; RPO é tempo de resposta a incidente",
+          "RTO e RPO são definidos pelo time de TI sem consultar o negócio",
+          "BIA é realizado somente após um desastre para medir o impacto real",
+        ],
+        c: 0,
+        e: "BIA: mapa de processos de negócio → criticidade → impacto temporal (financeiro, reputacional, legal). MTPD (Maximum Tolerable Period of Disruption): tempo até falência do processo. RPO: tolerância à perda de dados (RPO=0: replicação síncrona; RPO=24h: backup diário). RTO: tempo para retomar operação (RTO=4h: manter infraestrutura quente; RTO=72h: cold standby).",
+        x: "BIA alimenta o BCP (Business Continuity Plan) e DRP (Disaster Recovery Plan). RPO baixo: replicação síncrona (SAN, database log shipping). RTO baixo: failover automático (active-passive cluster, hot site). Teste de DR: exercícios tabletop, simulações, failover real (gameday). WRT (Work Recovery Time): tempo para normalizar operações após restauração técnica. BCMS: ISO 22301.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona a análise de risco quantitativa com os conceitos ALE, ARO, SLE e como calcular o ROI de um controle de segurança?",
+        o: [
+          "SLE = Valor do Ativo × Fator de Exposição; ARO = frequência anual de ocorrência; ALE = SLE × ARO; ROI controle = (ALE antes − ALE depois) − Custo controle",
+          "ALE = custo de um incidente individual; ARO é calculado somente por auditors externos",
+          "ROI = ALE × ARO; controles com ROI negativo devem ser implementados prioritariamente",
+          "SLE inclui somente custos tangíveis; ARO é sempre igual a 1 para riscos críticos",
+        ],
+        c: 0,
+        e: "SLE (Single Loss Expectancy) = Valor do Ativo × EF (Exposure Factor, % destruído). Ativo = R$500k, EF=40% → SLE = R$200k. ARO (Annualized Rate of Occurrence) = probabilidade anual (1x/2anos = 0,5). ALE = R$200k × 0,5 = R$100k/ano. Controle: R$30k/ano, reduz ALE para R$20k. ROI = (100k - 20k) - 30k = R$50k/ano economizados.",
+        x: "Análise quantitativa: mais defensável para C-suite e board. Análise qualitativa (low/medium/high): mais rápida, subjetiva. FAIR (Factor Analysis of Information Risk): metodologia quantitativa estruturada. Monte Carlo simulation: modelagem de risco com distribuição de probabilidade. CVSS Score: não é análise de risco (é severidade técnica, não impacto ao negócio).",
+      },
+    ],
+  },
+  "Governança e Compliance": {
+    Fácil: [
+      {
+        q: "O que é o framework COBIT e qual sua relação com governança de TI?",
+        o: [
+          "COBIT (Control Objectives for Information and Related Technologies): framework de governança e gestão de TI que alinha TI ao negócio, define objetivos de controle e mede maturidade",
+          "COBIT é um protocolo de segurança de rede desenvolvido pela ISACA",
+          "COBIT é equivalente ao ITIL; ambos tratam exclusivamente de gestão de incidentes",
+          "COBIT é obrigatório apenas para empresas listadas na bolsa de valores",
+        ],
+        c: 0,
+        e: "COBIT 2019 (ISACA): 40 objetivos de controle em 5 domínios (EDM: Evaluate/Direct/Monitor; APO: Align/Plan/Organize; BAI: Build/Acquire/Implement; DSS: Deliver/Service/Support; MEA: Monitor/Evaluate/Assess). Princípios: atender necessidades das partes interessadas, cobrir a empresa de ponta a ponta, aplicar framework integrado único.",
+        x: "COBIT vs ITIL: COBIT = governança/controle (o quê e por quê); ITIL = melhores práticas de gerenciamento de serviços (como). COBIT vs ISO 27001: COBIT é framework amplo; ISO 27001 foca em SGSI. Maturidade CMMI: COBIT usa PAM (Process Capability). SOX compliance: COBIT frequentemente usado para controles ITGCs. ISACA certifications: CISA, CRISC.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é o PCI-DSS e quais são seus 12 requisitos principais?",
+        o: [
+          "PCI-DSS: padrão de segurança para ambientes de cartão de pagamento; 12 requisitos: rede segura (FW, senhas), proteção de dados CHD, programa de vulnerabilidades, controle de acesso, monitoramento, política de segurança",
+          "PCI-DSS é lei federal brasileira que rege transações bancárias digitais",
+          "PCI-DSS tem apenas 3 requisitos; os demais são opcionais conforme o nível",
+          "PCI-DSS se aplica somente a varejistas; bancos e processadoras estão isentos",
+        ],
+        c: 0,
+        e: "PCI-DSS v4.0: criado por Visa, Mastercard, Amex, Discover, JCB. 12 requisitos agrupados em 6 objetivos: (1-2) Rede segura; (3-4) Proteção de CHD (Cardholder Data); (5-6) Programa de vulnerabilidades; (7-9) Controle de acesso; (10-11) Monitoramento e testes; (12) Política de segurança da informação. Aplicável a qualquer entidade que processa/armazena/transmite dados de cartão.",
+        x: "Níveis de compliance: nível 1 (>6M transações/ano): QSA externo; nível 2-4: SAQ (Self-Assessment Questionnaire). CHD: PAN, CVV, track data, PIN. Tokenização: substitui PAN por token; reduz escopo PCI. P2PE: criptografia ponto-a-ponto; reduz escopo. ASV scan: varredura externa trimestral. Pentest anual obrigatório. v4.0: customized approach, MFA expandido.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como estruturar um programa de Third-Party Risk Management (TPRM) e quais controles avaliar em fornecedores?",
+        o: [
+          "TPRM: inventário de fornecedores por criticidade → questionnaire/due diligence → análise de controles (ISO 27001, SOC 2, pentest) → contrato com SLAs e direito de auditoria → monitoramento contínuo",
+          "TPRM se aplica somente a fornecedores de cloud; on-premise está isento",
+          "Basta solicitar ao fornecedor carta de conformidade; auditoria direta é desnecessária",
+          "TPRM é responsabilidade exclusiva do setor jurídico; equipe de segurança não participa",
+        ],
+        c: 0,
+        e: "Risco de terceiros: fornecedores com acesso a dados sensíveis são extensão da superfície de ataque (SolarWinds, Kaseya, MOVEit). TPRM: (1) Inventário e classificação; (2) Due diligence inicial (questionário, certificações, pentest reports); (3) Contrato: DPA, SLAs de segurança, direito de auditoria; (4) Monitoramento: renewed assessment anual, SecurityScorecard, notícias de incidentes.",
+        x: "ISO 27036: gestão de segurança em relacionamentos com fornecedores. SOC 2 Type II: auditoria independente de controles de fornecedor. CAIQ (Cloud Security Alliance): questionário padronizado para provedores cloud. Fourth-party risk: risco dos fornecedores dos seus fornecedores. SOW: incluir requisitos de segurança, obrigação de notificação de incidente (72h per LGPD/GDPR).",
+      },
+    ],
+  },
+  LGPD: {
+    Fácil: [
+      {
+        q: "O que é dado pessoal sensível segundo a LGPD e quais exemplos a lei enumera?",
+        o: [
+          "Dado pessoal sensível: origem racial/étnica, convicção religiosa, opinião política, saúde, vida sexual, dado genético/biométrico, filiação sindical; tratamento requer consentimento específico ou hipótese legal",
+          "Dado sensível é qualquer dado pessoal identificável; a lei não diferencia categorias",
+          "Dados financeiros são sempre sensíveis segundo a LGPD",
+          "Dado sensível inclui somente dados médicos; os demais são dados pessoais comuns",
+        ],
+        c: 0,
+        e: "LGPD (Lei 13.709/2018), artigo 5°, II: dado pessoal sensível = dado pessoal sobre origem racial ou étnica, convicção religiosa, opinião política, filiação sindical, organização de caráter religioso, filosófico ou político, dado referente à saúde ou à vida sexual, dado genético ou biométrico.",
+        x: "Tratamento de dado sensível: somente em hipóteses do art. 11 (consentimento específico e destacado, obrigação legal, políticas públicas, estudos de pesquisa, proteção da vida, tutela da saúde, prevenção à fraude, proteção do titular). Consentimento: deve ser inequívoco, informado, específico (não pode ser genérico). ANPD: Autoridade Nacional de Proteção de Dados.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Quais são as bases legais para tratamento de dados pessoais segundo a LGPD (art. 7°)?",
+        o: [
+          "10 bases legais: consentimento, obrigação legal, execução de políticas públicas, pesquisa, execução de contrato, exercício regular de direito, proteção da vida, tutela da saúde, legítimo interesse, proteção do crédito",
+          "A única base legal é o consentimento expresso do titular",
+          "LGPD tem apenas 3 bases legais: consentimento, contrato e lei",
+          "Bases legais aplicam-se somente a empresas privadas; órgãos públicos estão isentos",
+        ],
+        c: 0,
+        e: "LGPD art. 7°: (I) consentimento; (II) obrigação legal ou regulatória; (III) execução de políticas públicas (poder público); (IV) pesquisa (anonimização quando possível); (V) execução de contrato; (VI) exercício regular de direito; (VII) proteção da vida; (VIII) tutela da saúde (profissional de saúde); (IX) legítimo interesse; (X) proteção do crédito. Dados sensíveis: bases mais restritas (art. 11).",
+        x: "Legítimo interesse: deve ser balanceado com direitos do titular; necessitar de LIA (Legitimate Interest Assessment). Consentimento: revogável a qualquer tempo; gratuito; não pode condicionar serviço. Data mapping (RoPA): mapeamento de atividades de tratamento por finalidade e base legal. Penalidades: até 2% do faturamento (R$50M por infração).",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como implementar Privacy by Design e Privacy by Default em sistemas conforme a LGPD/GDPR?",
+        o: [
+          "Privacy by Design: integrar privacidade no ciclo de desenvolvimento (SDLC) desde o início; Privacy by Default: configuração mais restritiva como padrão; técnicas: minimização de dados, pseudonimização, controles de acesso granulares, data retention policies",
+          "Privacy by Design é documentação jurídica; não envolve decisões técnicas de arquitetura",
+          "Privacy by Default significa coletar dados máximos e permitir opt-out posterior",
+          "Aplica-se somente a novos sistemas; sistemas legados estão isentos por padrão",
+        ],
+        c: 0,
+        e: "Privacy by Design (Ann Cavoukian, 7 princípios): proativo não reativo, privacidade como padrão, embutida no design, funcionalidade plena, segurança end-to-end, visibilidade e transparência, respeito ao usuário. GDPR art. 25 / LGPD art. 46: obrigação legal. Data minimization: coletar somente o necessário. Pseudonimização: separar identificadores dos dados.",
+        x: "DPIA (Data Protection Impact Assessment): avaliação de risco antes de processar dados sensíveis em larga escala. Threat model: LINDDUN (Privacy-focused STRIDE). Técnicas PbD: field-level encryption, tokenização, mascaramento para não-prod, consent management platform (CMP), cookie banner, RoPA (Record of Processing Activities). Privacy debt: débito técnico de privacidade em sistemas legados.",
+      },
+    ],
+  },
+  Malwares: {
+    Fácil: [
+      {
+        q: "Qual a diferença entre vírus, worm e trojan?",
+        o: [
+          "Vírus: precisa de arquivo hospedeiro para se replicar; Worm: autorreplicante sem hospedeiro (explora redes); Trojan: disfarçado de software legítimo, não se replica sozinho",
+          "São sinônimos usados intercambiavelmente na indústria",
+          "Worm requer ação do usuário; vírus se propaga sozinho pela rede",
+          "Trojan é sempre inofensivo; vírus e worm são os únicos malwares destrutivos",
+        ],
+        c: 0,
+        e: "Vírus: anexa código malicioso a executáveis/documentos; precisa de execução pelo usuário; replica ao executar o hospedeiro (ILOVEYOU, Melissa). Worm: explora vulnerabilidades de rede autonomamente (WannaCry, Conficker - SMB/EternalBlue). Trojan: software aparentemente legítimo que esconde malware (backdoor, keylogger); não se replica. RAT (Remote Access Trojan): controle remoto completo.",
+        x: "Rootkit: esconde presença no OS (kernel hooks, DKOM). Ransomware: cifra dados e exige resgate (WannaCry, Ryuk, LockBit). Spyware: monitora atividade (keyloggers, screen capture). Adware: exibe anúncios indesejados. Botnet: rede de bots (DDoS, spam, click fraud). Fileless malware: persiste em memória/registro sem arquivo em disco (PowerShell, WMI).",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como funciona um ataque de ransomware moderno e quais controles mitigam o risco?",
+        o: [
+          "Ransomware: acesso inicial (phishing/RDP/vuln) → persistência → lateral movement → exfiltração → criptografia com RSA+AES → nota de resgate; controles: backup offline 3-2-1, EDR comportamental, MFA, segmentação de rede",
+          "Ransomware criptografa somente arquivos .doc e .pdf; demais extensões não são afetadas",
+          "O antivírus tradicional (assinatura) é suficiente para prevenir ransomwares modernos",
+          "Pagar o resgate garante a recuperação total dos dados em 100% dos casos",
+        ],
+        c: 0,
+        e: "Kill chain ransomware: (1) Initial access: phishing, RDP brute force, exploração de vuln (VPN, Exchange). (2) Execution: PowerShell/WMI. (3) Persistence: scheduled tasks. (4) Privilege escalation: Mimikatz. (5) Lateral movement: PsExec, SMB. (6) Exfiltration (double extortion). (7) Encryption: AES-256 por arquivo, chave cifrada com RSA public key do atacante.",
+        x: "Defesas: backup 3-2-1 (3 cópias, 2 mídias, 1 offsite/offline); testar restore. EDR (CrowdStrike, SentinelOne): comportamental, não por assinatura. MFA: impede acesso com credenciais roubadas. Segmentação de rede: limita lateral movement. Disable RDP ou mover porta. CISA: no more ransom (desencriptadores públicos). Seguro cibernético.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "O que é process hollowing e como ferramentas de EDR detectam essa técnica de evasão?",
+        o: [
+          "Process hollowing: processo legítimo (svchost.exe) criado suspenso; memória original desmapeada e substituída por código malicioso; processo retoma execução com código do atacante no contexto do processo legítimo",
+          "Process hollowing injeta código em arquivos em disco em vez da memória",
+          "EDR não detecta process hollowing; somente análise manual com debugger",
+          "Process hollowing requer acesso físico ao hardware; impossível remotamente",
+        ],
+        c: 0,
+        e: "Técnica: (1) CreateProcess com CREATE_SUSPENDED. (2) NtUnmapViewOfSection (desmapeia memória do processo). (3) VirtualAllocEx (aloca memória no processo filho). (4) WriteProcessMemory (escreve PE malicioso). (5) SetThreadContext (ajusta EIP/RIP para entry point). (6) ResumeThread. PID do processo legítimo: atividade maliciosa aparece sob svchost.exe no Task Manager.",
+        x: "Detecção EDR: monitoramento de APIs suspeitas (NtUnmapViewOfSection + WriteProcessMemory + SetThreadContext sequência). Memory scanning: regiões PAGE_EXECUTE_READWRITE sem backing file (Volatility malfind). Behavioral: svchost.exe fazendo chamadas de rede incomuns. Yara rules: patterns no PE malicioso injetado. MITRE ATT&CK: T1055.012. ACG (Arbitrary Code Guard).",
+      },
+    ],
+  },
+  "Normas ISO 27001/27002": {
+    Fácil: [
+      {
+        q: "Qual a diferença entre ISO 27001 e ISO 27002?",
+        o: [
+          "ISO 27001: requisitos para certificação do SGSI (auditável, certificável); ISO 27002: guia de boas práticas e controles de referência (não certificável)",
+          "ISO 27001 e 27002 são a mesma norma; diferem apenas pelo idioma",
+          "ISO 27002 é obrigatória por lei; ISO 27001 é apenas recomendada",
+          "ISO 27001 cobre somente segurança física; 27002 cobre segurança lógica",
+        ],
+        c: 0,
+        e: "ISO 27001:2022: SGSI (Sistema de Gestão de Segurança da Informação). Estrutura HLS (High Level Structure) = compatível com ISO 9001, 22301. Cláusulas 4-10: requisitos auditáveis. Anexo A: 93 controles (reorganizados em 4 temas em 2022). ISO 27002:2022: guia de implementação dos controles do Anexo A. Certificação: somente pela 27001.",
+        x: "ISO 27001 cláusulas: 4 Contexto, 5 Liderança, 6 Planejamento, 7 Suporte, 8 Operação, 9 Avaliação, 10 Melhoria. Declaração de Aplicabilidade (SoA): lista controles Anexo A aplicáveis/excluídos com justificativa. GAP assessment: avalia maturidade atual × requisitos. PDCA: ciclo de melhoria contínua. Ciclo de certificação: 3 anos + auditorias anuais de manutenção.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é a Declaração de Aplicabilidade (SoA) na ISO 27001 e como ela é construída?",
+        o: [
+          "SoA: documento que lista todos os 93 controles do Anexo A, indicando se cada um é aplicável ou excluído, com justificativa; base para escopo do SGSI e auditorias externas",
+          "SoA é o manual de políticas de segurança da empresa",
+          "SoA lista somente os controles implementados; controles excluídos não precisam ser mencionados",
+          "SoA é preenchida pelo auditor externo durante a certificação, não pela empresa",
+        ],
+        c: 0,
+        e: "SoA (Statement of Applicability): requisito mandatório ISO 27001 (cláusula 6.1.3d). Construção: (1) Lista os 93 controles (Anexo A ISO 27001:2022, 4 temas: Organizacionais, Pessoais, Físicos, Tecnológicos). (2) Para cada controle: aplicável/não aplicável. (3) Status de implementação. (4) Referência ao documento/política que evidencia o controle. (5) Justificativa para exclusão. Baseada no risk treatment plan.",
+        x: "ISO 27001:2022 Anexo A: 93 controles em 4 temas (era 114 em 14 domínios na versão 2013). Novos controles 2022: inteligência de ameaças, segurança na nuvem, data masking, monitoramento de atividades físicas. Risk treatment options: mitigar, aceitar, transferir, evitar. SoA alimenta o plano de continuidade e o programa de auditorias internas.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como conduzir uma análise de riscos conforme ISO 27005 integrada ao SGSI da ISO 27001?",
+        o: [
+          "ISO 27005: identificar ativos → ameaças → vulnerabilidades → calcular probabilidade × impacto → risk register → tratamento (SoA) → monitoramento; integrado à ISO 27001 cláusula 6.1 (planejamento de riscos)",
+          "ISO 27005 substitui completamente a ISO 27001; não há necessidade de ambas",
+          "Análise de riscos ISO 27005 é realizada somente uma vez na implementação inicial",
+          "ISO 27005 define apenas controles técnicos; análise de riscos é responsabilidade do auditor",
+        ],
+        c: 0,
+        e: "ISO 27005:2022 (alinhada com ISO 31000). Processo: (1) Estabelecimento de contexto (escopo, critérios de risco, apetite). (2) Identificação: ativos, ameaças, vulnerabilidades, controles existentes. (3) Análise: probabilidade × impacto = nível de risco. (4) Avaliação: comparar com critérios de aceitação, priorizar. (5) Tratamento: selecionar controles (SoA). (6) Aceitação: sign-off da direção. (7) Monitoramento.",
+        x: "Escala de probabilidade/impacto: 1-5 qualitativa ou quantitativa (ALE). Risk appetite: nível de risco aceitável antes de tratamento. Residual risk: risco após controles; deve ser aceito pela direção. Ferramentas: planilha, Archer, ServiceNow GRC. Threat intelligence: MITRE ATT&CK como fonte de ameaças. Revisão anual obrigatória (ISO 27001 cláusula 9.3 management review).",
+      },
+    ],
+  },
+  "Políticas de Segurança": {
+    Fácil: [
+      {
+        q: "O que é uma Política de Segurança da Informação (PSI) e quais elementos deve conter?",
+        o: [
+          "PSI: documento de alto nível que define objetivos, responsabilidades e diretrizes de segurança da informação; elementos: escopo, objetivos, definições, responsabilidades, sanções, referências a normas",
+          "PSI é um documento técnico de configuração de firewall e sistemas",
+          "PSI é elaborada somente pelo time de TI; não envolve a diretoria",
+          "PSI define somente regras de uso de internet e e-mail corporativo",
+        ],
+        c: 0,
+        e: "PSI: nível estratégico (política) → normas (nível tático) → procedimentos (operacional). Baseada em ISO 27001 (requisito da cláusula 5.2). Elementos: objetivos de segurança, escopo (ativos, pessoas, locais), princípios (CIA: confidencialidade, integridade, disponibilidade), papéis e responsabilidades, penalidades/sanções, revisão periódica (anual), aprovação da Alta Direção.",
+        x: "Hierarquia documental: PSI → Normas específicas (uso aceitável, classificação da informação, senhas, dispositivos móveis) → Procedimentos (backup, resposta a incidentes) → Instruções de trabalho. Comunicação: todos os colaboradores devem conhecer a PSI (treinamento anual, assinatura de ciência). SANS Policy Templates: modelos gratuitos.",
+      },
+    ],
+    Médio: [
+      {
+        q: "Como implementar um programa de conscientização e treinamento em segurança da informação eficaz?",
+        o: [
+          "Segmentar público por perfil de risco, usar conteúdo relevante ao cargo, aplicar simulações de phishing, medir métricas (click rate, reporting rate), revisar conteúdo anualmente e após incidentes",
+          "Treinamento anual de 1 hora é suficiente; não é necessário segmentar por público",
+          "Simulações de phishing são antiéticas e não devem ser usadas em programas corporativos",
+          "Conscientização é responsabilidade exclusiva do RH; equipe de segurança não participa",
+        ],
+        c: 0,
+        e: "Programa eficaz (NIST SP 800-50): identificar público-alvo e riscos específicos (executivo: CFO/whaling; dev: code injection; recepcionista: tailgating/vishing). Cobertura: phishing, senhas, uso aceitável, engenharia social, classificação da informação, LGPD. Formatos: e-learning, vídeos curtos (microlearning), posters, newsletters. Métricas: phishing click rate, completion rate.",
+        x: "Plataformas: KnowBe4, Proofpoint Security Awareness, Hoxhunt. Simulação phishing: campanha mensal com templates graduais (easy→hard). Spear phishing simulado: executivos. SANS MGT433: programa de treinamento de segurança. ROI awareness: correlação entre treinamento e redução de phishing bem-sucedido. Gamificação: pontos, rankings, badges.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como estruturar um programa de Vulnerability Management (VM) do ciclo de descoberta ao fechamento?",
+        o: [
+          "Descoberta (scan ativos) → priorização (CVSS + EPSS + contexto de negócio) → remediation SLAs por criticidade → validação (rescan) → KPIs (MTTR, vuln density) → revisão contínua",
+          "Vulnerability Management se limita a rodar o Nessus mensalmente e exportar o relatório",
+          "Vulnerabilidades críticas devem ser corrigidas somente no próximo ciclo de manutenção mensal",
+          "CVSS score 10 é suficiente para priorizar; contexto de negócio não é relevante",
+        ],
+        c: 0,
+        e: "VM lifecycle: (1) Asset inventory (CMDB). (2) Scanning: credenciado (mais profundo) e não-credenciado. (3) Priorização: CVSS é ponto de partida; EPSS (Exploit Prediction Scoring System): probabilidade de exploração; contexto: exposição (internet-facing?), criticidade do ativo, existência de exploit público. (4) Remediation. (5) SLAs: Critical=7d, High=30d, Medium=90d. (6) Validation: rescan.",
+        x: "Ferramentas: Tenable Nessus/SC, Qualys, Rapid7 InsightVM, OpenVAS. EPSS (FIRST.org): modelo ML para priorização. CISA KEV (Known Exploited Vulnerabilities): lista de vulns exploradas in-the-wild; prioridade máxima. KPIs: MTTR (Mean Time to Remediate), vuln density por ativo, aging (tempo médio em aberto). Risk-based VM: priorizar pelo risco real, não somente CVSS.",
+      },
+    ],
+  },
+  "Segurança em Aplicações Web": {
+    Fácil: [
+      {
+        q: "O que é SQL Injection e como preveni-lo?",
+        o: [
+          "SQL Injection: inserção de código SQL via parâmetros da aplicação para manipular queries; prevenção: prepared statements/parameterized queries, stored procedures, validação de entrada, WAF",
+          "SQL Injection é possível somente em banco de dados MySQL; outros bancos são imunes",
+          "Codificar a entrada em Base64 previne completamente o SQL Injection",
+          "Apenas WAF é suficiente para prevenir SQL Injection; código não precisa ser modificado",
+        ],
+        c: 0,
+        e: "SQLi: atacante insere ' OR '1'='1 em campo de login → query retorna todos os usuários. Tipos: in-band (erro, union), blind (boolean, time-based), out-of-band. Impactos: extração de dados, bypass de autenticação, execução de comandos (xp_cmdshell no SQL Server). Prevenção primária: prepared statements (JDBC PreparedStatement, PDO PHP). Menor privilégio: conta de banco sem DROP/GRANT.",
+        x: "Exemplo PHP inseguro: 'SELECT * FROM users WHERE user=\\\"'.$_GET['user'].'\\\"'. Seguro: PreparedStatement. sqlmap: ferramenta de exploração automática. OWASP A03:2021. WAF: segunda linha de defesa (não substitui código seguro). Blind SQLi: inferência booleana ('... AND 1=1' vs '... AND 1=2') ou timing ('... AND sleep(5)'). Error-based: message expõe estrutura do BD.",
+      },
+    ],
+    Médio: [
+      {
+        q: "O que é SSRF (Server-Side Request Forgery) e como está relacionado a ambientes cloud?",
+        o: [
+          "SSRF: servidor faz requisição a URL controlada pelo atacante; em cloud, acessa metadata endpoint (169.254.169.254) obtendo credenciais IAM; prevenção: whitelist de URLs, bloquear metadata endpoint",
+          "SSRF é exclusivo de aplicações mobile; não afeta servidores backend",
+          "SSRF permite somente leitura de arquivos locais do servidor",
+          "Metadata endpoint cloud (169.254.169.254) não contém dados sensíveis",
+        ],
+        c: 0,
+        e: "SSRF (OWASP A10:2021): aplicação aceita URL do usuário e faz request do servidor. Exemplos: download de imagem externa, webhook, PDF generator. Impactos: acesso a serviços internos (localhost:8080), metadata cloud (AWS: 169.254.169.254/latest/meta-data/iam/security-credentials/), port scan interno. Capital One breach (2019): SSRF + privilégio excessivo no IAM Role.",
+        x: "AWS IMDSv2: requer PUT com X-aws-ec2-metadata-token header (mitiga SSRF simples). Azure IMDS: 169.254.169.254 com Metadata:true header. Prevenção: whitelist (esquema+domínio+porta), bloquear 169.254.0.0/16, 10.0.0.0/8, 192.168.0.0/16. DNS rebinding: bypass de whitelist via DNS. Burp Collaborator: detecta SSRF blind.",
+      },
+    ],
+    Difícil: [
+      {
+        q: "Como funciona JWT (JSON Web Token) e quais vulnerabilidades comuns existem na sua implementação?",
+        o: [
+          "JWT: header.payload.signature; ataque 'alg:none' remove verificação de assinatura; confusion RS256→HS256 usa chave pública como segredo HMAC; weak key força bruta; kid injection → path traversal ou SQLi",
+          "JWT é sempre seguro por padrão; vulnerabilidades são somente teóricas",
+          "Payload JWT é criptografado; atacante não pode ler as claims",
+          "Trocar algoritmo de RS256 para HS256 aumenta a segurança do token",
+        ],
+        c: 0,
+        e: "JWT: Base64url(header).Base64url(payload).Base64url(signature). Payload: não cifrado (apenas encoded); dados visíveis. Vulnerabilidades: (1) alg:none: biblioteca aceita token sem assinatura; (2) RS256→HS256 confusion: biblioteca verifica HMAC-SHA256 com chave pública (conhecida) como secret; (3) Weak HMAC secret: força bruta offline; (4) kid injection: interpolação direta → SQLi/LFI.",
+        x: "Ferramentas: jwt_tool (ticarpi), jwt.io. Mitigações: forçar algoritmo no servidor (não aceitar do cliente); chave HMAC >= 256 bits aleatória; validar exp/nbf/iss/aud; HttpOnly+Secure cookies para armazenar JWT (não localStorage). JWE (JSON Web Encryption): cifra payload. OIDC: OAuth 2.0 + ID Token JWT. hashcat -a 0 -m 16500 hash.txt wordlist.txt.",
+      },
+    ],
+  },
+};
+
+function mergeSegBankRounds(
+  base: Record<string, Record<UserLevel, SeedCard[]>>,
+  extras: Record<string, Record<UserLevel, SeedCard[]>>,
+): Record<string, Record<UserLevel, SeedCard[]>> {
+  const result: Record<string, Record<UserLevel, SeedCard[]>> = { ...base };
+  for (const cat of Object.keys(extras)) {
+    const levels = extras[cat] as Record<UserLevel, SeedCard[]>;
+    if (!result[cat]) result[cat] = { Fácil: [], Médio: [], Difícil: [] };
+    for (const lvl of ["Fácil", "Médio", "Difícil"] as UserLevel[]) {
+      const existing = new Set(
+        (result[cat][lvl] ?? []).map((c) => c.q.trim().toLowerCase()),
+      );
+      const novel = (levels[lvl] ?? []).filter(
+        (c) => !existing.has(c.q.trim().toLowerCase()),
+      );
+      result[cat][lvl] = [...(result[cat][lvl] ?? []), ...novel];
+    }
+  }
+  return result;
+}
+
+export const segurancaBank = mergeSegBankRounds(
+  segurancaBankBase,
+  segurancaRound1Extras,
+);
