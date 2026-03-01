@@ -9,6 +9,7 @@ import {
     serverTimestamp,
     setDoc,
     where,
+    writeBatch,
 } from "firebase/firestore";
 
 import {
@@ -565,13 +566,22 @@ export async function saveLesson(
 
 /** Reset all user progress by deleting lessons and in-progress lessons. */
 export async function resetUserProgress(uid: string): Promise<void> {
+  const batch = writeBatch(db);
+
   // Delete all lessons
   const lessonsRef = collection(db, "users", uid, "lessons");
   const lessonsSnapshot = await getDocs(lessonsRef);
-  await Promise.all(lessonsSnapshot.docs.map((doc) => deleteDoc(doc.ref)));
+  lessonsSnapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
 
   // Delete all in-progress lessons
   const inProgressRef = collection(db, "users", uid, "inProgressLessons");
   const inProgressSnapshot = await getDocs(inProgressRef);
-  await Promise.all(inProgressSnapshot.docs.map((doc) => deleteDoc(doc.ref)));
+  inProgressSnapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  // Commit the batch
+  await batch.commit();
 }

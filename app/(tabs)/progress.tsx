@@ -83,6 +83,7 @@ export default function ProgressScreen() {
               // Reload data after reset
               void loadProgress();
             } catch (error) {
+              console.error('Reset error:', error);
               Alert.alert('Erro', 'Falha ao resetar progresso. Tente novamente.');
             } finally {
               setResetting(false);
