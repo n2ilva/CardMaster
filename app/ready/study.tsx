@@ -8,6 +8,7 @@ import {
     fetchInProgressLesson,
     fetchUserProgress,
     saveLesson,
+    updateUserProfile,
     upsertInProgressLesson,
     type Flashcard,
     type UserLevel,
@@ -176,6 +177,10 @@ export default function StudySessionScreen() {
             category: decodedCategory,
             difficulty,
           });
+          // Atualiza o perfil do usuário na comunidade
+          if (user.name) {
+            await updateUserProfile(user.id, user.name);
+          }
         } catch {
           // silently fail
         } finally {

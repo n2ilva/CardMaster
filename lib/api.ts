@@ -72,6 +72,18 @@ export type ProgressSummary = {
   categories: CategoryProgress[];
 };
 
+/** User profile for community/ranking */
+export type UserProfile = {
+  userId: string;
+  name: string;
+  level: UserLevel;
+  score: number;
+  totalQuestionsAnswered: number;
+  overallAccuracy: number;
+  avgTimePerQuestion: number;
+  updatedAt: unknown;
+};
+
 /** Stats for a specific category for a specific user */
 export type CategoryStats = {
   cardsStudied: number;
@@ -328,7 +340,10 @@ export type WeakestSubject = {
  * Identifica os assuntos onde o usuário erra mais frequentemente
  * Retorna os 3 assuntos com menor acurácia
  */
-export async function getWeakestSubjects(uid: string, limit: number = 3): Promise<WeakestSubject[]> {
+export async function getWeakestSubjects(
+  uid: string,
+  limit: number = 3,
+): Promise<WeakestSubject[]> {
   const lessonsRef = collection(db, "users", uid, "lessons");
   const lessonsQuery = query(lessonsRef, orderBy("createdAt", "desc"));
   const lessonsSnapshot = await getDocs(lessonsQuery);
@@ -374,7 +389,8 @@ export async function getWeakestSubjects(uid: string, limit: number = 3): Promis
     .map((stat) => ({
       track: stat.track,
       category: stat.category,
-      accuracy: stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0,
+      accuracy:
+        stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0,
       totalQuestions: stat.total,
       totalLessons: stat.lessonCount,
     }))
@@ -664,3 +680,103 @@ export async function resetUserProgress(uid: string): Promise<void> {
   // Commit the batch
   await batch.commit();
 }
+
+// ---------------------------------------------------------------------------
+// Community & Scoring
+// ---------------------------------------------------------------------------
+
+/**
+ * Calcula a pontuação do usuário baseado em:
+ * - Quantidade de questões respondidas
+ * - Taxa de acerto
+ * - Tempo por questão (quanto mais rápido, melhor)
+ */
+function calculateScore(
+  totalQuestions: number,
+  accuracyPercent: number,
+  avgTimePerQuestionMs: number
+): number {
+  // Base score: 1 ponto por questão respondida
+  const baseScore = totalQuestions;
+
+  // Bonus de acurácia: até 50% extra baseado em taxa de acerto
+  const accuracyBonus = baseScore * (accuracyPercent / 100) * 0.5;
+
+  // Bonus de velocidade: até 25% extra (quanto mais rápido, melhor)
+  // Considera 20 segundos como tempo "ideal" (20000ms)
+  const speedFactor = Math.max(0, 1 - avgTimePerQuestionMs / 20000);
+  const speedBonus = baseScore * speedFactor * 0.25;
+
+  const totalScore = baseScore + accuracyBonus + speedBonus;
+  return Math.round(totalScore);
+}
+
+/**
+ * Atualiza o perfil público do usuário após uma lição completada
+ */
+export async function updateUserProfile(uid: string, userName: string): Promise<void> {
+  // Busca todas as lições do usuário para calcular o total de questões
+  const lessonsRef = collection(db, "users", uid, "lessons");
+  const lessonsSnapshot = await getDocs(lessonsRef);
+
+  let totalCorrect = 0;
+  let totalQuestions = 0;
+  let totalDuration = 0;
+
+  lessonsSnapshot.docs.forEach((doc) => {
+    const data = doc.data() as LessonRecord;
+    totalCorrect += data.correctCount;
+    totalQuestions += data.totalCount;
+    totalDuration += data.durationMs;
+  });
+
+  // Busca o nível do usuário
+  const progress = await fetchUserProgress(uid);
+
+  // Calcula a pontuação
+  const avgTimePerQuestion = totalQuestions > 0 ? totalDuration / totalQuestions : 0;
+  const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+  const score = calculateScore(totalQuestions, accuracy, avgTimePerQuestion);
+
+  // Atualiza o documento de perfil em community/{uid}
+  const profileRef = doc(db, "community", uid);
+  await setDoc(profileRef, {
+    userId: uid,
+    name: userName,
+    level: progress.level,
+    score: score,
+    totalQuestionsAnswered: totalQuestions,
+    overallAccuracy: accuracy,
+    avgTimePerQuestion: avgTimePerQuestion,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Busca usuários com o mesmo nível, ordenados pela pontuação (decrescente)
+ */
+export async function fetchUsersByLevel(level: UserLevel, limit: number = 50): Promise<UserProfile[]> {
+  const communityRef = collection(db, "community");
+  const q = query(
+    communityRef,
+    where("level", "==", level),
+    orderBy("score", "desc"),
+    orderBy("updatedAt", "desc")
+  );
+
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs
+    .slice(0, limit)
+    .map((doc) => ({
+      userId: doc.id,
+      name: (doc.data().name as string) ?? "Usuário",
+      level: (doc.data().level as UserLevel) ?? "Fácil",
+      score: (doc.data().score as number) ?? 0,
+      totalQuestionsAnswered: (doc.data().totalQuestionsAnswered as number) ?? 0,
+      overallAccuracy: (doc.data().overallAccuracy as number) ?? 0,
+      avgTimePerQuestion: (doc.data().avgTimePerQuestion as number) ?? 0,
+      updatedAt: doc.data().updatedAt,
+    }));
+}
+
