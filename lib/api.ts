@@ -53,6 +53,7 @@ export type CategoryProgress = {
   track: string;
   category: string;
   totalLessons: number;
+  totalQuestionsAnswered: number;
   studyPercent: number;
   accuracyPercent: number;
   avgTimePerQuestionMs: number;
@@ -328,10 +329,18 @@ export async function fetchUserProgress(uid: string): Promise<ProgressSummary> {
   const categories: CategoryProgress[] = (
     await Promise.all(
       Array.from(grouped.values()).map(async (data) => {
-        const totalCardsInCategory =
-          data.track && data.category
-            ? await getTotalCardsForCategory(data.track, data.category)
-            : 0;
+        let totalCardsInCategory = 0;
+        try {
+          totalCardsInCategory =
+            data.track && data.category
+              ? await getTotalCardsForCategory(data.track, data.category)
+              : 0;
+        } catch (err) {
+          console.warn(
+            `Falha ao contar cards para ${data.track}/${data.category}:`,
+            err,
+          );
+        }
 
         const studyPercent =
           totalCardsInCategory > 0
@@ -347,6 +356,7 @@ export async function fetchUserProgress(uid: string): Promise<ProgressSummary> {
           track: data.track,
           category: data.category,
           totalLessons: data.totalLessons,
+          totalQuestionsAnswered: data.totalQuestionsAnswered,
           studyPercent,
           accuracyPercent:
             data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,

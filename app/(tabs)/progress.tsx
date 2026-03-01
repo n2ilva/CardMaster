@@ -177,7 +177,7 @@ export default function ProgressScreen() {
                     Tempo/questão: {formatDuration(cat.avgTimePerQuestionMs)}
                   </Text>
                   <Text className="text-xs text-[#687076] dark:text-[#9BA1A6]">
-                    {cat.totalLessons} {cat.totalLessons === 1 ? 'lição' : 'lições'}
+                    {cat.totalQuestionsAnswered} {cat.totalQuestionsAnswered === 1 ? 'pergunta respondida' : 'perguntas respondidas'}
                   </Text>
                 </View>
 
