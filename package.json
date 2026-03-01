@@ -18,7 +18,8 @@
     "lint": "expo lint",
     "server:dev": "npm --prefix server run dev",
     "server:build": "npm --prefix server install && npm --prefix server run build",
-    "server:start": "npm --prefix server run start"
+    "server:start": "npm --prefix server run start",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -56,6 +57,7 @@
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "firebase-admin": "^13.1.0",
+    "patch-package": "^8.0.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "~5.9.2"
