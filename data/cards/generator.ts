@@ -59,6 +59,48 @@ const BANKS: Record<string, Record<string, Record<UserLevel, SeedCard[]>>> = {
 const DIFFICULTIES: UserLevel[] = ["Fácil", "Médio", "Difícil"] as UserLevel[];
 
 // ---------------------------------------------------------------------------
+// Funcoes auxiliares
+// ---------------------------------------------------------------------------
+
+/**
+ * Fisher-Yates shuffle algorithm para embaralhar um array
+ */
+function shuffle<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
+ * Embaralha as opções de um card mantendo o índice correto atualizado
+ */
+function shuffleCardOptions(card: GeneratedCard): GeneratedCard {
+  // Cria um array com os índices originais
+  const indices = [0, 1, 2, 3];
+  const shuffledIndices = shuffle(indices);
+  
+  // Mapeia as opções de acordo com os novos índices
+  const newOptions: [string, string, string, string] = [
+    card.options[shuffledIndices[0]],
+    card.options[shuffledIndices[1]],
+    card.options[shuffledIndices[2]],
+    card.options[shuffledIndices[3]],
+  ];
+  
+  // Encontra a nova posição da resposta correta
+  const newCorrectIndex = shuffledIndices.indexOf(card.correctIndex);
+  
+  return {
+    ...card,
+    options: newOptions,
+    correctIndex: newCorrectIndex,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Funcoes publicas
 // ---------------------------------------------------------------------------
 
@@ -66,20 +108,26 @@ export function generateCardsForCategory(
   track: string,
   category: string,
   difficulty: UserLevel,
+  shuffleOptions: boolean = true,
 ): GeneratedCard[] {
   const trackBank = BANKS[track];
   const cards: SeedCard[] = trackBank?.[category]?.[difficulty] ?? [];
-  return cards.map((card, i) => ({
-    id: `${track}__${category}__${difficulty}__${i + 1}`,
-    track,
-    category,
-    difficulty,
-    question: card.q,
-    options: card.o,
-    correctIndex: card.c,
-    explanation: card.e,
-    example: card.x,
-  }));
+  return cards.map((card, i) => {
+    const generatedCard: GeneratedCard = {
+      id: `${track}__${category}__${difficulty}__${i + 1}`,
+      track,
+      category,
+      difficulty,
+      question: card.q,
+      options: card.o,
+      correctIndex: card.c,
+      explanation: card.e,
+      example: card.x,
+    };
+    
+    // Embaralha as opções se solicitado
+    return shuffleOptions ? shuffleCardOptions(generatedCard) : generatedCard;
+  });
 }
 
 export function generateCardsForCategoryAllDifficulties(
