@@ -47,9 +47,14 @@ export default function ReadyTrackCategoriesScreen() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return categories;
-    return categories.filter((c) => c.toLowerCase().includes(term));
-  }, [categories, searchTerm]);
+    const list = term ? categories.filter((c) => c.toLowerCase().includes(term)) : [...categories];
+    // Ordena por quantidade de questões respondidas (maior primeiro)
+    return list.sort((a, b) => {
+      const aStudied = statsMap[a]?.totalAnswered ?? 0;
+      const bStudied = statsMap[b]?.totalAnswered ?? 0;
+      return bStudied - aStudied;
+    });
+  }, [categories, searchTerm, statsMap]);
 
   return (
     <ScrollView
