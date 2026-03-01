@@ -43,6 +43,7 @@
       ]
     ],
     "experiments": {
+      "baseUrl": "/CardMaster",
       "typedRoutes": true,
       "reactCompiler": true
     },
