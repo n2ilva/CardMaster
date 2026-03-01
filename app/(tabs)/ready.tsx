@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Track } from '@/data/flashcards';
 import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
@@ -52,12 +52,12 @@ export default function ReadyCardsScreen() {
         ) : (
           studyTracks.map((studyTrack) => (
             <Link key={studyTrack.key} href={`/ready/${studyTrack.key}`} asChild>
-              <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+              <Pressable className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
                 <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">
                   {studyTrack.label}
                 </Text>
                 <Text className="mt-1 text-[#687076] dark:text-[#9BA1A6]">{studyTrack.description}</Text>
-              </View>
+              </Pressable>
             </Link>
           ))
         )}

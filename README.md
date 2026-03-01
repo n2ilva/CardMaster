@@ -9,7 +9,7 @@ App de Cards inteligentes para estudo de certificações e provas técnicas de T
 | Frontend | Expo 54 · React Native · Expo Router · NativeWind (Tailwind) |
 | Backend  | Express · Prisma · MongoDB                                   |
 | Auth     | JWT (bcrypt)                                                 |
-| Infra    | EC2 (API via PM2) · Netlify (Web) · EAS Build (APK)          |
+| Infra    | EC2 (API via PM2) · GitHub Pages (Web) · EAS Build (APK)     |
 
 ## Funcionalidades
 
@@ -155,13 +155,14 @@ npx eas-cli build --profile preview --platform android
 
 A variável `EXPO_PUBLIC_API_URL` é configurada no `eas.json` (profile `preview`).
 
-### Web (Netlify)
+### Web (GitHub Pages)
 
 ```bash
-npm run web:build
+npm run web:build:ghpages
 ```
 
-O deploy na Netlify usa proxy reverso (`/api/*` → EC2:4000) configurado em `netlify.toml`.
+O deploy web é feito pelo workflow em `.github/workflows/github-pages.yml`.
+Defina `EXPO_PUBLIC_API_URL` para o endpoint público da API (HTTPS) para evitar problemas de CORS/Mixed Content.
 
 ### Servidor (EC2)
 
