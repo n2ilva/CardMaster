@@ -87,4 +87,3 @@ export function selectRandomCards<T>(cards: T[], limit: number): T[] {
   // Embaralha e pega apenas os primeiros N
   return shuffle(cards).slice(0, limit);
 }
-}
