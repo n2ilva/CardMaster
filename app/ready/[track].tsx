@@ -1,6 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
 import { Link, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { trackCategories, trackLabels } from '@/data/tracks';
@@ -36,11 +37,13 @@ export default function ReadyTrackCategoriesScreen() {
     } finally {
       setLoadingStats(false);
     }
-  }, [categories, user]);
+  }, [categories, user, track]);
 
-  useEffect(() => {
-    void loadStats();
-  }, [loadStats]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadStats();
+    }, [loadStats])
+  );
 
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
