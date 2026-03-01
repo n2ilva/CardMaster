@@ -15,6 +15,7 @@ import {
 import {
     generateCardsForCategory,
     getTotalCardsForCategory,
+    selectRandomCards,
     type GeneratedCard,
 } from "@/data/cards/generator";
 import { db } from "@/lib/firebase";
@@ -312,6 +313,77 @@ export async function fetchUserProgress(uid: string): Promise<ProgressSummary> {
 }
 
 // ---------------------------------------------------------------------------
+// Analyze performance issues (weakest categories)
+// ---------------------------------------------------------------------------
+
+export type WeakestSubject = {
+  track: string;
+  category: string;
+  accuracy: number;
+  totalQuestions: number;
+  totalLessons: number;
+};
+
+/**
+ * Identifica os assuntos onde o usuário erra mais frequentemente
+ * Retorna os 3 assuntos com menor acurácia
+ */
+export async function getWeakestSubjects(uid: string, limit: number = 3): Promise<WeakestSubject[]> {
+  const lessonsRef = collection(db, "users", uid, "lessons");
+  const lessonsQuery = query(lessonsRef, orderBy("createdAt", "desc"));
+  const lessonsSnapshot = await getDocs(lessonsQuery);
+
+  const lessons: LessonRecord[] = lessonsSnapshot.docs.map((d) => ({
+    id: d.id,
+    ...(d.data() as Omit<LessonRecord, "id">),
+  }));
+
+  // Agrupa por assunto e calcula estatísticas
+  const subjectStats = new Map<
+    string,
+    {
+      track: string;
+      category: string;
+      correct: number;
+      total: number;
+      lessonCount: number;
+    }
+  >();
+
+  for (const lesson of lessons) {
+    const key = `${lesson.track}__${lesson.category}`;
+    const existing = subjectStats.get(key);
+
+    if (existing) {
+      existing.correct += lesson.correctCount;
+      existing.total += lesson.totalCount;
+      existing.lessonCount += 1;
+    } else {
+      subjectStats.set(key, {
+        track: lesson.track ?? "",
+        category: lesson.category,
+        correct: lesson.correctCount,
+        total: lesson.totalCount,
+        lessonCount: 1,
+      });
+    }
+  }
+
+  // Converte para array e ordena pela menor acurácia
+  const subjects = Array.from(subjectStats.values())
+    .map((stat) => ({
+      track: stat.track,
+      category: stat.category,
+      accuracy: stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0,
+      totalQuestions: stat.total,
+      totalLessons: stat.lessonCount,
+    }))
+    .sort((a, b) => a.accuracy - b.accuracy); // Menor acurácia primeiro
+
+  return subjects.slice(0, limit);
+}
+
+// ---------------------------------------------------------------------------
 // Themes
 // ---------------------------------------------------------------------------
 
@@ -377,7 +449,10 @@ export async function fetchCards(
       difficulty ?? "Fácil",
     );
 
-    return generated.map((card: GeneratedCard) => ({
+    // Limita a 15 questões aleatórias e embaralhadas
+    const limited = selectRandomCards(generated, 15);
+
+    return limited.map((card: GeneratedCard) => ({
       id: card.id,
       track: card.track,
       category: card.category,
@@ -390,7 +465,8 @@ export async function fetchCards(
     }));
   }
 
-  return snapshot.docs.map((d) => {
+  // Para dados do Firestore, também limita a 15
+  const allCards = snapshot.docs.map((d) => {
     const data = d.data();
     return {
       id: d.id,
@@ -404,6 +480,9 @@ export async function fetchCards(
       example: (data.example as string) ?? "",
     };
   });
+
+  // Limita a 15 questões aleatórias e embaralhadas
+  return selectRandomCards(allCards, 15);
 }
 
 export async function fetchCategoryStats(
