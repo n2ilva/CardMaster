@@ -19,10 +19,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      EXPO_PUBLIC_API_URL: https://ec2-52-67-13-135.sa-east-1.compute.amazonaws.com:4000/api
+      EXPO_PUBLIC_API_URL: ${{ vars['EXPO_PUBLIC_API_URL'] }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate production API URL
+        run: |
+          if [ -z "${EXPO_PUBLIC_API_URL}" ]; then
+            echo "::error::Defina a variável EXPO_PUBLIC_API_URL no repositório (Settings > Secrets and variables > Actions > Variables)."
+            exit 1
+          fi
+
+          if [[ "${EXPO_PUBLIC_API_URL}" != https://* ]]; then
+            echo "::error::No GitHub Pages, EXPO_PUBLIC_API_URL precisa ser HTTPS."
+            exit 1
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
