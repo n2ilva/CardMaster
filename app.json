@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.n2ilva.cardmaster",
+      "googleServicesFile": "./google-services.json",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

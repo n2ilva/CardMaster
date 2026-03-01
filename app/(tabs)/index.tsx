@@ -1,45 +1,14 @@
 import { Link, router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
-import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
-
-type TrackEntry = {
-  key: string;
-  label: string;
-  count: number;
-};
-
-type ReadySummary = {
-  tracks: TrackEntry[];
-  activeTracksCount: number;
-  total: number;
-};
 
 export default function HomeScreen() {
   const bottomPadding = useTabContentPadding();
   const { user, logout } = useAuth();
-  const [summary, setSummary] = useState<ReadySummary | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
-
-  useEffect(() => {
-    async function loadSummary() {
-      try {
-        const payload = await apiRequest<ReadySummary>('/ready-cards/summary');
-        setSummary(payload);
-      } catch {
-        setSummary(null);
-      }
-    }
-
-    void loadSummary();
-  }, []);
-
-  const totalCards = summary?.total ?? 0;
-  const activeTracksCount = summary?.activeTracksCount ?? 0;
-  const trackEntries = summary?.tracks ?? [];
 
   async function onLogout() {
     try {
@@ -65,18 +34,17 @@ export default function HomeScreen() {
         ) : (
           'Bem-vindo.'
         )}{' '}
-        Seu app de estudos para evolução contínua com questões por temas, níveis progressivos e revisão
-        guiada.
+        Seu app de estudos para evolução contínua com questões por temas e revisão guiada.
       </Text>
 
       <View className="mt-5 flex-row gap-3">
         <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Total de cards</Text>
-          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{totalCards}</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">—</Text>
         </View>
         <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Temas ativos</Text>
-          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{activeTracksCount}</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">—</Text>
         </View>
       </View>
 
@@ -84,30 +52,22 @@ export default function HomeScreen() {
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Temas de estudos</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            {trackEntries.length > 0
-              ? trackEntries.map((t, i) => {
-                  const sep = i === trackEntries.length - 1 ? '.' : i === trackEntries.length - 2 ? ' e ' : ', ';
-                  return `${t.label} (${t.count})${sep}`;
-                }).join('')
-              : 'Carregando...'}
+            Em breve.
           </Text>
         </View>
 
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Como estudar aqui</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            1) Escolha tema e categoria. 2) Selecione qualquer nível (Iniciante, Júnior, Pleno ou Sênior).
-            3) Faça uma sequência de 30 cards no nível escolhido. Com 80%+ de acerto, você é considerado
-            naquele nível. Você também pode criar seus próprios cards personalizados!
+            Escolha um tema e categoria, estude os cards e acompanhe seu progresso.
+            Você também pode criar seus próprios cards personalizados!
           </Text>
         </View>
 
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Recursos do app</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            • Explicação contextual por resposta{`\n`}• Tipo da pergunta no card (Lógica, Arquitetura,
-            Segurança...){`\n`}• Progresso por nível na janela de 30 tentativas (80% libera, 100%
-            conclui){`\n`}• Tempo médio por tentativa e sequência de estudos
+            • Explicação contextual por resposta{`\n`}• Organização por temas e categorias{`\n`}• Acompanhamento de progresso{`\n`}• Tempo médio por tentativa e sequência de estudos
           </Text>
         </View>
 
@@ -135,3 +95,4 @@ export default function HomeScreen() {
     </ScrollView>
   );
 }
+

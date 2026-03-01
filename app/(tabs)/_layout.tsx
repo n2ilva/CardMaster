@@ -40,9 +40,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          title: 'Criar',
+          title: 'Pesquisar',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="chevron.left.forwardslash.chevron.right" color={color} />
+            <IconSymbol size={28} name="magnifyingglass" color={color} />
           ),
         }}
       />

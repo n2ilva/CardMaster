@@ -1,7 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  type User,
+} from 'firebase/auth';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 
-import { apiRequest } from '@/lib/api';
+import { auth, db } from '@/lib/firebase';
 
 type AuthUser = {
   id: string;
@@ -9,89 +18,84 @@ type AuthUser = {
   email: string;
 };
 
-type AuthPayload = {
-  token: string;
-  user: AuthUser;
-};
-
 type AuthContextValue = {
   user: AuthUser | null;
-  token: string | null;
   isLoading: boolean;
-  progressRefreshKey: number;
-  notifyProgressChanged: () => void;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
-const STORAGE_KEY = 'cardmaster.auth';
-
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function firebaseUserToAuthUser(firebaseUser: User, displayName?: string): AuthUser {
+  return {
+    id: firebaseUser.uid,
+    name: displayName ?? firebaseUser.displayName ?? 'Usuário',
+    email: firebaseUser.email ?? '',
+  };
+}
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [progressRefreshKey, setProgressRefreshKey] = useState(0);
 
   useEffect(() => {
-    async function restoreSession() {
-      try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (!raw) {
-          setIsLoading(false);
-          return;
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          const data = userDoc.data();
+          setUser({
+            id: firebaseUser.uid,
+            name: data?.name ?? firebaseUser.displayName ?? 'Usuário',
+            email: firebaseUser.email ?? '',
+          });
+        } catch {
+          setUser(firebaseUserToAuthUser(firebaseUser));
         }
-
-        const parsed = JSON.parse(raw) as AuthPayload;
-        setUser(parsed.user);
-        setToken(parsed.token);
-      } finally {
-        setIsLoading(false);
+      } else {
+        setUser(null);
       }
-    }
+      setIsLoading(false);
+    });
 
-    void restoreSession();
+    return unsubscribe;
   }, []);
-
-  async function persistSession(payload: AuthPayload) {
-    setUser(payload.user);
-    setToken(payload.token);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      token,
       isLoading,
-      progressRefreshKey,
-      notifyProgressChanged: () => {
-        setProgressRefreshKey((current) => current + 1);
-      },
       login: async (email, password) => {
-        const payload = await apiRequest<AuthPayload>('/auth/login', {
-          method: 'POST',
-          body: { email, password },
-        });
-        await persistSession(payload);
+        await signInWithEmailAndPassword(auth, email, password);
       },
       register: async (name, email, password) => {
-        const payload = await apiRequest<AuthPayload>('/auth/register', {
-          method: 'POST',
-          body: { name, email, password },
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(credential.user, { displayName: name });
+
+        await setDoc(doc(db, 'users', credential.user.uid), {
+          name,
+          email,
+          createdAt: serverTimestamp(),
         });
-        await persistSession(payload);
+
+        setUser({
+          id: credential.user.uid,
+          name,
+          email,
+        });
+      },
+      resetPassword: async (email) => {
+        await sendPasswordResetEmail(auth, email);
       },
       logout: async () => {
+        await signOut(auth);
         setUser(null);
-        setToken(null);
-        setProgressRefreshKey(0);
-        await AsyncStorage.removeItem(STORAGE_KEY);
       },
     }),
-    [isLoading, progressRefreshKey, token, user]
+    [isLoading, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

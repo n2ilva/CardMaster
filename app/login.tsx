@@ -2,13 +2,12 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
-import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
 type ScreenMode = 'login' | 'register' | 'forgot';
 
 export default function LoginScreen() {
-  const { login, register, isLoading, user } = useAuth();
+  const { login, register, resetPassword, isLoading, user } = useAuth();
 
   const [mode, setMode] = useState<ScreenMode>('login');
   const [name, setName] = useState('');
@@ -67,26 +66,19 @@ export default function LoginScreen() {
   }
 
   async function onResetPassword() {
-    if (!email.trim() || !newPassword.trim()) {
-      setMessage('Informe o email e a nova senha.');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setMessage('A nova senha deve ter no mínimo 6 caracteres.');
+    if (!email.trim()) {
+      setMessage('Informe o email cadastrado.');
       return;
     }
     try {
       setSubmitting(true);
       setMessage(null);
-      await apiRequest<{ message: string }>('/auth/reset-password', {
-        method: 'POST',
-        body: { email, newPassword },
-      });
-      setMessage('Senha redefinida com sucesso! Faça login.');
+      await resetPassword(email);
+      setMessage('Email de redefinição enviado! Verifique sua caixa de entrada.');
       switchMode('login');
       setEmail(email);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Erro ao redefinir senha.');
+      setMessage(error instanceof Error ? error.message : 'Erro ao enviar email de redefinição.');
     } finally {
       setSubmitting(false);
     }
@@ -104,7 +96,7 @@ export default function LoginScreen() {
       ? 'Entre para sincronizar progresso, recompensas e cards personalizados.'
       : mode === 'register'
         ? 'Crie sua conta para começar a estudar.'
-        : 'Informe seu email cadastrado e a nova senha.';
+        : 'Informe seu email cadastrado para receber o link de redefinição.';
 
   return (
     <View className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]">
@@ -152,25 +144,7 @@ export default function LoginScreen() {
           </View>
         )}
 
-        {mode === 'forgot' && (
-          <View className="relative">
-            <TextInput
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="Nova senha"
-              placeholderTextColor="#8D98A5"
-              secureTextEntry={!showNewPassword}
-              className="rounded-xl border border-[#E6E8EB] px-4 py-3 pr-16 text-[#11181C] dark:border-[#30363D] dark:text-[#ECEDEE]"
-            />
-            <Pressable
-              onPress={() => setShowNewPassword(!showNewPassword)}
-              className="absolute right-3 top-0 bottom-0 justify-center">
-              <Text className="text-sm font-semibold text-[#3F51B5]">
-                {showNewPassword ? 'Ocultar' : 'Ver'}
-              </Text>
-            </Pressable>
-          </View>
-        )}
+
       </View>
 
       {mode === 'login' && (
@@ -194,7 +168,7 @@ export default function LoginScreen() {
               ? 'Entrar'
               : mode === 'register'
                 ? 'Criar conta'
-                : 'Redefinir senha'}
+                : 'Enviar link de redefinição'}
         </Text>
       </Pressable>
 
