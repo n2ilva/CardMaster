@@ -132,7 +132,7 @@ export default function CommunityScreen() {
                 <View className="flex-1">
                   <Text className={`text-sm font-semibold ${
                     isCurrentUser
-                      ? 'dark:text-[#ECEDEE]" text-[#3F51B5]'
+                      ? 'text-[#3F51B5] dark:text-[#ECEDEE]'
                       : 'text-[#11181C] dark:text-[#ECEDEE]'
                   }`}>
                     {userProfile.name}
