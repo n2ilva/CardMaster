@@ -73,9 +73,16 @@ export default function HomeScreen() {
         </View>
 
         <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
+          <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Sistema de Medalhas 🏆</Text>
+          <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
+            Ganhe pontos baseados em sua performance e evolua através dos níveis:{`\n\n`}🥉 <Text className="font-bold">Bronze</Text> (0-500 pontos){`\n`}🥈 <Text className="font-bold">Prata</Text> (501-1.500 pontos){`\n`}🥇 <Text className="font-bold">Ouro</Text> (1.501-3.000 pontos){`\n`}💎 <Text className="font-bold">Diamante</Text> (acima de 3.000 pontos){`\n\n`}Sua pontuação considera: questões respondidas, taxa de acerto e velocidade de resposta.
+          </Text>
+        </View>
+
+        <View className="rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-lg font-semibold text-[#11181C] dark:text-[#ECEDEE]">Recursos do app</Text>
           <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
-            • Explicações detalhadas e exemplos práticos{`\n`}• 4 níveis de evolução (Iniciante → Expert){`\n`}• Temporizador por questão em tempo real{`\n`}• Continuação automática de lições interrompidas{`\n`}• Acompanhamento de progresso por categoria{`\n`}• Porcentagem de estudo e estatísticas detalhadas
+            • Explicações detalhadas e exemplos práticos{`\n`}• Sistema de medalhas (Bronze → Diamante){`\n`}• Ranking comunitário por nível de medalha{`\n`}• Pontuação baseada em performance e velocidade{`\n`}• Temporizador por questão em tempo real{`\n`}• Continuação automática de lições interrompidas{`\n`}• Acompanhamento de progresso por categoria{`\n`}• Estatísticas detalhadas e porcentagem de estudo
           </Text>
         </View>
 

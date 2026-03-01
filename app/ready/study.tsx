@@ -6,12 +6,11 @@ import {
     clearInProgressLesson,
     fetchCards,
     fetchInProgressLesson,
-    fetchUserProgress,
     saveLesson,
     updateUserProfile,
     upsertInProgressLesson,
     type Flashcard,
-    type UserLevel,
+    type UserLevel
 } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -58,14 +57,11 @@ export default function StudySessionScreen() {
     (async () => {
       try {
         setLoading(true);
-        // Determine difficulty level: use URL param if provided, otherwise use user's progress level
+        // Determine difficulty level: use URL param if provided, otherwise default to Fácil
         let level: UserLevel = 'Fácil';
         
         if (difficultyParam && ['Fácil', 'Médio', 'Difícil'].includes(difficultyParam)) {
           level = difficultyParam as UserLevel;
-        } else if (user) {
-          const progress = await fetchUserProgress(user.id);
-          level = progress.level;
         }
         
         if (cancelled) return;
@@ -179,10 +175,12 @@ export default function StudySessionScreen() {
           });
           // Atualiza o perfil do usuário na comunidade
           if (user.name) {
+            console.log('Atualizando perfil do usuário:', user.id, user.name);
             await updateUserProfile(user.id, user.name);
+            console.log('Perfil atualizado com sucesso!');
           }
-        } catch {
-          // silently fail
+        } catch (error) {
+          console.error('Erro ao salvar lição:', error);
         } finally {
           setSaving(false);
         }

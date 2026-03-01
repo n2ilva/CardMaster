@@ -1,3 +1,4 @@
+import { FirebaseError } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -37,6 +38,65 @@ function firebaseUserToAuthUser(firebaseUser: User, displayName?: string): AuthU
   };
 }
 
+function mapLoginError(error: unknown): string {
+  if (error instanceof FirebaseError) {
+    if (
+      error.code === 'auth/invalid-credential' ||
+      error.code === 'auth/invalid-login-credentials' ||
+      error.code === 'auth/wrong-password' ||
+      error.code === 'auth/user-not-found'
+    ) {
+      return 'Email ou senha incorretos.';
+    }
+
+    if (error.code === 'auth/too-many-requests') {
+      return 'Muitas tentativas. Tente novamente em alguns minutos.';
+    }
+  }
+
+  return 'Erro ao realizar login.';
+}
+
+function mapRegisterError(error: unknown): string {
+  if (error instanceof FirebaseError) {
+    if (error.code === 'auth/email-already-in-use') {
+      return 'Este email já está em uso.';
+    }
+
+    if (error.code === 'auth/invalid-email') {
+      return 'Email inválido.';
+    }
+
+    if (error.code === 'auth/weak-password') {
+      return 'A senha é muito fraca. Use pelo menos 6 caracteres.';
+    }
+
+    if (error.code === 'auth/too-many-requests') {
+      return 'Muitas tentativas. Tente novamente em alguns minutos.';
+    }
+  }
+
+  return 'Erro ao criar conta.';
+}
+
+function mapResetPasswordError(error: unknown): string {
+  if (error instanceof FirebaseError) {
+    if (error.code === 'auth/user-not-found') {
+      return 'Não encontramos uma conta com este email.';
+    }
+
+    if (error.code === 'auth/invalid-email') {
+      return 'Email inválido.';
+    }
+
+    if (error.code === 'auth/too-many-requests') {
+      return 'Muitas tentativas. Tente novamente em alguns minutos.';
+    }
+  }
+
+  return 'Erro ao enviar email de redefinição.';
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,26 +129,38 @@ export function AuthProvider({ children }: PropsWithChildren) {
       user,
       isLoading,
       login: async (email, password) => {
-        await signInWithEmailAndPassword(auth, email, password);
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+          throw new Error(mapLoginError(error));
+        }
       },
       register: async (name, email, password) => {
-        const credential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(credential.user, { displayName: name });
+        try {
+          const credential = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(credential.user, { displayName: name });
 
-        await setDoc(doc(db, 'users', credential.user.uid), {
-          name,
-          email,
-          createdAt: serverTimestamp(),
-        });
+          await setDoc(doc(db, 'users', credential.user.uid), {
+            name,
+            email,
+            createdAt: serverTimestamp(),
+          });
 
-        setUser({
-          id: credential.user.uid,
-          name,
-          email,
-        });
+          setUser({
+            id: credential.user.uid,
+            name,
+            email,
+          });
+        } catch (error) {
+          throw new Error(mapRegisterError(error));
+        }
       },
       resetPassword: async (email) => {
-        await sendPasswordResetEmail(auth, email);
+        try {
+          await sendPasswordResetEmail(auth, email);
+        } catch (error) {
+          throw new Error(mapResetPasswordError(error));
+        }
       },
       logout: async () => {
         await signOut(auth);

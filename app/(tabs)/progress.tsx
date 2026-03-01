@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { trackLabels } from '@/data/tracks';
 import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
@@ -8,25 +8,25 @@ import {
   type CategoryProgress,
   fetchUserProgress,
   formatDuration,
+  getScoreLevel,
   resetUserProgress,
+  type ScoreLevel
 } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
-type SummaryLevel = 'Iniciante' | 'Intermediário' | 'Profissional' | 'Expert';
-
-const levelColors: Record<SummaryLevel, string> = {
-  Iniciante: '#22C55E',
-  Intermediário: '#14B8A6',
-  Profissional: '#F59E0B',
-  Expert: '#8B5CF6',
+const scoreLevelEmojis: Record<ScoreLevel, string> = {
+  Bronze: '🥉',
+  Prata: '🥈',
+  Ouro: '🥇',
+  Diamante: '💎',
 };
 
-function getSummaryLevel(accuracyPercent: number): SummaryLevel {
-  if (accuracyPercent > 80) return 'Expert';
-  if (accuracyPercent > 50) return 'Profissional';
-  if (accuracyPercent > 20) return 'Intermediário';
-  return 'Iniciante';
-}
+const scoreLevelNames: Record<ScoreLevel, string> = {
+  Bronze: 'Bronze',
+  Prata: 'Prata',
+  Ouro: 'Ouro',
+  Diamante: 'Diamante',
+};
 
 export default function ProgressScreen() {
   const bottomPadding = useTabContentPadding();
@@ -34,7 +34,8 @@ export default function ProgressScreen() {
 
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
-  const [level, setLevel] = useState<SummaryLevel>('Iniciante');
+  const [scoreLevel, setScoreLevel] = useState<ScoreLevel>('Bronze');
+  const [score, setScore] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
   const [avgTime, setAvgTime] = useState(0);
   const [totalLessons, setTotalLessons] = useState(0);
@@ -45,11 +46,14 @@ export default function ProgressScreen() {
     try {
       setLoading(true);
       const data = await fetchUserProgress(user.id);
-      setLevel(getSummaryLevel(data.accuracyPercent));
       setAccuracy(data.accuracyPercent);
       setAvgTime(data.avgTimeMs);
       setTotalLessons(data.totalLessons);
       setCategories(data.categories);
+      
+      // Usa o score calculado por fetchUserProgress
+      setScore(data.totalScore);
+      setScoreLevel(getScoreLevel(data.totalScore));
     } catch {
       // silently fail
     } finally {
@@ -64,35 +68,35 @@ export default function ProgressScreen() {
   );
 
   const handleReset = useCallback(() => {
-    Alert.alert(
-      'Resetar progresso',
-      'Tem certeza? Todas as suas lições completadas e em andamento serão deletadas permanentemente.',
-      [
-        {
-          text: 'Cancelar',
-          onPress: () => {},
-          style: 'cancel',
-        },
-        {
-          text: 'Resetar',
-          onPress: async () => {
-            if (!user) return;
-            try {
-              setResetting(true);
-              await resetUserProgress(user.id);
-              // Reload data after reset
-              void loadProgress();
-            } catch (error) {
-              console.error('Reset error:', error);
-              Alert.alert('Erro', 'Falha ao resetar progresso. Tente novamente.');
-            } finally {
-              setResetting(false);
-            }
-          },
-          style: 'destructive',
-        },
-      ],
-    );
+    if (!user) return;
+
+    // Use window.confirm for better web/desktop compatibility
+    const confirmed = typeof window !== 'undefined' 
+      ? window.confirm('Tem certeza? Todas as suas lições completadas e em andamento serão deletadas permanentemente.')
+      : false;
+
+    if (!confirmed) return;
+
+    (async () => {
+      try {
+        setResetting(true);
+        await resetUserProgress(user.id);
+        // Reload data after reset
+        void loadProgress();
+        
+        // Show success message
+        if (typeof window !== 'undefined') {
+          alert('Progresso resetado com sucesso!');
+        }
+      } catch (error) {
+        console.error('Reset error:', error);
+        if (typeof window !== 'undefined') {
+          alert('Falha ao resetar progresso. Tente novamente.');
+        }
+      } finally {
+        setResetting(false);
+      }
+    })();
   }, [user, loadProgress]);
 
   if (loading) {
@@ -113,18 +117,32 @@ export default function ProgressScreen() {
         Veja seu avanço por tema.
       </Text>
 
-      {/* Level card */}
-      <View className="mt-5 rounded-2xl bg-[#3F51B5] p-4">
-        <Text className="text-sm text-white/80">Resumo geral</Text>
-        <Text className="mt-1 text-2xl font-bold text-white">
-          Nível:{' '}
-          <Text style={{ color: levelColors[level] }}>{level}</Text>
-        </Text>
-        <Text className="mt-1 text-sm text-white/70">
-          {totalLessons === 0
-            ? 'Nenhuma lição concluída ainda.'
-            : `${totalLessons} ${totalLessons === 1 ? 'lição concluída' : 'lições concluídas'} · média de acerto: ${accuracy}% · tempo médio por lição: ${formatDuration(avgTime)}`}
-        </Text>
+      {/* Stats cards row */}
+      <View className="mt-5 flex-row gap-3">
+        {/* Summary card */}
+        <View className="flex-1 rounded-2xl bg-[#3F51B5] p-4">
+          <Text className="text-sm text-white/80">Resumo geral</Text>
+          <Text className="mt-2 text-3xl font-bold text-white">
+            {totalLessons}
+          </Text>
+          <Text className="mt-1 text-sm text-white/70">
+            {totalLessons === 1 ? 'lição concluída' : 'lições concluídas'}
+          </Text>
+          <Text className="mt-3 text-sm text-white/70">
+            Média de acerto: <Text className="font-semibold text-white">{accuracy}%</Text>
+          </Text>
+        </View>
+
+        {/* Medal card */}
+        <View className="flex-1 items-center justify-center rounded-2xl border-2 border-[#3F51B5] bg-[#3F51B5]/5 p-4">
+          <Text className="text-5xl">{scoreLevelEmojis[scoreLevel]}</Text>
+          <Text className="mt-2 text-lg font-bold text-[#3F51B5]">
+            {scoreLevelNames[scoreLevel]}
+          </Text>
+          <Text className="mt-1 text-sm text-[#687076] dark:text-[#9BA1A6]">
+            {score} pontos
+          </Text>
+        </View>
       </View>
 
       {/* Progress by category */}
@@ -192,7 +210,7 @@ export default function ProgressScreen() {
         <Pressable
           onPress={handleReset}
           disabled={resetting}
-          className="mt-6 mb-4 rounded-lg border border-[#EF4444] bg-[#EF4444]/10 px-4 py-3 active:opacity-70">
+          className="mt-6 mb-4 rounded-lg border border-[#EF4444] bg-[#EF4444]/10 px-4 py-3 hover:bg-[#EF4444]/20 active:opacity-70">
           <Text className="text-center text-sm font-semibold text-[#EF4444]">
             {resetting ? 'Resetando...' : 'Resetar progresso'}
           </Text>

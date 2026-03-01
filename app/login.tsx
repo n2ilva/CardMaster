@@ -5,6 +5,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { useAuth } from '@/providers/auth-provider';
 
 type ScreenMode = 'login' | 'register' | 'forgot';
+type MessageType = 'success' | 'error' | null;
 
 export default function LoginScreen() {
   const { login, register, resetPassword, isLoading, user } = useAuth();
@@ -17,6 +18,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<MessageType>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export default function LoginScreen() {
   function switchMode(next: ScreenMode) {
     setMode(next);
     setMessage(null);
+    setMessageType(null);
     setName('');
     setPassword('');
     setNewPassword('');
@@ -39,9 +42,11 @@ export default function LoginScreen() {
     try {
       setSubmitting(true);
       setMessage(null);
+      setMessageType(null);
       await login(email, password);
       router.replace('/(tabs)');
     } catch (error) {
+      setMessageType('error');
       setMessage(error instanceof Error ? error.message : 'Erro ao realizar login.');
     } finally {
       setSubmitting(false);
@@ -50,15 +55,18 @@ export default function LoginScreen() {
 
   async function onRegister() {
     if (!name.trim()) {
+      setMessageType('error');
       setMessage('Informe seu nome.');
       return;
     }
     try {
       setSubmitting(true);
       setMessage(null);
+      setMessageType(null);
       await register(name, email, password);
       router.replace('/(tabs)');
     } catch (error) {
+      setMessageType('error');
       setMessage(error instanceof Error ? error.message : 'Erro ao criar conta.');
     } finally {
       setSubmitting(false);
@@ -67,17 +75,21 @@ export default function LoginScreen() {
 
   async function onResetPassword() {
     if (!email.trim()) {
+      setMessageType('error');
       setMessage('Informe o email cadastrado.');
       return;
     }
     try {
       setSubmitting(true);
       setMessage(null);
+      setMessageType(null);
       await resetPassword(email);
-      setMessage('Email de redefinição enviado! Verifique sua caixa de entrada.');
       switchMode('login');
       setEmail(email);
+      setMessageType('success');
+      setMessage('Email de redefinição enviado! Verifique sua caixa de entrada.');
     } catch (error) {
+      setMessageType('error');
       setMessage(error instanceof Error ? error.message : 'Erro ao enviar email de redefinição.');
     } finally {
       setSubmitting(false);
@@ -184,7 +196,16 @@ export default function LoginScreen() {
       </Pressable>
 
       {message ? (
-        <Text className="mt-3 text-center text-sm text-[#687076] dark:text-[#9BA1A6]">{message}</Text>
+        <Text
+          className={`mt-3 text-center text-sm ${
+            messageType === 'success'
+              ? 'text-[#22C55E]'
+              : messageType === 'error'
+                ? 'text-[#DC2626]'
+                : 'text-[#687076] dark:text-[#9BA1A6]'
+          }`}>
+          {message}
+        </Text>
       ) : null}
     </View>
   );
