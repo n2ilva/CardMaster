@@ -3,6 +3,7 @@ import {
     collection,
     deleteDoc,
     doc,
+    getCountFromServer,
     getDocs,
     orderBy,
     query,
@@ -12,12 +13,8 @@ import {
     writeBatch,
 } from "firebase/firestore";
 
-import {
-    generateCardsForCategory,
-    getTotalCardsForCategory,
-    selectRandomCards,
-    type GeneratedCard,
-} from "@/data/cards/generator";
+import { selectRandomCards, shuffleCardOptions } from "@/data/cards/generator";
+import { trackCategories } from "@/data/tracks";
 import { db } from "@/lib/firebase";
 
 // ---------------------------------------------------------------------------
@@ -328,43 +325,45 @@ export async function fetchUserProgress(uid: string): Promise<ProgressSummary> {
     avgTimePerQuestion,
   );
 
-  const categories: CategoryProgress[] = Array.from(grouped.values())
-    .map((data) => {
-      const totalCardsInCategory =
-        data.track && data.category
-          ? getTotalCardsForCategory(data.track, data.category)
-          : 0;
+  const categories: CategoryProgress[] = (
+    await Promise.all(
+      Array.from(grouped.values()).map(async (data) => {
+        const totalCardsInCategory =
+          data.track && data.category
+            ? await getTotalCardsForCategory(data.track, data.category)
+            : 0;
 
-      const studyPercent =
-        totalCardsInCategory > 0
-          ? Math.min(
-              100,
-              Math.round(
-                (data.totalQuestionsAnswered / totalCardsInCategory) * 100,
-              ),
-            )
-          : 0;
+        const studyPercent =
+          totalCardsInCategory > 0
+            ? Math.min(
+                100,
+                Math.round(
+                  (data.totalQuestionsAnswered / totalCardsInCategory) * 100,
+                ),
+              )
+            : 0;
 
-      return {
-        track: data.track,
-        category: data.category,
-        totalLessons: data.totalLessons,
-        studyPercent,
-        accuracyPercent:
-          data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
-        avgTimePerQuestionMs:
-          data.totalQuestionsAnswered > 0
-            ? Math.round(data.totalDurationMs / data.totalQuestionsAnswered)
-            : 0,
-        inProgressAnswered: data.inProgressAnswered,
-        hasInProgressLesson: data.hasInProgressLesson,
-      };
-    })
-    .sort((a, b) => {
-      const trackCompare = a.track.localeCompare(b.track, "pt-BR");
-      if (trackCompare !== 0) return trackCompare;
-      return a.category.localeCompare(b.category, "pt-BR");
-    });
+        return {
+          track: data.track,
+          category: data.category,
+          totalLessons: data.totalLessons,
+          studyPercent,
+          accuracyPercent:
+            data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
+          avgTimePerQuestionMs:
+            data.totalQuestionsAnswered > 0
+              ? Math.round(data.totalDurationMs / data.totalQuestionsAnswered)
+              : 0,
+          inProgressAnswered: data.inProgressAnswered,
+          hasInProgressLesson: data.hasInProgressLesson,
+        };
+      }),
+    )
+  ).sort((a, b) => {
+    const trackCompare = a.track.localeCompare(b.track, "pt-BR");
+    if (trackCompare !== 0) return trackCompare;
+    return a.category.localeCompare(b.category, "pt-BR");
+  });
 
   return {
     accuracyPercent,
@@ -473,6 +472,57 @@ export async function fetchThemes(): Promise<ThemeItem[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Card counts (Firestore-based)
+// ---------------------------------------------------------------------------
+
+/**
+ * Retorna o total de cards de uma categoria (todas as dificuldades).
+ * Usa getCountFromServer para evitar baixar todos os documentos.
+ */
+export async function getTotalCardsForCategory(
+  track: string,
+  category: string,
+): Promise<number> {
+  const cardsRef = collection(db, "cards");
+  const q = query(
+    cardsRef,
+    where("track", "==", track),
+    where("category", "==", category),
+  );
+  const snapshot = await getCountFromServer(q);
+  return snapshot.data().count;
+}
+
+/**
+ * Retorna estatísticas gerais do banco de cards no Firestore.
+ */
+export async function getDatabaseStats(): Promise<{
+  totalCards: number;
+  activeTracks: number;
+}> {
+  const cardsRef = collection(db, "cards");
+
+  // Total de cards (eficiente — não baixa documentos)
+  const countSnapshot = await getCountFromServer(query(cardsRef));
+  const totalCards = countSnapshot.data().count;
+
+  // Conta tracks que possuem pelo menos 1 card no Firestore
+  const trackKeys = Object.keys(trackCategories);
+
+  const trackCounts = await Promise.all(
+    trackKeys.map(async (track) => {
+      const q = query(cardsRef, where("track", "==", track));
+      const snap = await getCountFromServer(q);
+      return snap.data().count;
+    }),
+  );
+
+  const activeTracks = trackCounts.filter((c) => c > 0).length;
+
+  return { totalCards, activeTracks };
+}
+
+// ---------------------------------------------------------------------------
 // Flashcards (exercise cards)
 // ---------------------------------------------------------------------------
 
@@ -509,33 +559,9 @@ export async function fetchCards(
 
   const snapshot = await getDocs(q);
 
-  if (snapshot.empty) {
-    const generated = generateCardsForCategory(
-      track,
-      category,
-      difficulty ?? "Fácil",
-    );
-
-    // Limita a 15 questões aleatórias e embaralhadas
-    const limited = selectRandomCards(generated, 15);
-
-    return limited.map((card: GeneratedCard) => ({
-      id: card.id,
-      track: card.track,
-      category: card.category,
-      difficulty: card.difficulty,
-      question: card.question,
-      options: card.options,
-      correctIndex: card.correctIndex,
-      explanation: card.explanation,
-      example: card.example,
-    }));
-  }
-
-  // Para dados do Firestore, também limita a 15
-  const allCards = snapshot.docs.map((d) => {
+  const allCards: Flashcard[] = snapshot.docs.map((d) => {
     const data = d.data();
-    return {
+    const card: Flashcard = {
       id: d.id,
       track: data.track as string,
       category: data.category as string,
@@ -546,6 +572,8 @@ export async function fetchCards(
       explanation: (data.explanation as string) ?? "",
       example: (data.example as string) ?? "",
     };
+    // Embaralha as opções de cada card para evitar memorização por posição
+    return shuffleCardOptions(card);
   });
 
   // Limita a 15 questões aleatórias e embaralhadas

@@ -48,6 +48,63 @@ npm run start
 
 - Android: `a` | iOS: `i` | Web: `w`
 
+## Exportar banks para JSON e enviar ao Firestore
+
+1. Configure as dependências:
+
+```bash
+npm install
+```
+
+2. Exporte os arquivos de bank para JSON:
+
+```bash
+npm run banks:export-json
+```
+
+3. Configure credenciais do Firebase Admin:
+
+```bash
+set FIREBASE_SERVICE_ACCOUNT=./service-account.json
+set FIREBASE_PROJECT_ID=cardmaster-934d5
+```
+
+4. Envie os cards para o Firestore:
+
+```bash
+npm run banks:upload
+```
+
+5. Opções úteis de envio:
+
+```bash
+# limpa a coleção antes de enviar
+npm run banks:upload:clean
+
+# salva cada trilha em coleção separada (cards_cloud, cards_desenvolvimento, ...)
+npm run banks:upload:split
+
+# trilha separada + limpeza prévia
+npm run banks:upload:split:clean
+```
+
+Opcional: executar tudo em sequência:
+
+```bash
+npm run banks:sync
+```
+
+Opcional (export + upload com limpeza):
+
+```bash
+npm run banks:sync:clean
+```
+
+- JSON gerado em `data/cards/json`
+- Coleção padrão no Firestore: `cards`
+- Para trocar a coleção: `set BANKS_COLLECTION=minha_colecao`
+- Também é possível usar flags diretas: `--clean`, `--split-by-track`, `--dry-run`
+
 ## Build e deploy
 
 ### APK Android (EAS Build)

@@ -1,21 +1,14 @@
 /**
- * generator.ts — loader de cards
+ * generator.ts — tipos e utilitários de cards
  *
- * Para adicionar ou editar perguntas, edite apenas o arquivo de banco
- * da trilha correspondente em data/cards/banks/<trilha>.ts
+ * Os cards agora são armazenados no Firestore (coleção "cards").
+ * Este módulo exporta apenas os tipos públicos e funções utilitárias
+ * puras (shuffle / select) reutilizadas pelo restante do app.
+ *
+ * Para funções que buscam/contam cards no Firestore, veja lib/api.ts.
  */
 
-import { trackCategories } from "@/data/tracks";
 import type { UserLevel } from "@/lib/api";
-
-import { cloudBank } from "./banks/cloud";
-import { desenvolvimentoBank } from "./banks/desenvolvimento";
-import { linguagensBank } from "./banks/linguagens";
-import { machineLearningBank } from "./banks/machine-learning";
-import { matematicaBank } from "./banks/matematica";
-import { portuguesBank } from "./banks/portugues";
-import { redesBank } from "./banks/redes";
-import { segurancaBank } from "./banks/seguranca";
 
 // ---------------------------------------------------------------------------
 // Tipos publicos
@@ -42,23 +35,6 @@ export type GeneratedCard = {
 };
 
 // ---------------------------------------------------------------------------
-// Mapa de bancos por trilha
-// ---------------------------------------------------------------------------
-
-const BANKS: Record<string, Record<string, Record<UserLevel, SeedCard[]>>> = {
-  cloud: cloudBank,
-  desenvolvimento: desenvolvimentoBank,
-  "linguagens-de-programacao": linguagensBank,
-  "machine-learning-e-ia": machineLearningBank,
-  matematica: matematicaBank,
-  portugues: portuguesBank,
-  "rede-de-computadores": redesBank,
-  "seguranca-da-informacao": segurancaBank,
-};
-
-const DIFFICULTIES: UserLevel[] = ["Fácil", "Médio", "Difícil"] as UserLevel[];
-
-// ---------------------------------------------------------------------------
 // Funcoes auxiliares
 // ---------------------------------------------------------------------------
 
@@ -77,7 +53,7 @@ function shuffle<T>(array: T[]): T[] {
 /**
  * Embaralha as opções de um card mantendo o índice correto atualizado
  */
-function shuffleCardOptions(card: GeneratedCard): GeneratedCard {
+export function shuffleCardOptions(card: GeneratedCard): GeneratedCard {
   // Cria um array com os índices originais
   const indices = [0, 1, 2, 3];
   const shuffledIndices = shuffle(indices);
@@ -111,68 +87,4 @@ export function selectRandomCards<T>(cards: T[], limit: number): T[] {
   // Embaralha e pega apenas os primeiros N
   return shuffle(cards).slice(0, limit);
 }
-
-// ---------------------------------------------------------------------------
-// Funcoes publicas
-// ---------------------------------------------------------------------------
-
-export function generateCardsForCategory(
-  track: string,
-  category: string,
-  difficulty: UserLevel,
-  shuffleOptions: boolean = true,
-): GeneratedCard[] {
-  const trackBank = BANKS[track];
-  const cards: SeedCard[] = trackBank?.[category]?.[difficulty] ?? [];
-  return cards.map((card, i) => {
-    const generatedCard: GeneratedCard = {
-      id: `${track}__${category}__${difficulty}__${i + 1}`,
-      track,
-      category,
-      difficulty,
-      question: card.q,
-      options: card.o,
-      correctIndex: card.c,
-      explanation: card.e,
-      example: card.x,
-    };
-
-    // Embaralha as opções se solicitado
-    return shuffleOptions ? shuffleCardOptions(generatedCard) : generatedCard;
-  });
-}
-
-export function generateCardsForCategoryAllDifficulties(
-  track: string,
-  category: string,
-): GeneratedCard[] {
-  return DIFFICULTIES.flatMap((d) =>
-    generateCardsForCategory(track, category, d),
-  );
-}
-
-export function getTotalCardsForCategory(
-  track: string,
-  category: string,
-): number {
-  return generateCardsForCategoryAllDifficulties(track, category).length;
-}
-
-export function generateAllCards(): GeneratedCard[] {
-  return Object.entries(trackCategories).flatMap(([track, categories]) =>
-    categories.flatMap((category) =>
-      generateCardsForCategoryAllDifficulties(track, category),
-    ),
-  );
-}
-
-export function getDatabaseStats() {
-  const allCards = generateAllCards();
-  const totalCards = allCards.length;
-  const activeTracks = Object.keys(BANKS).length;
-
-  return {
-    totalCards,
-    activeTracks,
-  };
 }

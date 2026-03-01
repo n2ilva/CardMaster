@@ -1,10 +1,10 @@
 import { Link, router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { getDatabaseStats } from '@/data/cards/generator';
 import { trackLabels } from '@/data/tracks';
 import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
+import { getDatabaseStats } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function HomeScreen() {
@@ -12,8 +12,12 @@ export default function HomeScreen() {
   const { user, logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   
-  const stats = useMemo(() => getDatabaseStats(), []);
+  const [stats, setStats] = useState<{ totalCards: number; activeTracks: number } | null>(null);
   const themes = useMemo(() => Object.values(trackLabels), []);
+
+  useEffect(() => {
+    getDatabaseStats().then(setStats).catch(console.error);
+  }, []);
 
   async function onLogout() {
     try {
@@ -45,11 +49,11 @@ export default function HomeScreen() {
       <View className="mt-5 flex-row gap-3">
         <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Total de cards</Text>
-          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{stats.totalCards}</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{stats ? stats.totalCards : '…'}</Text>
         </View>
         <View className="flex-1 rounded-2xl border border-[#E6E8EB] p-4 dark:border-[#30363D]">
           <Text className="text-xs uppercase tracking-wide text-[#687076] dark:text-[#9BA1A6]">Temas ativos</Text>
-          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{stats.activeTracks}</Text>
+          <Text className="mt-1 text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{stats ? stats.activeTracks : '…'}</Text>
         </View>
       </View>
 
