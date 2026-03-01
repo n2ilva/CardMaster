@@ -10,6 +10,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "web:build": "expo export -p web",
+    "web:build:ghpages": "expo export -p web",
     "lint": "expo lint",
     "server:dev": "npm --prefix server run dev",
     "server:build": "npm --prefix server install && npm --prefix server run build",
