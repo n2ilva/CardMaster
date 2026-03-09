@@ -39,9 +39,8 @@ server/.env
 *.tgz
 
 # data
-data/glossary.json
-
-app-example
+cards/
+glossary/
 
 # generated native folders
 /ios
@@ -50,11 +49,6 @@ app-example
 # Firebase service account key (Admin SDK — NUNCA commitar)
 cardmaster-*.json
 
-# Card bank JSON files
-data/cards/json/
-
 # Environment files
 .env
 
-# Data files (cards JSON)
-data/cards/json/
