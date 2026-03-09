@@ -138,7 +138,7 @@ export default function HomeScreen() {
                 <MaterialIcons name="school" size={18} color="#A5B4FC" />
                 <Text style={{ color: '#ECEDEE', fontSize: 15, fontWeight: '600' }}>Temas disponíveis</Text>
               </View>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
                 {themes.map((t) => (
                   <Link key={t.key} href={`/ready/${encodeURIComponent(t.key)}`} asChild>
                     <Pressable
