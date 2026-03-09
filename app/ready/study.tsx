@@ -451,29 +451,6 @@ export default function StudySessionScreen() {
         {contextLabel}
       </Text>
 
-      {!isMasterTest && (
-        <View className="mt-3 rounded-2xl border border-[#E6E8EB] bg-[#F8FAFC] px-4 py-3 dark:border-[#30363D] dark:bg-[#1C1F24]">
-          <View className="flex-row items-center justify-between gap-3">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-[#3F51B5]">
-              Nível atual: {activeDifficulty}
-            </Text>
-            <Text className="text-xs font-medium text-[#687076] dark:text-[#9BA1A6]">
-              {activeDifficultyProgress?.masteryPercent ?? 0}% dominado
-            </Text>
-          </View>
-          <Text className="mt-1 text-xs text-[#687076] dark:text-[#9BA1A6]">
-            {nextDifficulty
-              ? `Você só recebe questões ${nextDifficulty.toLowerCase()} depois de dominar 100% do nível ${activeDifficulty.toLowerCase()}.`
-              : 'Você já liberou todos os níveis desta categoria.'}
-          </Text>
-          {supplementalDifficulties.length > 0 && (
-            <Text className="mt-2 text-xs text-[#687076] dark:text-[#9BA1A6]">
-              Esta lição foi completada com questões de {supplementalDifficultyLabel} porque não há cards suficientes em {activeDifficulty.toLowerCase()} para fechar {totalCards} perguntas.
-            </Text>
-          )}
-        </View>
-      )}
-
       {/* Progress bar */}
       <View className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#E6E8EB] dark:bg-[#2A2F36]">
         <View
