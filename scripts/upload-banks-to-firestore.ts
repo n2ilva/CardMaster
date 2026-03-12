@@ -102,7 +102,7 @@ async function createFirestoreClient(): Promise<Firestore> {
 }
 
 async function loadCards(): Promise<JsonCard[]> {
-  const jsonDir = resolve(process.cwd(), "data", "cards");
+  const jsonDir = resolve(process.cwd(), "data", "cards", "json");
   const files = await readdir(jsonDir);
 
   const SKIP_FILES = new Set(["cards.json", "metadata.json"]);

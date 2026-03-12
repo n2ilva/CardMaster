@@ -365,6 +365,62 @@ export async function fetchCards(
 
 const MASTER_TEST_COUNT = 20;
 
+/**
+ * Seleciona cards para o Teste Master com cobertura estratificada:
+ * 1. Garante pelo menos 1 card de cada categoria (cobertura total do tema)
+ * 2. Alterna dificuldades entre categorias (Fácil → Médio → Difícil) para equilíbrio
+ * 3. Preenche vagas restantes aleatoriamente, evitando duplicatas
+ */
+function selectMasterTestDeck(
+  allCards: Flashcard[],
+  limit: number,
+): Flashcard[] {
+  if (allCards.length <= limit)
+    return selectRandomCards(allCards, allCards.length);
+
+  // Agrupa por categoria
+  const byCategory = new Map<string, Flashcard[]>();
+  for (const card of allCards) {
+    const list = byCategory.get(card.category) ?? [];
+    list.push(card);
+    byCategory.set(card.category, list);
+  }
+
+  const categories = [...byCategory.keys()];
+  const selected = new Set<string>();
+  const result: Flashcard[] = [];
+  const difficulties: UserLevel[] = ["Fácil", "Médio", "Difícil"];
+
+  // Fase 1: 1 card por categoria, alternando dificuldade
+  const shuffledCategories = selectRandomCards(categories, categories.length);
+  for (let i = 0; i < shuffledCategories.length && result.length < limit; i++) {
+    const cat = shuffledCategories[i];
+    const pool = byCategory.get(cat)!;
+    const targetDifficulty = difficulties[i % 3];
+    // Tenta a dificuldade alvo; se não houver, pega qualquer uma
+    const candidates = pool.filter(
+      (c) => c.difficulty === targetDifficulty && !selected.has(c.id),
+    );
+    const fallback =
+      candidates.length > 0
+        ? candidates
+        : pool.filter((c) => !selected.has(c.id));
+    if (fallback.length === 0) continue;
+    const pick = fallback[Math.floor(Math.random() * fallback.length)];
+    result.push(pick);
+    selected.add(pick.id);
+  }
+
+  // Fase 2: preenche vagas restantes aleatoriamente
+  if (result.length < limit) {
+    const remaining = allCards.filter((c) => !selected.has(c.id));
+    const extras = selectRandomCards(remaining, limit - result.length);
+    result.push(...extras);
+  }
+
+  return selectRandomCards(result, result.length);
+}
+
 export async function fetchMasterTestCards(
   track: string,
 ): Promise<Flashcard[]> {
@@ -378,7 +434,7 @@ export async function fetchMasterTestCards(
       id: d.id,
       track: data.track as string,
       category: data.category as string,
-      difficulty: (data.difficulty as UserLevel) ?? "F\u00e1cil",
+      difficulty: (data.difficulty as UserLevel) ?? "Fácil",
       question: data.question as string,
       options: data.options as [string, string, string, string],
       correctIndex: data.correctIndex as number,
@@ -388,5 +444,5 @@ export async function fetchMasterTestCards(
     return shuffleCardOptions(card);
   });
 
-  return selectRandomCards(allCards, MASTER_TEST_COUNT);
+  return selectMasterTestDeck(allCards, MASTER_TEST_COUNT);
 }
