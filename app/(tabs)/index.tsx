@@ -5,7 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { TRACK_STYLE_FALLBACK, trackStyles, type TrackIcon } from '@/constants/track-styles';
 import { useLogout } from '@/hooks/use-logout';
 import { useScreenSize } from '@/hooks/use-screen-size';
-import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
+import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
 import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
 
@@ -36,6 +36,7 @@ const features: FeatureItem[] = [
 
 export default function HomeScreen() {
   const bottomPadding = useTabContentPadding();
+  const topPadding = useTopContentPadding();
   const { user } = useAuth();
   const { trackCatalog, dbStats: stats } = useData();
   const { isDesktop, isTablet, isMobile } = useScreenSize();
@@ -226,9 +227,9 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]"
+      className="flex-1 bg-white px-5 dark:bg-[#151718]"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: bottomPadding }}>
+      contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPadding }}>
 
       {/* Header */}
       <View className="flex-row items-center gap-3">

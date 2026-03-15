@@ -4,13 +4,14 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { SCORE_LEVEL_COLORS, SCORE_LEVEL_EMOJIS, SCORE_LEVEL_RANGES, SCORE_LEVELS } from '@/constants/score-levels';
 import { useScreenSize } from '@/hooks/use-screen-size';
-import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
+import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
 import { ensureUserProfile, fetchUserProgress, fetchUsersByLevel, getScoreLevel, type ScoreLevel, type UserProfile } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
 
 export default function CommunityScreen() {
   const bottomPadding = useTabContentPadding();
+  const topPadding = useTopContentPadding();
   const { user } = useAuth();
   const { userProgress: cachedProgress } = useData();
   const { isDesktop, isTablet, isMobile } = useScreenSize();
@@ -264,9 +265,9 @@ export default function CommunityScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]"
+      className="flex-1 bg-white px-5 dark:bg-[#151718]"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: bottomPadding }}>
+      contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPadding }}>
       <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">Comunidade</Text>
       <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">
         Ranking de usuários {loading ? '...' : <Text className="font-bold">{userScoreLevel}</Text>} {loading ? '' : SCORE_LEVEL_EMOJIS[userScoreLevel]}

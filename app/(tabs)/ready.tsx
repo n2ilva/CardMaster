@@ -6,7 +6,7 @@ import { Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-nati
 import { TRACK_STYLE_FALLBACK, trackStyles, type TrackIcon } from '@/constants/track-styles';
 import { useStudyPlans } from '@/hooks/use-last-study-plan';
 import { useScreenSize } from '@/hooks/use-screen-size';
-import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
+import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
 import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
 
@@ -121,6 +121,7 @@ function PlansDropdown({
 
 export default function ReadyCardsScreen() {
   const bottomPadding = useTabContentPadding();
+  const topPadding = useTopContentPadding();
   const { trackCatalog } = useData();
   const { isDesktop, isTablet } = useScreenSize();
   const router = useRouter();
@@ -276,7 +277,7 @@ export default function ReadyCardsScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: '#111316' }}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingTop: 56, paddingHorizontal: 20, paddingBottom: bottomPadding }}>
+      contentContainerStyle={{ paddingTop: topPadding, paddingHorizontal: 20, paddingBottom: bottomPadding }}>
 
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 12 }}>
@@ -327,12 +328,13 @@ export default function ReadyCardsScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                backgroundColor: pressed ? '#1A1D21' : 'transparent',
+                backgroundColor: pressed ? '#0d1f14' : '#0f1f14',
                 borderWidth: 1,
-                borderColor: '#22C55E40',
+                borderColor: '#22C55E50',
                 borderRadius: 10,
                 paddingHorizontal: 12,
                 paddingVertical: 10,
+                width: '100%',
               })}>
               <MaterialIcons name="bookmark" size={14} color="#22C55E" />
               <Text style={{ color: '#22C55E', fontSize: 13, fontWeight: '600' }}>

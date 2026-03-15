@@ -5,12 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps 
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { DesktopSidebar } from '@/components/desktop-sidebar';
+import { CATEGORY_TYPE_LABEL } from '@/data/tracks';
 import { useScreenSize } from '@/hooks/use-screen-size';
 import {
-    fetchCategoryStats,
-    getCategoriesForTrack,
-    resolveTrackLabel,
-    type CategoryStats,
+  fetchCategoryStats,
+  getCategoriesForTrack,
+  resolveTrackLabel,
+  type CategoryStats,
 } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -51,7 +52,7 @@ function CategoryCard({
     <View style={{ backgroundColor: accentColor, borderRadius: 14, padding: 2, overflow: 'hidden' }}>
       <View style={{ backgroundColor: '#111316', borderRadius: 12, padding: 16 }}>
         {/* Title */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: CATEGORY_TYPE_LABEL[cat] ? 4 : 10 }}>
           <Text style={{ flex: 1, color: '#ECEDEE', fontSize: 15, fontWeight: '700' }}>{cat}</Text>
           {dueForReview > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F59E0B', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
@@ -60,6 +61,9 @@ function CategoryCard({
             </View>
           )}
         </View>
+        {CATEGORY_TYPE_LABEL[cat] && (
+          <Text style={{ color: '#6B7280', fontSize: 11, marginBottom: 10 }}>{CATEGORY_TYPE_LABEL[cat]}</Text>
+        )}
 
         {/* Stats row */}
         <View style={{ flexDirection: 'row', gap: 16, marginBottom: 8 }}>
@@ -148,7 +152,7 @@ function CategoryCardDesktop({
     <View style={{ backgroundColor: accentColor, borderRadius: 14, padding: 2, overflow: 'hidden' }}>
       <View style={{ backgroundColor: '#111316', borderRadius: 12, padding: 16 }}>
         {/* Linha superior: nome + badge revisão */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: CATEGORY_TYPE_LABEL[cat] ? 4 : 10 }}>
           <Text style={{ flex: 1, color: '#ECEDEE', fontSize: 15, fontWeight: '700' }}>{cat}</Text>
           {dueForReview > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F59E0B', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
@@ -157,6 +161,9 @@ function CategoryCardDesktop({
             </View>
           )}
         </View>
+        {CATEGORY_TYPE_LABEL[cat] && (
+          <Text style={{ color: '#6B7280', fontSize: 11, marginBottom: 10 }}>{CATEGORY_TYPE_LABEL[cat]}</Text>
+        )}
 
         {/* Stats row */}
         <View style={{ flexDirection: 'row', gap: 16, marginBottom: 8 }}>

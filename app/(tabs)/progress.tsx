@@ -8,7 +8,7 @@ import { SCORE_LEVEL_EMOJIS } from '@/constants/score-levels';
 import { TRACK_STYLE_FALLBACK, trackStyles } from '@/constants/track-styles';
 import { trackLabels } from '@/data/tracks';
 import { useScreenSize } from '@/hooks/use-screen-size';
-import { useTabContentPadding } from '@/hooks/use-tab-content-padding';
+import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
 import {
     type CategoryProgress,
     fetchUserProgress,
@@ -154,6 +154,7 @@ function CategoryCard({ cat }: { cat: CategoryProgress }) {
 
 export default function ProgressScreen() {
   const bottomPadding = useTabContentPadding();
+  const topPadding = useTopContentPadding();
   const { user } = useAuth();
   const { userProgress: cachedProgress, refreshUserProgress } = useData();
   const { isDesktop, isTablet, isMobile } = useScreenSize();
@@ -454,9 +455,9 @@ export default function ProgressScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]"
+      className="flex-1 bg-white px-5 dark:bg-[#151718]"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: bottomPadding }}>
+      contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPadding }}>
       <View className="flex-row items-center justify-between">
         <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">Sua evolução</Text>
         {totalLessons > 0 && (
