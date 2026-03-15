@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { TRACK_STYLE_FALLBACK, trackStyles, type TrackIcon } from '@/constants/track-styles';
 import { useStudyPlans } from '@/hooks/use-last-study-plan';
@@ -16,6 +16,41 @@ type TrackCard = {
   icon: TrackIcon;
   color: string;
 };
+
+// ─── Card de tema com hover scale ──────────────────────────────────────
+function TrackHoverCard({ t, height = 80, fontSize = 16 }: { t: TrackCard; height?: number; fontSize?: number }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const handleHoverIn = () =>
+    Animated.spring(scale, { toValue: 1.06, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
+  const handleHoverOut = () =>
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 4 }).start();
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <View style={{ backgroundColor: t.color, borderRadius: 14, padding: 2, overflow: 'hidden' }}>
+        <Link href={`/ready/${encodeURIComponent(t.key)}`} asChild>
+          <Pressable
+            {...({ onHoverIn: handleHoverIn, onHoverOut: handleHoverOut } as any)}
+            style={({ pressed }: { pressed: boolean }) => ({
+              width: '100%',
+              height,
+              alignItems: 'center' as const,
+              justifyContent: 'center' as const,
+              backgroundColor: pressed ? '#17191C' : '#111316',
+              borderRadius: 12,
+              paddingHorizontal: 4,
+            })}>
+            <Text
+              style={{ color: '#ECEDEE', fontSize, fontWeight: '700', textAlign: 'center', padding: 10 }}
+              numberOfLines={2}>
+              {t.label}
+            </Text>
+          </Pressable>
+        </Link>
+      </View>
+    </Animated.View>
+  );
+}
 
 // ─── Dropdown de planos salvos ───────────────────────────────────────────
 function PlansDropdown({
@@ -239,31 +274,7 @@ export default function ReadyCardsScreen() {
           {[0, 1, 2].map((colIdx) => (
             <View key={colIdx} style={{ flex: 1, gap: 12 }}>
               {tracks.filter((_, i) => i % 3 === colIdx).map((t) => (
-                <View
-                  key={t.key}
-                  style={{
-                    backgroundColor: t.color,
-                    borderRadius: 14,
-                    padding: 2,
-                    overflow: 'hidden',
-                  }}>
-                  <Link href={`/ready/${encodeURIComponent(t.key)}`} asChild>
-                    <Pressable
-                      style={({ pressed }) => ({
-                        width: '100%',
-                        height: 110,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: pressed ? '#17191C' : '#111316',
-                        borderRadius: 12,
-                        paddingHorizontal: 4,
-                      })}>
-                      <Text style={{ color: '#ECEDEE', fontSize: 17, fontWeight: '700', textAlign: 'center', padding: 10 }} numberOfLines={2}>
-                        {t.label}
-                      </Text>
-                    </Pressable>
-                  </Link>
-                </View>
+                <TrackHoverCard key={t.key} t={t} height={110} fontSize={17} />
               ))}
             </View>
           ))}
@@ -372,31 +383,7 @@ export default function ReadyCardsScreen() {
         {[0, 1].map((colIdx) => (
           <View key={colIdx} style={{ flex: 1, gap: 10 }}>
             {tracks.filter((_, i) => i % 2 === colIdx).map((t) => (
-              <View
-                key={t.key}
-                style={{
-                  backgroundColor: t.color,
-                  borderRadius: 14,
-                  padding: 2,
-                  overflow: 'hidden',
-                }}>
-                <Link href={`/ready/${encodeURIComponent(t.key)}`} asChild>
-                  <Pressable
-                    style={({ pressed }) => ({
-                      width: '100%',
-                      height: 80,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: pressed ? '#17191C' : '#111316',
-                      borderRadius: 12,
-                      paddingHorizontal: 4,
-                    })}>
-                    <Text style={{ color: '#ECEDEE', fontSize: 16, fontWeight: '700', textAlign: 'center', padding: 10 }} numberOfLines={2}>
-                      {t.label}
-                    </Text>
-                  </Pressable>
-                </Link>
-              </View>
+              <TrackHoverCard key={t.key} t={t} height={80} fontSize={16} />
             ))}
           </View>
         ))}

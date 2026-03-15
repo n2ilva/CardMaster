@@ -2,7 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Link } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 
 import { SCORE_LEVEL_EMOJIS } from '@/constants/score-levels';
 import { TRACK_STYLE_FALLBACK, trackStyles } from '@/constants/track-styles';
@@ -10,12 +10,12 @@ import { trackLabels } from '@/data/tracks';
 import { useScreenSize } from '@/hooks/use-screen-size';
 import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
 import {
-    type CategoryProgress,
-    fetchUserProgress,
-    formatDuration,
-    getScoreLevel,
-    resetUserProgress,
-    type ScoreLevel,
+  type CategoryProgress,
+  fetchUserProgress,
+  formatDuration,
+  getScoreLevel,
+  resetUserProgress,
+  type ScoreLevel,
 } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
@@ -60,10 +60,29 @@ function CategoryCard({ cat }: { cat: CategoryProgress }) {
   const accentColor = acc === 100 ? '#22C55E' : acc >= 80 ? '#10B981' : acc >= 50 ? '#F59E0B' : '#EF4444';
   const trackStyle = trackStyles[cat.track] ?? TRACK_STYLE_FALLBACK;
   const trackLabel = trackLabels[cat.track] ?? cat.track;
+  const [hovered, setHovered] = useState(false);
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onHoverIn = () => {
+    setHovered(true);
+    Animated.spring(scale, { toValue: 1.04, useNativeDriver: true, speed: 30, bounciness: 5 }).start();
+  };
+  const onHoverOut = () => {
+    setHovered(false);
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 5 }).start();
+  };
 
   return (
-    <View style={{ backgroundColor: accentColor, borderRadius: 16, padding: 2, overflow: 'hidden' }}>
-      <View style={{ backgroundColor: '#111316', borderRadius: 14, padding: 14 }}>
+    <Animated.View style={{ transform: [{ scale }] }}>
+    <Pressable
+      {...({ onHoverIn, onHoverOut } as any)}
+      style={{
+        backgroundColor: hovered ? accentColor : accentColor + '99',
+        borderRadius: 16,
+        padding: 2,
+        overflow: 'hidden',
+      }}>
+      <View style={{ backgroundColor: hovered ? '#17191C' : '#111316', borderRadius: 14, padding: 14 }}>
 
         {/* Header: ícone + nome + % acerto */}
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
@@ -120,10 +139,7 @@ function CategoryCard({ cat }: { cat: CategoryProgress }) {
         ) : null}
 
         <Link
-          href={cat.hasInProgressLesson
-            ? `/ready/study?track=${encodeURIComponent(cat.track)}&category=${encodeURIComponent(cat.category)}`
-            : `/ready/${encodeURIComponent(cat.track)}`
-          }
+          href={`/ready/study?track=${encodeURIComponent(cat.track)}&category=${encodeURIComponent(cat.category)}`}
           asChild>
           <Pressable
             style={({ pressed }) => ({
@@ -148,7 +164,8 @@ function CategoryCard({ cat }: { cat: CategoryProgress }) {
           </Pressable>
         </Link>
       </View>
-    </View>
+    </Pressable>
+    </Animated.View>
   );
 }
 
@@ -351,97 +368,11 @@ export default function ProgressScreen() {
                   showsVerticalScrollIndicator={false}
                   nestedScrollEnabled>
                   <View style={{ padding: 16, flexDirection: 'row', flexWrap: 'wrap', gap: catGridGap, alignContent: 'flex-start', justifyContent: 'center' }}>
-                  {[...categories].sort((a, b) => b.lastStudiedAt - a.lastStudiedAt).map((cat) => {
-                    const acc = cat.accuracyPercent;
-                    const accentColor = acc === 100 ? '#22C55E' : acc >= 80 ? '#10B981' : acc >= 50 ? '#F59E0B' : '#EF4444';
-                    const trackStyle = trackStyles[cat.track] ?? TRACK_STYLE_FALLBACK;
-                    return (
-                      <View key={`${cat.track}__${cat.category}`} style={{
-                        width: catItemWidth,
-                        borderRadius: 16,
-                        backgroundColor: accentColor,
-                        padding: 2,
-                        overflow: 'hidden',
-                      }}>
-                        <View style={{ backgroundColor: '#111316', borderRadius: 14, padding: 14, flex: 1 }}>
-                          {/* Header: ícone + nomes + % */}
-                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-                            <View style={{ backgroundColor: trackStyle.color + '25', borderRadius: 9, padding: 7, marginTop: 1 }}>
-                              <MaterialIcons name={trackStyle.icon} size={14} color={trackStyle.color} />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={{ color: '#6B7280', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }} numberOfLines={1}>
-                                {trackLabels[cat.track] ?? cat.track}
-                              </Text>
-                              <Text style={{ color: '#ECEDEE', fontSize: 13, fontWeight: '700', marginTop: 2, lineHeight: 18 }} numberOfLines={2}>
-                                {cat.category}
-                              </Text>
-                            </View>
-                            <View style={{ alignItems: 'flex-end' }}>
-                              <Text style={{ color: accentColor, fontSize: 20, fontWeight: '800', lineHeight: 22 }}>
-                                {acc}%
-                              </Text>
-                              <Text style={{ color: '#6B7280', fontSize: 10, marginTop: 1 }}>acertos</Text>
-                            </View>
-                          </View>
-
-                          {/* Barra de progresso */}
-                          <View style={{ height: 5, backgroundColor: '#1E2328', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
-                            <View style={{ height: '100%', width: `${cat.studyPercent}%`, backgroundColor: accentColor, borderRadius: 4, opacity: 0.65 }} />
-                          </View>
-
-                          {/* Stats */}
-                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-                            <Text style={{ color: '#6B7280', fontSize: 11 }}>
-                              {cat.studyPercent}% estudado · {cat.uniqueQuestionsAnswered} {cat.uniqueQuestionsAnswered === 1 ? 'questão' : 'questões'}
-                            </Text>
-                            <Text style={{ color: '#6B7280', fontSize: 11 }}>
-                              {formatDuration(cat.avgTimePerQuestionMs)}/q
-                            </Text>
-                          </View>
-
-                          {cat.hasInProgressLesson && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F59E0B22', borderWidth: 1, borderColor: '#F59E0B44', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 8 }}>
-                              <MaterialIcons name="schedule" size={12} color="#F59E0B" />
-                              <Text style={{ color: '#F59E0B', fontSize: 11, fontWeight: '600' }}>
-                                Em andamento · {cat.inProgressAnswered} {cat.inProgressAnswered === 1 ? 'resposta' : 'respostas'}
-                              </Text>
-                            </View>
-                          )}
-
-                          {acc < 50 && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EF444422', borderWidth: 1, borderColor: '#EF444444', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 8 }}>
-                              <MaterialIcons name="warning" size={12} color="#EF4444" />
-                              <Text style={{ color: '#EF4444', fontSize: 11, fontWeight: '600' }}>Taxa baixa — revise este tema</Text>
-                            </View>
-                          )}
-
-                          <Link
-                            href={cat.hasInProgressLesson
-                              ? `/ready/study?track=${encodeURIComponent(cat.track)}&category=${encodeURIComponent(cat.category)}`
-                              : `/ready/${encodeURIComponent(cat.track)}`}
-                            asChild>
-                            <Pressable style={({ pressed }) => ({
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 6,
-                              backgroundColor: pressed ? '#1e2a5e33' : '#1A1D21',
-                              borderWidth: 1,
-                              borderColor: '#3F51B580',
-                              borderRadius: 10,
-                              paddingVertical: 9,
-                            })}>
-                              <MaterialIcons name={cat.hasInProgressLesson ? 'play-arrow' : 'replay'} size={15} color="#818CF8" />
-                              <Text style={{ color: '#818CF8', fontSize: 13, fontWeight: '700' }}>
-                                {cat.hasInProgressLesson ? 'Continuar' : 'Estudar'}
-                              </Text>
-                            </Pressable>
-                          </Link>
-                        </View>
+                    {[...categories].sort((a, b) => b.lastStudiedAt - a.lastStudiedAt).map((cat) => (
+                      <View key={`${cat.track}__${cat.category}`} style={{ width: catItemWidth }}>
+                        <CategoryCard cat={cat} />
                       </View>
-                    );
-                  })}
+                    ))}
                   </View>
                 </ScrollView>
               )}

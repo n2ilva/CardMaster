@@ -1,6 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useRef } from 'react';
+import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { TRACK_STYLE_FALLBACK, trackStyles, type TrackIcon } from '@/constants/track-styles';
 import { useLogout } from '@/hooks/use-logout';
@@ -20,6 +21,40 @@ type FeatureItem = {
   icon: TrackIcon;
   text: string;
 };
+
+function ThemeCard({ t, fontSize = 14 }: { t: ThemeItem; fontSize?: number }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const handleHoverIn = () =>
+    Animated.spring(scale, { toValue: 1.06, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
+  const handleHoverOut = () =>
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 4 }).start();
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <View style={{ backgroundColor: t.color, borderRadius: 14, padding: 2, overflow: 'hidden' }}>
+        <Link href={`/ready/${encodeURIComponent(t.key)}`} asChild>
+          <Pressable
+            {...({ onHoverIn: handleHoverIn, onHoverOut: handleHoverOut } as any)}
+            style={({ pressed }: { pressed: boolean }) => ({
+              width: '100%',
+              height: 60,
+              alignItems: 'center' as const,
+              justifyContent: 'center' as const,
+              backgroundColor: pressed ? '#17191C' : '#111316',
+              borderRadius: 12,
+              paddingHorizontal: 4,
+            })}>
+            <Text
+              style={{ color: '#ECEDEE', fontSize, fontWeight: '700', textAlign: 'center', padding: 10 }}
+              numberOfLines={2}>
+              {t.label}
+            </Text>
+          </Pressable>
+        </Link>
+      </View>
+    </Animated.View>
+  );
+}
 
 const features: FeatureItem[] = [
   { icon: 'auto-awesome', text: 'Crie um planejamento de estudos personalizado' },
@@ -67,7 +102,7 @@ export default function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 28, gap: 16 }}>
           <View style={{ flex: 1 }}>
             <Text style={{ color: '#ECEDEE', fontSize: 26, fontWeight: '700' }}>
-              {user ? `Olá, ${user.name}! 👋` : 'Bem-vindo!'}
+              {user ? `Olá, ${user.name}!` : 'Bem-vindo!'}
             </Text>
             <Text style={{ color: '#687076', fontSize: 14, marginTop: 4 }}>
               Teste seus conhecimentos e evolua com questões desafiadoras.
@@ -147,31 +182,7 @@ export default function HomeScreen() {
                 {[0, 1, 2].map((colIdx) => (
                   <View key={colIdx} style={{ flex: 1, gap: 10 }}>
                     {themes.filter((_, i) => i % 3 === colIdx).map((t) => (
-                      <View
-                        key={t.key}
-                        style={{
-                          backgroundColor: t.color,
-                          borderRadius: 14,
-                          padding: 2,
-                          overflow: 'hidden',
-                        }}>
-                        <Link href={`/ready/${encodeURIComponent(t.key)}`} asChild>
-                          <Pressable
-                            style={({ pressed }) => ({
-                              width: '100%',
-                              height: 60,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              backgroundColor: pressed ? '#17191C' : '#111316',
-                              borderRadius: 12,
-                              paddingHorizontal: 4,
-                            })}>
-                            <Text style={{ color: '#ECEDEE', fontSize: 16, fontWeight: '700', textAlign: 'center', padding: 10 }} numberOfLines={2}>
-                              {t.label}
-                            </Text>
-                          </Pressable>
-                        </Link>
-                      </View>
+                      <ThemeCard key={t.key} t={t} fontSize={16} />
                     ))}
                   </View>
                 ))}
@@ -306,31 +317,7 @@ export default function HomeScreen() {
           {[0, 1].map((colIdx) => (
             <View key={colIdx} style={{ flex: 1, gap: 10 }}>
               {themes.filter((_, i) => i % 2 === colIdx).map((t) => (
-                <View
-                  key={t.key}
-                  style={{
-                    backgroundColor: t.color,
-                    borderRadius: 14,
-                    padding: 2,
-                    overflow: 'hidden',
-                  }}>
-                  <Link href={`/ready/${encodeURIComponent(t.key)}`} asChild>
-                    <Pressable
-                      style={({ pressed }) => ({
-                        width: '100%',
-                        height: 60,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: pressed ? '#17191C' : '#111316',
-                        borderRadius: 12,
-                        paddingHorizontal: 4,
-                      })}>
-                      <Text style={{ color: '#ECEDEE', fontSize: 14, fontWeight: '700', textAlign: 'center', padding: 10 }} numberOfLines={2}>
-                        {t.label}
-                      </Text>
-                    </Pressable>
-                  </Link>
-                </View>
+                <ThemeCard key={t.key} t={t} />
               ))}
             </View>
           ))}

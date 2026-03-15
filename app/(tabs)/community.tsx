@@ -22,6 +22,7 @@ export default function CommunityScreen() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [hoveredUserId, setHoveredUserId] = useState<string | null>(null);
   const isFirstLoad = useRef(true);
 
   const loadCommunity = useCallback(async () => {
@@ -165,11 +166,18 @@ export default function CommunityScreen() {
                     <Pressable
                       key={userProfile.userId}
                       onPress={() => setExpandedUserId(isExpanded ? null : userProfile.userId)}
+                      {...({ onHoverIn: () => setHoveredUserId(userProfile.userId), onHoverOut: () => setHoveredUserId(null) } as any)}
                       style={({ pressed }) => ({
                         borderRadius: 14,
                         borderWidth: 1,
-                        borderColor: isCurrentUser ? 'rgba(245,158,11,0.4)' : '#1E2328',
-                        backgroundColor: pressed ? '#17191C' : isCurrentUser ? 'rgba(245,158,11,0.07)' : '#0D0F10',
+                        borderColor: isCurrentUser
+                          ? 'rgba(245,158,11,0.4)'
+                          : hoveredUserId === userProfile.userId ? 'rgba(165,180,252,0.35)' : '#1E2328',
+                        backgroundColor: pressed
+                          ? '#17191C'
+                          : hoveredUserId === userProfile.userId
+                            ? isCurrentUser ? 'rgba(245,158,11,0.14)' : '#17191C'
+                            : isCurrentUser ? 'rgba(245,158,11,0.07)' : '#0D0F10',
                         overflow: 'hidden',
                       })}>
                     <View style={{
@@ -339,11 +347,18 @@ export default function CommunityScreen() {
               <Pressable
                 key={userProfile.userId}
                 onPress={() => setExpandedUserId(isExpanded ? null : userProfile.userId)}
+                {...({ onHoverIn: () => setHoveredUserId(userProfile.userId), onHoverOut: () => setHoveredUserId(null) } as any)}
                 style={({ pressed }) => ({
                   borderRadius: 12,
                   borderWidth: 1,
-                  borderColor: isCurrentUser ? 'rgba(245,158,11,0.5)' : '#30363D',
-                  backgroundColor: pressed ? '#17191C' : isCurrentUser ? 'rgba(245,158,11,0.08)' : '#151718',
+                  borderColor: isCurrentUser
+                    ? 'rgba(245,158,11,0.5)'
+                    : hoveredUserId === userProfile.userId ? 'rgba(165,180,252,0.35)' : '#30363D',
+                  backgroundColor: pressed
+                    ? '#17191C'
+                    : hoveredUserId === userProfile.userId
+                      ? isCurrentUser ? 'rgba(245,158,11,0.15)' : '#1A1D21'
+                      : isCurrentUser ? 'rgba(245,158,11,0.08)' : '#151718',
                   overflow: 'hidden',
                 })}>
                 {/* Linha principal */}
