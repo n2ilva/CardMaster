@@ -5,10 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Appearance, Platform, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
 
 import { LoadingScreen } from '@/components/ui/loading-screen';
-import { useScreenSize } from '@/hooks/use-screen-size';
+import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useStudyReminders } from '@/hooks/use-study-reminders';
 import { AuthProvider, useAuth } from '@/providers/auth-provider';
 import { DataProvider, useData } from '@/providers/data-provider';
@@ -22,13 +23,12 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
 });
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: '(features)',
 };
 
 function RootNavigator() {
   const pathname = usePathname();
   const router = useRouter();
-  const { isDesktop, isTablet } = useScreenSize();
   const { user, isLoading } = useAuth();
   const { isPreloading, preloadProgress } = useData();
   const isInitializing = isLoading || (user != null && isPreloading);
@@ -49,7 +49,7 @@ function RootNavigator() {
     }
 
     if (user && onLoginRoute) {
-      router.replace('/(tabs)');
+      router.replace('/(features)/(main)');
     }
   }, [isLoading, isPreloading, pathname, router, user]);
 
@@ -71,40 +71,8 @@ function RootNavigator() {
           fullScreenGestureEnabled: true,
           contentStyle: { backgroundColor: '#151718' },
         }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(features)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="ready/[track]"
-          options={{
-            title: 'Categorias',
-            headerBackTitle: 'Voltar',
-            headerShown: !(isDesktop || isTablet),
-          }}
-        />
-        <Stack.Screen
-          name="ready/study"
-          options={{
-            title: 'Quizzes',
-            headerBackTitle: 'Voltar',
-            headerShown: !(isDesktop || isTablet),
-          }}
-        />
-        <Stack.Screen
-          name="ready/planned"
-          options={{
-            title: 'Planejamento de Estudos',
-            headerBackTitle: 'Voltar',
-            headerShown: !(isDesktop || isTablet),
-          }}
-        />
-        <Stack.Screen
-          name="ready/theme-info"
-          options={{
-            title: 'Pesquisa',
-            headerBackTitle: 'Voltar',
-            headerShown: !(isDesktop || isTablet),
-          }}
-        />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="light" />
@@ -125,10 +93,12 @@ const styles = StyleSheet.create({
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <DataProvider>
-        <RootNavigator />
-      </DataProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <DataProvider>
+          <RootNavigator />
+        </DataProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

@@ -23,29 +23,29 @@ const plans: StudyPlan[] = [
     sequence: [
       "Git e Versionamento",
       "Algoritmos e Estruturas de Dados",
-      "Clean Code e Boas Práticas",
       "Programação Orientada a Objetos",
+      "Clean Code e Boas Práticas",
       "Banco de Dados SQL",
       "APIs REST e GraphQL",
       "Testes de Software",
       "Metodologias Ágeis",
     ],
-    tip: "Comece pelo controle de versão — é a base de qualquer projeto de software.",
+    tip: "Construa a base de desenvolvimento primeiro: versionamento, lógica, modelagem e qualidade antes de avançar para arquitetura.",
   },
   {
     track: "engenharia-de-software",
     level: "Intermediário",
     sequence: [
-      "Design Patterns",
       "Arquitetura de Software",
+      "Design Patterns",
       "Banco de Dados NoSQL",
       "Docker e Containers",
-      "CI/CD e DevOps",
-      "Mensageria e Filas",
       "Autenticação e Autorização",
       "Segurança no Desenvolvimento",
+      "CI/CD e DevOps",
+      "Mensageria e Filas",
     ],
-    tip: "Com a base sólida, é hora de aprofundar em padrões e infraestrutura moderna.",
+    tip: "Aqui o foco já é engenharia de produto real: arquitetura, integração, entrega contínua e segurança aplicada.",
   },
   {
     track: "engenharia-de-software",
@@ -53,14 +53,15 @@ const plans: StudyPlan[] = [
     sequence: [
       "System Design",
       "Arquitetura de Software",
-      "Mensageria e Filas",
-      "Segurança no Desenvolvimento",
       "CI/CD e DevOps",
+      "Mensageria e Filas",
       "Autenticação e Autorização",
+      "Segurança no Desenvolvimento",
       "Design Patterns",
       "Testes de Software",
+      "Docker e Containers",
     ],
-    tip: "Foque em System Design e arquiteturas distribuídas — são os temas mais cobrados em empresas de tecnologia.",
+    tip: "O plano avançado prioriza decisões de escala, integração, confiabilidade e segurança em sistemas distribuídos.",
   },
 
   // ─── Linguagens de Programação ────────────────────────────────────────────
@@ -68,46 +69,50 @@ const plans: StudyPlan[] = [
     track: "linguagens-de-programacao",
     level: "Iniciante",
     sequence: [
-      "Python",
+      "HTML",
+      "CSS",
       "JavaScript",
-      "React e React Native",
-      "SQL",
-      "Shell/Bash",
       "TypeScript",
+      "SQL",
+      "Python",
+      "Shell/Bash",
+      "React e React Native",
       "Java",
-      "C",
     ],
-    tip: "Python e JavaScript são as linguagens com maior demanda para iniciantes.",
+    tip: "O melhor início combina base web, lógica prática, consultas e automação, sem dispersar cedo demais em stacks pesadas.",
   },
   {
     track: "linguagens-de-programacao",
     level: "Intermediário",
     sequence: [
       "TypeScript",
-      "Java",
-      "C#",
       "React e React Native",
+      "Next.js",
+      "Python",
       "Django",
+      "Java",
       "Spring Boot",
+      "C#",
       "Go",
       "Kotlin",
     ],
-    tip: "Typescript e frameworks robustos abrem portas para o mercado de trabalho.",
+    tip: "No nível intermediário, vale estudar ecossistemas completos: linguagem, framework principal e modelo de arquitetura associado.",
   },
   {
     track: "linguagens-de-programacao",
     level: "Avançado",
     sequence: [
+      "C",
+      "C++",
       "Rust",
       "Go",
-      "C++",
       "Kotlin",
       "Swift",
       "Dart",
-      "Spring Boot",
-      "React e React Native",
+      "Flutter",
+      "Vue.js",
     ],
-    tip: "Rust e Go são linguagens de alta performance valorizadas em sistemas distribuídos.",
+    tip: "O plano avançado privilegia linguagens e runtimes em que performance, concorrência, mobile nativo e decisões de plataforma fazem diferença real.",
   },
 
   // ─── Machine Learning e IA ────────────────────────────────────────────────
@@ -122,12 +127,13 @@ const plans: StudyPlan[] = [
       "Aprendizado Não Supervisionado",
       "Processamento de Linguagem Natural",
     ],
-    tip: "Estatística é a fundação do Machine Learning — não pule essa etapa.",
+    tip: "A ordem correta em ML começa por dados e estatística, não por redes neurais. Isso evita aprendizado frágil e decorado.",
   },
   {
     track: "machine-learning-e-ia",
     level: "Intermediário",
     sequence: [
+      "Pré-processamento de Dados",
       "Algoritmos de Regressão",
       "Algoritmos de Classificação",
       "Aprendizado Não Supervisionado",
@@ -136,20 +142,21 @@ const plans: StudyPlan[] = [
       "Visão Computacional",
       "MLOps e Deploy de Modelos",
     ],
-    tip: "Com os algoritmos clássicos dominados, avance para redes neurais e deploy.",
+    tip: "Neste estágio, o ganho de qualidade vem de conectar modelagem clássica, deep learning e operação de modelos em produção.",
   },
   {
     track: "machine-learning-e-ia",
     level: "Avançado",
     sequence: [
-      "Deep Learning e Redes Neurais",
-      "IA Generativa e LLMs",
-      "Visão Computacional",
-      "Processamento de Linguagem Natural",
-      "MLOps e Deploy de Modelos",
       "Estatística para ML",
+      "Deep Learning e Redes Neurais",
+      "Processamento de Linguagem Natural",
+      "Visão Computacional",
+      "IA Generativa e LLMs",
+      "MLOps e Deploy de Modelos",
+      "Aprendizado Não Supervisionado",
     ],
-    tip: "LLMs e IA Generativa são os temas mais quentes do setor — explore com profundidade.",
+    tip: "IA avançada exige voltar aos fundamentos estatísticos enquanto aprofunda arquiteturas modernas, avaliação e operação em escala.",
   },
 
   // ─── Cloud ────────────────────────────────────────────────────────────────
@@ -160,25 +167,27 @@ const plans: StudyPlan[] = [
       "Arquitetura em Nuvem",
       "AWS — Fundamentos",
       "Azure — Fundamentos",
-      "Containers e Kubernetes",
       "Segurança em Cloud",
       "Monitoramento e Observabilidade",
+      "Containers e Kubernetes",
+      "DevOps e CI/CD",
     ],
-    tip: "Comece pelos fundamentos de um único provedor (idealmente AWS ou Azure) antes de diversificar.",
+    tip: "Primeiro entenda conceitos universais de cloud e só depois compare provedores, automação e orquestração.",
   },
   {
     track: "cloud",
     level: "Intermediário",
     sequence: [
       "Containers e Kubernetes",
+      "Infrastructure as Code",
       "DevOps e CI/CD",
       "AWS — Serviços Avançados",
       "Azure — Serviços Avançados",
-      "Infrastructure as Code",
+      "Serverless e Functions",
       "Segurança em Cloud",
       "Monitoramento e Observabilidade",
     ],
-    tip: "Kubernetes e IaC são habilidades cruciais para o mercado de Cloud intermediário.",
+    tip: "O nível intermediário precisa unir provisionamento, pipeline, observabilidade e uso mais estratégico dos serviços gerenciados.",
   },
   {
     track: "cloud",
@@ -186,14 +195,15 @@ const plans: StudyPlan[] = [
     sequence: [
       "Infrastructure as Code",
       "DevOps e CI/CD",
-      "Serverless e Functions",
-      "Google Cloud Platform",
+      "Containers e Kubernetes",
       "AWS — Serviços Avançados",
       "Azure — Serviços Avançados",
+      "Google Cloud Platform",
+      "Serverless e Functions",
       "Monitoramento e Observabilidade",
       "Segurança em Cloud",
     ],
-    tip: "Multi-cloud e Serverless diferenciam profissionais sênior no mercado.",
+    tip: "O plano avançado trata cloud como plataforma operacional completa: multi-cloud, automação, resiliência e governança técnica.",
   },
 
   // ─── Redes de Computadores ────────────────────────────────────────────────
@@ -205,36 +215,41 @@ const plans: StudyPlan[] = [
       "Endereçamento IP e Sub-redes",
       "DNS, DHCP e NAT",
       "Equipamentos de Rede",
-      "Cabeamento Estruturado",
       "Redes Sem Fio (Wi-Fi)",
+      "Cabeamento Estruturado",
     ],
-    tip: "O modelo OSI é o vocabulário comum das redes — domine antes de avançar.",
+    tip: "Uma boa base em redes nasce do entendimento de camadas, endereçamento e serviços essenciais antes de partir para troubleshooting complexo.",
   },
   {
     track: "rede-de-computadores",
     level: "Intermediário",
     sequence: [
+      "VLANs e Switching",
       "Protocolos de Roteamento",
-      "Firewall e Proxy",
+      "IPv6",
       "Serviços de Rede (HTTP, FTP, SSH)",
+      "Monitoramento e Diagnóstico de Redes",
+      "Firewall e Proxy",
       "VPN e Túneis",
       "Segurança de Redes",
       "VoIP e Comunicações Unificadas",
     ],
-    tip: "Roteamento e segurança de rede são a espinha dorsal de ambientes corporativos.",
+    tip: "No intermediário, o salto de qualidade vem quando você conecta switching, roteamento, segurança e diagnóstico no mesmo raciocínio operacional.",
   },
   {
     track: "rede-de-computadores",
     level: "Avançado",
     sequence: [
-      "Segurança de Redes",
-      "VPN e Túneis",
       "Protocolos de Roteamento",
+      "Segurança de Redes",
       "Firewall e Proxy",
+      "VPN e Túneis",
+      "IPv6",
+      "Monitoramento e Diagnóstico de Redes",
       "VoIP e Comunicações Unificadas",
       "Serviços de Rede (HTTP, FTP, SSH)",
     ],
-    tip: "Segurança de redes e SD-WAN são competências altamente valorizadas em ambientes avançados.",
+    tip: "Em nível avançado, a prioridade é operar redes complexas com segurança, visibilidade, redundância e decisões técnicas bem justificadas.",
   },
 
   // ─── Segurança da Informação ──────────────────────────────────────────────
@@ -242,40 +257,44 @@ const plans: StudyPlan[] = [
     track: "seguranca-da-informacao",
     level: "Iniciante",
     sequence: [
-      "Criptografia",
-      "Controle de Acesso e Identidade",
       "Políticas de Segurança",
-      "LGPD e Regulamentações",
-      "Malwares e Ameaças",
+      "Malwares",
+      "Criptografia",
+      "Controle de Acesso",
       "Gestão de Riscos",
+      "LGPD",
+      "Cibersegurança",
     ],
-    tip: "Criptografia e controle de acesso são os pilares da segurança da informação.",
+    tip: "Comece por fundamentos de proteção, ameaça, acesso e risco; sem isso, o restante vira ferramenta sem contexto.",
   },
   {
     track: "seguranca-da-informacao",
     level: "Intermediário",
     sequence: [
       "Segurança em Aplicações Web",
+      "Segurança de Redes",
       "Certificados Digitais e PKI",
       "Normas ISO 27001/27002",
       "Governança e Compliance",
       "Gestão de Riscos",
-      "Cibersegurança Ofensiva e Defensiva",
+      "Segurança em Cloud",
     ],
-    tip: "Segurança web e certificações são essenciais para atuar em empresas regularizadas.",
+    tip: "Aqui o objetivo é sair do conceito e entrar em controles concretos, conformidade e superfícies reais de ataque.",
   },
   {
     track: "seguranca-da-informacao",
     level: "Avançado",
     sequence: [
-      "Cibersegurança Ofensiva e Defensiva",
+      "Cibersegurança",
       "Forense Digital",
+      "DevSecOps",
       "Segurança em Aplicações Web",
+      "Segurança em Cloud",
       "Certificados Digitais e PKI",
-      "Normas ISO 27001/27002",
       "Governança e Compliance",
+      "Normas ISO 27001/27002",
     ],
-    tip: "Pentest e forense digital são as especialidades mais demandadas no nível sênior.",
+    tip: "O nível avançado combina capacidade ofensiva e defensiva com resposta, evidência, automação de segurança e governança madura.",
   },
 
   // ─── Matemática ───────────────────────────────────────────────────────────
@@ -290,7 +309,7 @@ const plans: StudyPlan[] = [
       "Funções",
       "Estatística e Probabilidade",
     ],
-    tip: "Reforce as bases da aritmética antes de avançar para álgebra e análise.",
+    tip: "Sem domínio de proporção, álgebra básica e interpretação de grandezas, os tópicos seguintes ficam artificialmente difíceis.",
   },
   {
     track: "matematica",
@@ -304,20 +323,22 @@ const plans: StudyPlan[] = [
       "Análise Combinatória",
       "Estatística e Probabilidade",
     ],
-    tip: "Geometria e progressões são temas recorrentes em provas e vestibulares.",
+    tip: "O intermediário precisa consolidar visualização geométrica, estruturas algébricas e raciocínio combinatório.",
   },
   {
     track: "matematica",
     level: "Avançado",
     sequence: [
+      "Trigonometria",
+      "Geometria Analítica",
       "Matrizes e Determinantes",
+      "Números Complexos",
       "Análise Combinatória",
       "Estatística e Probabilidade",
       "Lógica Matemática",
-      "Progressões (PA e PG)",
       "Funções",
     ],
-    tip: "Matrizes e combinatória são base para algoritmos avançados e IA.",
+    tip: "No nível avançado, a meta é navegar bem entre abstração algébrica, geometria analítica e modelagem matemática.",
   },
 
   // ─── Português ────────────────────────────────────────────────────────────
@@ -326,18 +347,20 @@ const plans: StudyPlan[] = [
     level: "Iniciante",
     sequence: [
       "Ortografia",
-      "Classes de Palavras",
       "Acentuação Gráfica",
+      "Classes de Palavras",
       "Pontuação",
       "Compreensão e Interpretação de Texto",
       "Coesão e Coerência Textual",
+      "Formação de Palavras",
     ],
-    tip: "Ortografia e pontuação são a base para uma comunicação escrita clara.",
+    tip: "O plano inicial de português deve fortalecer leitura e construção textual, e não apenas decorar regra isolada.",
   },
   {
     track: "portugues",
     level: "Intermediário",
     sequence: [
+      "Semântica e Vocabulário",
       "Concordância Nominal e Verbal",
       "Regência Nominal e Verbal",
       "Crase",
@@ -345,20 +368,21 @@ const plans: StudyPlan[] = [
       "Sintaxe do Período Composto",
       "Coesão e Coerência Textual",
     ],
-    tip: "Concordância e regência são os pontos mais cobrados em concursos e provas.",
+    tip: "No intermediário, vale combinar gramática normativa com interpretação, estilo e relações de sentido.",
   },
   {
     track: "portugues",
     level: "Avançado",
     sequence: [
       "Sintaxe do Período Composto",
+      "Variação Linguística",
       "Figuras de Linguagem",
       "Redação Oficial",
-      "Coesão e Coerência Textual",
       "Compreensão e Interpretação de Texto",
+      "Coesão e Coerência Textual",
       "Regência Nominal e Verbal",
     ],
-    tip: "Redação oficial e sintaxe avançada são diferenciais em concursos públicos.",
+    tip: "O nível avançado de português exige leitura fina, domínio sintático e adaptação de registro conforme contexto e objetivo.",
   },
 
   // ─── Inglês ───────────────────────────────────────────────────────────────
@@ -372,31 +396,151 @@ const plans: StudyPlan[] = [
       "Preposições e Conectivos",
       "Compreensão de Texto",
     ],
-    tip: "Gramática e vocabulário são os pilares do inglês. Pratique leitura diariamente.",
+    tip: "Inglês evolui melhor quando gramática e vocabulário andam junto com leitura frequente desde o começo.",
   },
   {
     track: "ingles",
     level: "Intermediário",
     sequence: [
       "Tempos Verbais",
+      "Preposições e Conectivos",
       "Phrasal Verbs",
       "Expressões Idiomáticas",
       "Compreensão de Texto",
-      "Preposições e Conectivos",
+      "Pronúncia e Fonética",
     ],
-    tip: "Phrasal verbs são indispensáveis para ler código e documentação técnica.",
+    tip: "A transição para o intermediário depende de naturalidade: conectivos, phrasal verbs e leitura com menos tradução mental.",
   },
   {
     track: "ingles",
     level: "Avançado",
     sequence: [
+      "Compreensão de Texto",
       "Expressões Idiomáticas",
       "Phrasal Verbs",
       "Pronúncia e Fonética",
-      "Compreensão de Texto",
       "Tempos Verbais",
+      "Vocabulário Essencial",
     ],
-    tip: "No nível avançado, foque em nuances idiomáticas e pronúncia para comunicação fluente.",
+    tip: "No avançado, o foco sai da regra pura e vai para nuance, fluidez, leitura precisa e comunicação mais natural.",
+  },
+
+  // ─── Banco de Dados ───────────────────────────────────────────────────────
+  {
+    track: "banco-de-dados",
+    level: "Iniciante",
+    sequence: ["SQL Relacional", "PostgreSQL", "MySQL", "SQL Server", "NoSQL"],
+    tip: "Comece dominando modelagem e consulta relacional; bancos específicos fazem mais sentido depois disso.",
+  },
+  {
+    track: "banco-de-dados",
+    level: "Intermediário",
+    sequence: [
+      "SQL Relacional",
+      "PostgreSQL",
+      "MySQL",
+      "SQL Server",
+      "MongoDB",
+      "Redis",
+      "NoSQL",
+    ],
+    tip: "O nível intermediário deve comparar modelos, engines e casos de uso em vez de tratar banco como tecnologia única.",
+  },
+  {
+    track: "banco-de-dados",
+    level: "Avançado",
+    sequence: [
+      "PostgreSQL",
+      "SQL Server",
+      "MySQL",
+      "MongoDB",
+      "Redis",
+      "NoSQL",
+      "SQL Relacional",
+    ],
+    tip: "No avançado, a qualidade vem da comparação arquitetural entre motores, consistência, desempenho e padrões de acesso.",
+  },
+
+  // ─── Sistemas Operacionais ────────────────────────────────────────────────
+  {
+    track: "sistemas-operacionais",
+    level: "Iniciante",
+    sequence: [
+      "Conceitos de Sistemas Operacionais",
+      "Linux — Comandos Básicos do Terminal",
+      "Linux — Gerenciamento de Arquivos e Permissões",
+      "Linux — Gerenciamento de Usuários e Grupos",
+      "Linux — Gerenciamento de Processos",
+      "Linux — Shell Script e Automação",
+    ],
+    tip: "A base de sistemas operacionais precisa começar por conceito, navegação, permissões e processos antes de administração mais pesada.",
+  },
+  {
+    track: "sistemas-operacionais",
+    level: "Intermediário",
+    sequence: [
+      "Linux — Gerenciamento de Processos",
+      "Linux — Shell Script e Automação",
+      "Windows Server — Serviços de Rede",
+      "Windows Server — Active Directory",
+      "Windows Server — GPO",
+      "Windows Server — Backup e Recuperação",
+    ],
+    tip: "O intermediário deve ligar administração Linux e serviços Windows, porque esse é o cenário comum em ambientes corporativos.",
+  },
+  {
+    track: "sistemas-operacionais",
+    level: "Avançado",
+    sequence: [
+      "Windows Server — Active Directory",
+      "Windows Server — GPO",
+      "Windows Server — Serviços de Rede",
+      "Windows Server — Hyper-V",
+      "Windows Server — Backup e Recuperação",
+      "Linux — Shell Script e Automação",
+      "Linux — Gerenciamento de Processos",
+    ],
+    tip: "No avançado, o objetivo é operar serviços críticos, padronização, virtualização e automação com visão de continuidade.",
+  },
+
+  // ─── Governança de TI ─────────────────────────────────────────────────────
+  {
+    track: "governanca-de-ti",
+    level: "Iniciante",
+    sequence: [
+      "ITIL 4 — Conceitos Fundamentais",
+      "ITIL 4 — Quatro Dimensões do Gerenciamento",
+      "ITIL 4 — Cadeia de Valor de Serviço",
+      "ITIL 4 — Melhoria Contínua",
+      "COBIT — Framework e Princípios",
+    ],
+    tip: "Comece entendendo linguagem, princípios e estrutura mental dos frameworks antes de entrar em medição e implementação.",
+  },
+  {
+    track: "governanca-de-ti",
+    level: "Intermediário",
+    sequence: [
+      "ITIL 4 — Práticas de Gerenciamento",
+      "ITIL 4 — Cadeia de Valor de Serviço",
+      "COBIT — Framework e Princípios",
+      "COBIT — Objetivos de Governança",
+      "COBIT — Componentes do Sistema",
+      "ITIL 4 — Melhoria Contínua",
+    ],
+    tip: "No intermediário, governança deixa de ser teoria e passa a ser desenho de processo, responsabilidade e controle.",
+  },
+  {
+    track: "governanca-de-ti",
+    level: "Avançado",
+    sequence: [
+      "COBIT — Objetivos de Governança",
+      "COBIT — Componentes do Sistema",
+      "COBIT — Métricas e Maturidade",
+      "COBIT — Implementação e Design",
+      "ITIL 4 — Práticas de Gerenciamento",
+      "ITIL 4 — Melhoria Contínua",
+    ],
+    tip: "O nível avançado trata governança como capacidade de desenho organizacional, medição, priorização e evolução sustentada.",
   },
 ];
 
@@ -555,3 +699,49 @@ export const LANGUAGE_GROUPS: LanguageGroup[] = [
     categories: ["Shell/Bash"],
   },
 ];
+
+function getLanguageSequenceByLevel(
+  categories: string[],
+  level: StudyLevel,
+): string[] {
+  if (categories.length <= 2) return categories;
+
+  if (level === "Iniciante") {
+    return categories.slice(0, Math.min(2, categories.length));
+  }
+
+  if (level === "Intermediário") {
+    return categories.slice(0, Math.min(3, categories.length));
+  }
+
+  return categories;
+}
+
+function getLanguageTip(language: string, level: StudyLevel): string {
+  if (level === "Iniciante") {
+    return `Comece pela base de ${language} e avance só até o primeiro ecossistema relacionado, para ganhar profundidade antes de ampliar a stack.`;
+  }
+
+  if (level === "Intermediário") {
+    return `No intermediário, estude ${language} junto com o ecossistema principal para ganhar repertório de projeto real.`;
+  }
+
+  return `No avançado, percorra todo o ecossistema de ${language} para comparar abordagens, trade-offs e usos mais maduros.`;
+}
+
+export function getLanguageStudyPlan(
+  language: string,
+  level: StudyLevel,
+): StudyPlan | null {
+  const languageGroup = LANGUAGE_GROUPS.find(
+    (group) => group.language === language,
+  );
+  if (!languageGroup) return null;
+
+  return {
+    track: "linguagens-de-programacao",
+    level,
+    sequence: getLanguageSequenceByLevel(languageGroup.categories, level),
+    tip: getLanguageTip(language, level),
+  };
+}

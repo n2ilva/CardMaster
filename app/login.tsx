@@ -21,7 +21,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace('/(tabs)');
+      router.replace('/(features)/(main)');
     }
   }, [isLoading, user]);
 
@@ -40,7 +40,7 @@ export default function LoginScreen() {
       setMessage(null);
       setMessageType(null);
       await login(email, password);
-      router.replace('/(tabs)');
+      router.replace('/(features)/(main)');
     } catch (error) {
       setMessageType('error');
       setMessage(error instanceof Error ? error.message : 'Erro ao realizar login.');
@@ -60,7 +60,7 @@ export default function LoginScreen() {
       setMessage(null);
       setMessageType(null);
       await register(name, email, password);
-      router.replace('/(tabs)');
+      router.replace('/(features)/(main)');
     } catch (error) {
       setMessageType('error');
       setMessage(error instanceof Error ? error.message : 'Erro ao criar conta.');

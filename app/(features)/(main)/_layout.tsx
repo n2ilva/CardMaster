@@ -6,8 +6,8 @@ import { DesktopSidebar } from '@/components/desktop-sidebar';
 import { HapticTab } from '@/components/ui/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useLogout } from '@/hooks/use-logout';
-import { useScreenSize } from '@/hooks/use-screen-size';
 
 function DesktopTabLayout() {
   const { handleLogout } = useLogout();
@@ -25,7 +25,7 @@ function DesktopTabLayout() {
             tabBarStyle: { display: 'none' },
           }}>
           <Tabs.Screen name="index" options={{ title: 'Início' }} />
-          <Tabs.Screen name="ready" options={{ title: 'Quiz' }} />
+          <Tabs.Screen name="quiz" options={{ title: 'Quiz' }} />
           <Tabs.Screen name="progress" options={{ title: 'Progresso' }} />
           <Tabs.Screen name="community" options={{ title: 'Comunidade' }} />
         </Tabs>
@@ -34,7 +34,7 @@ function DesktopTabLayout() {
   );
 }
 
-function MobileTabLayout() {
+function CompactTabLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -61,7 +61,7 @@ function MobileTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="ready"
+        name="quiz"
         options={{
           title: 'Quiz',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
@@ -85,12 +85,12 @@ function MobileTabLayout() {
   );
 }
 
-export default function TabLayout() {
-  const { isDesktop, isTablet } = useScreenSize();
+export default function MainLayout() {
+  const layoutMode = useLayoutMode();
 
-  if (isDesktop || isTablet) {
+  if (layoutMode === 'desktop') {
     return <DesktopTabLayout />;
   }
 
-  return <MobileTabLayout />;
+  return <CompactTabLayout />;
 }

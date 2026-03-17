@@ -12,10 +12,10 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: '/(tabs)', label: 'Início', icon: 'house' },
-  { href: '/(tabs)/ready', label: 'Quiz', icon: 'library-books' },
-  { href: '/(tabs)/progress', label: 'Progresso', icon: 'bar-chart' },
-  { href: '/(tabs)/community', label: 'Comunidade', icon: 'groups' },
+  { href: '/(features)/(main)', label: 'Início', icon: 'house' },
+  { href: '/(features)/(main)/quiz', label: 'Quiz', icon: 'library-books' },
+  { href: '/(features)/(main)/progress', label: 'Progresso', icon: 'bar-chart' },
+  { href: '/(features)/(main)/community', label: 'Comunidade', icon: 'groups' },
 ];
 
 export function DesktopSidebar({ onLogout = () => undefined }: { onLogout?: () => void }) {
@@ -24,8 +24,8 @@ export function DesktopSidebar({ onLogout = () => undefined }: { onLogout?: () =
   const { user } = useAuth();
 
   function isActive(href: string) {
-    if (href === '/(tabs)') return pathname === '/' || pathname === '/index';
-    return pathname.startsWith(href.replace('/(tabs)', ''));
+    if (href === '/(features)/(main)') return pathname === '/' || pathname === '/index';
+    return pathname.startsWith(href.replace('/(features)/(main)', ''));
   }
 
   return (
@@ -45,7 +45,7 @@ export function DesktopSidebar({ onLogout = () => undefined }: { onLogout?: () =
       {/* Logo */}
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push('/(tabs)' as never)}
+        onPress={() => router.push('/(features)/(main)' as never)}
         style={({ pressed }) => ({
           flexDirection: 'row',
           alignItems: 'center',

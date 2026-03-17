@@ -14416,18 +14416,39 @@ Requer backup com flag \`-allCritical\` e media de boot (USB/ISO do Windows).
 };
 
 /**
+ * Encontra a chave de documentação para uma categoria, tentando correspondência
+ * exata primeiro e depois buscando chaves no formato "Prefixo — <category>".
+ * Isso garante compatibilidade quando o Firestore usa nomes de categoria sem
+ * o prefixo de trilha (ex: "Comandos Básicos do Terminal" em vez de
+ * "Linux — Comandos Básicos do Terminal").
+ */
+function resolveDocumentationKey(
+  trackDoc: TrackDocumentation,
+  category: string,
+): string | null {
+  if (trackDoc[category]) return category;
+  const suffix = ` \u2014 ${category}`;
+  return Object.keys(trackDoc).find((key) => key.endsWith(suffix)) ?? null;
+}
+
+/**
  * Retorna a documentação de uma categoria específica
  */
 export function getCategoryDocumentation(
   track: string,
   category: string,
 ): CategoryDocumentation | null {
-  return documentation[track]?.[category] ?? null;
+  const trackDoc = documentation[track];
+  if (!trackDoc) return null;
+  const key = resolveDocumentationKey(trackDoc, category);
+  return key ? trackDoc[key] : null;
 }
 
 /**
  * Verifica se existe documentação para uma categoria
  */
 export function hasDocumentation(track: string, category: string): boolean {
-  return !!documentation[track]?.[category];
+  const trackDoc = documentation[track];
+  if (!trackDoc) return false;
+  return resolveDocumentationKey(trackDoc, category) !== null;
 }
