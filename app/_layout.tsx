@@ -31,13 +31,13 @@ function RootNavigator() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const { isPreloading, preloadProgress } = useData();
-  const isInitializing = isLoading || (user != null && isPreloading);
+  const isInitializing = isLoading;
 
   // Agenda notificações de lembrete de estudo (12h e 18h)
   useStudyReminders(!!user);
 
   useEffect(() => {
-    if (isLoading || (user && isPreloading)) {
+    if (isLoading) {
       return;
     }
 
@@ -51,7 +51,7 @@ function RootNavigator() {
     if (user && onLoginRoute) {
       router.replace('/(features)/(main)');
     }
-  }, [isLoading, isPreloading, pathname, router, user]);
+  }, [isLoading, pathname, router, user]);
 
   useEffect(() => {
     if (isInitializing) {
@@ -73,12 +73,11 @@ function RootNavigator() {
         }}>
         <Stack.Screen name="(features)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="light" />
       {isInitializing && (
         <View style={[StyleSheet.absoluteFill, styles.loadingOverlay]}>
-          <LoadingScreen progress={isLoading ? 0 : preloadProgress} />
+          <LoadingScreen progress={0} />
         </View>
       )}
     </ThemeProvider>
