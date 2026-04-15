@@ -46,6 +46,13 @@ export const EXERCISE_TYPE_ICONS: Record<string, string> = {
   Assincronismo:     'sync',
   Tipos:             'label',
   Recursos:          'memory',
+  // Python / TypeScript specific
+  Listas:            'list',
+  Dicionários:       'book',
+  Módulos:           'extension',
+  Tipagem:           'label',
+  Arquivos:          'file-present',
+  Generics:          'api',
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -74,6 +81,13 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Assincronismo: '#818CF8',
   Tipos: '#FB923C',
   Recursos: '#34D399',
+  // Python / TypeScript specific
+  Listas: '#10B981',
+  Dicionários: '#F59E0B',
+  Módulos: '#8B5CF6',
+  Tipagem: '#6366F1',
+  Arquivos: '#14B8A6',
+  Generics: '#F472B6',
 };
 
 // ─────────────────────────────────────────────
@@ -209,19 +223,25 @@ export function CategoryGridCard({ categoryName, count, onPress }: CategoryGridC
 // ─────────────────────────────────────────────
 // Exercise List Card
 // ─────────────────────────────────────────────
+import { type ExerciseProgress } from '../coding-practice.store';
+
 type ExerciseListCardProps = {
   exercise: Exercise;
   language: LanguageInfo;
   onPress: () => void;
+  progress?: ExerciseProgress;
 };
 
-export function ExerciseListCard({ exercise, language, onPress }: ExerciseListCardProps) {
+export function ExerciseListCard({ exercise, language, onPress, progress }: ExerciseListCardProps) {
   const diff = DIFFICULTY_CONFIG[exercise.difficulty];
   const typeIcon = EXERCISE_TYPE_ICONS[exercise.exerciseType] ?? 'extension';
   
   const [hovered, setHovered] = React.useState(false);
   const [pressed, setPressed] = React.useState(false);
   const isHovered = hovered || pressed;
+
+  const isCompleted = progress?.completed;
+  const bestTime = progress?.bestTime;
 
   return (
     <Pressable
@@ -235,7 +255,7 @@ export function ExerciseListCard({ exercise, language, onPress }: ExerciseListCa
         borderRadius: 14,
         borderStyle: 'solid',
         borderWidth: 1,
-        borderColor: isHovered ? diff.color + '66' : '#1E2328',
+        borderColor: isCompleted ? '#10B98155' : isHovered ? diff.color + '66' : '#1E2328',
         padding: 16,
         marginBottom: 10,
         flexDirection: 'row',
@@ -248,21 +268,32 @@ export function ExerciseListCard({ exercise, language, onPress }: ExerciseListCa
           width: 44,
           height: 44,
           borderRadius: 12,
-          backgroundColor: `${language.accent}18`,
+          backgroundColor: isCompleted ? '#10B98118' : `${language.accent}18`,
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         }}
       >
-        <MaterialCommunityIcons name={language.icon as any} size={22} color={language.accent} />
+        {isCompleted ? (
+          <MaterialIcons name="check-circle" size={24} color="#10B981" />
+        ) : (
+          <MaterialCommunityIcons name={language.icon as any} size={22} color={language.accent} />
+        )}
       </View>
 
       <View style={{ flex: 1, paddingRight: 8, gap: 4 }}>
-        <Text style={{ color: '#ECEDEE', fontSize: 14, fontWeight: '700' }}>{exercise.title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={{ color: '#ECEDEE', fontSize: 14, fontWeight: '700' }}>{exercise.title}</Text>
+          {isCompleted && (
+            <View style={{ backgroundColor: '#10B98122', padding: 2, borderRadius: 4 }}>
+              <MaterialIcons name="done" size={10} color="#10B981" />
+            </View>
+          )}
+        </View>
         <Text style={{ color: '#6B7280', fontSize: 12 }} numberOfLines={2}>
           {exercise.description}
         </Text>
-        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, alignItems: 'center', flexWrap: 'wrap' }}>
           <View
             style={{
               paddingHorizontal: 8,
@@ -277,6 +308,28 @@ export function ExerciseListCard({ exercise, language, onPress }: ExerciseListCa
               {diff.label}
             </Text>
           </View>
+          
+          {bestTime !== undefined && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+                borderRadius: 20,
+                backgroundColor: '#064E3B44',
+                borderWidth: 1,
+                borderColor: '#10B98144',
+              }}
+            >
+              <MaterialIcons name="timer" size={10} color="#10B981" />
+              <Text style={{ color: '#10B981', fontSize: 10, fontWeight: '700' }}>
+                Melhor: {bestTime}s
+              </Text>
+            </View>
+          )}
+
           <View
             style={{
               flexDirection: 'row',
@@ -473,10 +526,8 @@ export function AnswerArea({
   tokenMap.set('sym_newline', { id: 'sym_newline', label: '↵', category: 'symbol' });
   const displayPlacedCount = placed.filter(p => p.tokenId !== 'sym_newline').length;
 
-  const borderColor =
-    isCorrect === true ? '#22C55E' : isCorrect === false ? '#EF4444' : '#2D3139';
-  const bgColor =
-    isCorrect === true ? '#052E1605' : isCorrect === false ? '#2D000005' : 'transparent';
+  const borderColor = isCorrect === false ? '#EF4444' : '#2D3139';
+  const bgColor = isCorrect === false ? '#2D000005' : 'transparent';
 
   return (
     <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
@@ -573,29 +624,6 @@ export function AnswerArea({
           </View>
         )}
       </View>
-
-      {/* Feedback messages */}
-      {isCorrect === true && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            marginTop: 12,
-            backgroundColor: '#052E16',
-            borderRadius: 12,
-            padding: 14,
-            borderWidth: 1,
-            borderColor: '#22C55E44',
-          }}
-        >
-          <MaterialIcons name="check-circle" size={22} color="#22C55E" />
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: '#22C55E', fontSize: 15, fontWeight: '700' }}>Correto!</Text>
-            <Text style={{ color: '#86EFAC', fontSize: 12 }}>Excelente trabalho! 🎉</Text>
-          </View>
-        </View>
-      )}
       {isCorrect === false && (
         <View
           style={{
@@ -792,18 +820,18 @@ export function ValidateButton({ onPress, disabled, isCorrect }: ValidateButtonP
   const bgColor = disabled
     ? '#1A1D21'
     : isCorrect === true
-      ? '#166534'
+      ? '#059669'
       : isCorrect === false
         ? '#EF4444' /* Vermelho Erro */
-        : '#58CC02';
+        : '#10B981';
 
   const borderBotColor = disabled
     ? 'transparent'
     : isCorrect === true
-      ? '#14532D'
+      ? '#064E3B'
       : isCorrect === false
         ? '#B91C1C' 
-        : '#46A302';
+        : '#047857';
 
   const textColor = disabled ? '#374151' : '#FFFFFF';
 

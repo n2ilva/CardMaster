@@ -183,3 +183,10 @@ export type GlossaryEntry = {
   term: string;
   definition: string;
 };
+
+export type CodingPracticeResult = {
+  exerciseId: string;
+  completed: boolean;
+  bestTime: number;
+  updatedAt: unknown;
+};

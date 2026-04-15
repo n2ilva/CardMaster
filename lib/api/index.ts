@@ -8,5 +8,6 @@ export * from "./community";
 export * from "./glossary";
 export * from "./lessons";
 export * from "./progress";
+export * from "./coding-practice";
 export * from "./types";
 

@@ -10,6 +10,8 @@ type StudyCompletionOverlayProps = {
   textOpacity: Animated.Value;
   ringScale: Animated.Value;
   ringOpacity: Animated.Value;
+  title?: string;
+  subtitle?: string;
 };
 
 export function StudyCompletionOverlay({
@@ -21,6 +23,8 @@ export function StudyCompletionOverlay({
   textOpacity,
   ringScale,
   ringOpacity,
+  title = 'Lição concluída!',
+  subtitle,
 }: StudyCompletionOverlayProps) {
   if (!visible) return null;
 
@@ -64,10 +68,10 @@ export function StudyCompletionOverlay({
         </Animated.View>
       </Animated.View>
       <Animated.Text style={{ color: '#ECEDEE', fontSize: 22, fontWeight: '700', marginTop: 20, letterSpacing: 0.5, opacity: textOpacity }}>
-        Lição concluída!
+        {title}
       </Animated.Text>
       <Animated.Text style={{ color: '#9BA1A6', fontSize: 14, marginTop: 8, opacity: textOpacity }}>
-        {correctCount} / {totalCards} corretas
+        {subtitle ?? `${correctCount} / ${totalCards} corretas`}
       </Animated.Text>
     </Animated.View>
   );
