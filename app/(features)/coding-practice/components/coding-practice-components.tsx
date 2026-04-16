@@ -1,13 +1,15 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React from 'react';
-import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Pressable, Text, TouchableOpacity, View, useColorScheme, useWindowDimensions } from 'react-native';
+import { DraxView } from 'react-native-drax';
 
 import {
   TOKEN_CATEGORY_COLORS,
   type LanguageInfo,
 } from '../coding-practice.constants';
 import { type Difficulty, type Exercise, type ExerciseType, type PlacedToken, type SyntaxToken } from '../coding-practice.types';
+import { type ExerciseProgress } from '../coding-practice.store';
 import { PuzzlePiece } from './puzzle-piece';
 
 // ─────────────────────────────────────────────
@@ -103,6 +105,8 @@ function LanguageItem({ lang, active, onSelect }: { lang: LanguageInfo; active: 
   const [hovered, setHovered] = React.useState(false);
   const [pressed, setPressed] = React.useState(false);
   const isHovered = hovered || pressed;
+  const { width } = useWindowDimensions();
+  const showText = width >= 640;
 
   return (
     <Pressable
@@ -126,21 +130,23 @@ function LanguageItem({ lang, active, onSelect }: { lang: LanguageInfo; active: 
     >
       <MaterialCommunityIcons
         name={lang.icon as any}
-        size={24}
+        size={showText ? 24 : 28}
         color={active ? lang.accent : isHovered ? '#ECEDEE' : '#9BA1A6'}
-        style={{ marginBottom: 2 }}
+        style={{ marginBottom: showText ? 2 : 0 }}
       />
-      <Text
-        style={{
-          color: active ? lang.accent : isHovered ? '#ECEDEE' : '#4B5563',
-          fontSize: 11,
-          fontWeight: active ? '700' : '500',
-          textTransform: 'uppercase',
-          letterSpacing: 1,
-        }}
-      >
-        {lang.label}
-      </Text>
+      {showText && (
+        <Text
+          style={{
+            color: active ? lang.accent : isHovered ? '#ECEDEE' : '#4B5563',
+            fontSize: 11,
+            fontWeight: active ? '800' : '600',
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+          }}
+        >
+          {lang.label}
+        </Text>
+      )}
     </Pressable>
   );
 }
@@ -171,6 +177,16 @@ export function CategoryGridCard({ categoryName, count, onPress }: CategoryGridC
   const [hovered, setHovered] = React.useState(false);
   const [pressed, setPressed] = React.useState(false);
   const isHovered = hovered || pressed;
+  
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+  
+  const bg = isDark ? '#1C1F24' : '#FFFFFF';
+  const borderStatic = isDark ? `${colorTheme}20` : `${colorTheme}15`;
+  const borderHover = isDark ? `${colorTheme}60` : `${colorTheme}40`;
+  const textPrimary = isDark ? '#ECEDEE' : '#11181C';
 
   return (
     <Pressable
@@ -180,41 +196,46 @@ export function CategoryGridCard({ categoryName, count, onPress }: CategoryGridC
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
       style={{
-        flexBasis: '47%',
+        flexBasis: isDesktop ? '31%' : '47%',
         flexGrow: 1,
-        backgroundColor: '#111316',
-        borderRadius: 14,
+        backgroundColor: bg,
+        borderRadius: 20,
         borderWidth: 1.5,
-        borderColor: isHovered ? colorTheme : colorTheme + '30',
-        paddingVertical: 20,
-        paddingHorizontal: 16,
+        borderColor: isHovered ? borderHover : borderStatic,
+        paddingVertical: 16,
+        paddingHorizontal: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 12,
+        gap: 8,
         position: 'relative',
+        shadowColor: colorTheme,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isHovered ? 0.15 : 0.05,
+        shadowRadius: 12,
+        elevation: isHovered ? 4 : 2,
       }}
     >
       <View
         style={{
           position: 'absolute',
-          top: 10,
-          right: 10,
-          backgroundColor: colorTheme + '20',
+          top: 12,
+          right: 12,
+          backgroundColor: isDark ? `${colorTheme}15` : `${colorTheme}10`,
           paddingHorizontal: 8,
-          paddingVertical: 3,
+          paddingVertical: 4,
           borderRadius: 8,
           borderWidth: 1,
-          borderColor: colorTheme + '30',
+          borderColor: isDark ? `${colorTheme}30` : `${colorTheme}20`,
         }}
       >
-        <Text style={{ color: colorTheme, fontSize: 10, fontWeight: '800' }}>{count}</Text>
+        <Text style={{ color: colorTheme, fontSize: 11, fontWeight: '800' }}>{count}</Text>
       </View>
 
-      <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: isHovered ? colorTheme + '20' : colorTheme + '10', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: isDark ? `${colorTheme}15` : `${colorTheme}10`, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: isDark ? `${colorTheme}30` : `${colorTheme}20` }}>
         <MaterialIcons name={iconName as any} size={24} color={colorTheme} />
       </View>
-      <View style={{ alignItems: 'center' }}>
-        <Text style={{ color: isHovered ? '#FFFFFF' : '#ECEDEE', fontSize: 13, fontWeight: '700' }}>{categoryName}</Text>
+      <View style={{ alignItems: 'center', paddingHorizontal: 4 }}>
+        <Text style={{ color: textPrimary, fontSize: 13, fontWeight: '800', letterSpacing: -0.3, textAlign: 'center' }}>{categoryName}</Text>
       </View>
     </Pressable>
   );
@@ -223,7 +244,6 @@ export function CategoryGridCard({ categoryName, count, onPress }: CategoryGridC
 // ─────────────────────────────────────────────
 // Exercise List Card
 // ─────────────────────────────────────────────
-import { type ExerciseProgress } from '../coding-practice.store';
 
 type ExerciseListCardProps = {
   exercise: Exercise;
@@ -240,8 +260,17 @@ export function ExerciseListCard({ exercise, language, onPress, progress }: Exer
   const [pressed, setPressed] = React.useState(false);
   const isHovered = hovered || pressed;
 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const isCompleted = progress?.completed;
   const bestTime = progress?.bestTime;
+
+  const bg = isDark ? (isHovered ? '#22252A' : '#1C1F24') : (isHovered ? '#F8FAFC' : '#FFFFFF');
+  const borderStatic = isDark ? '#30363D' : '#E2E8F0';
+  const borderHover = isDark ? `${diff.color}50` : `${diff.color}30`;
+  const textPrimary = isDark ? '#ECEDEE' : '#11181C';
+  const textSecondary = isDark ? '#9BA1A6' : '#64748B';
 
   return (
     <Pressable
@@ -251,60 +280,66 @@ export function ExerciseListCard({ exercise, language, onPress, progress }: Exer
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
       style={{
-        backgroundColor: isHovered ? '#1A1D21' : '#111316',
-        borderRadius: 14,
-        borderStyle: 'solid',
+        backgroundColor: bg,
+        borderRadius: 20,
         borderWidth: 1,
-        borderColor: isCompleted ? '#10B98155' : isHovered ? diff.color + '66' : '#1E2328',
-        padding: 16,
-        marginBottom: 10,
+        borderColor: isCompleted ? '#10B98155' : isHovered ? borderHover : borderStatic,
+        padding: 20,
+        marginBottom: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 14,
+        gap: 16,
+        shadowColor: isCompleted ? '#10B981' : isHovered ? diff.color : '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isHovered || isCompleted ? 0.08 : 0.03,
+        shadowRadius: 12,
+        elevation: 2,
       }}
     >
       <View
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 12,
-          backgroundColor: isCompleted ? '#10B98118' : `${language.accent}18`,
+          width: 56,
+          height: 56,
+          borderRadius: 16,
+          backgroundColor: isCompleted ? '#10B98118' : isDark ? `${language.accent}15` : `${language.accent}10`,
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
+          borderWidth: 1,
+          borderColor: isCompleted ? '#10B98140' : isDark ? `${language.accent}30` : `${language.accent}20`,
         }}
       >
         {isCompleted ? (
-          <MaterialIcons name="check-circle" size={24} color="#10B981" />
+          <MaterialIcons name="workspace-premium" size={28} color="#10B981" />
         ) : (
-          <MaterialCommunityIcons name={language.icon as any} size={22} color={language.accent} />
+          <MaterialCommunityIcons name={language.icon as any} size={28} color={language.accent} />
         )}
       </View>
 
       <View style={{ flex: 1, paddingRight: 8, gap: 4 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={{ color: '#ECEDEE', fontSize: 14, fontWeight: '700' }}>{exercise.title}</Text>
+          <Text style={{ color: textPrimary, fontSize: 16, fontWeight: '800', letterSpacing: -0.3 }}>{exercise.title}</Text>
           {isCompleted && (
-            <View style={{ backgroundColor: '#10B98122', padding: 2, borderRadius: 4 }}>
-              <MaterialIcons name="done" size={10} color="#10B981" />
+            <View style={{ backgroundColor: '#10B98122', padding: 2, borderRadius: 6 }}>
+              <MaterialIcons name="done" size={12} color="#10B981" />
             </View>
           )}
         </View>
-        <Text style={{ color: '#6B7280', fontSize: 12 }} numberOfLines={2}>
+        <Text style={{ color: textSecondary, fontSize: 13, lineHeight: 20 }} numberOfLines={2}>
           {exercise.description}
         </Text>
-        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
           <View
             style={{
               paddingHorizontal: 8,
-              paddingVertical: 2,
+              paddingVertical: 3,
               borderRadius: 20,
               backgroundColor: diff.bg,
               borderWidth: 1,
               borderColor: diff.color + '55',
             }}
           >
-            <Text style={{ color: diff.color, fontSize: 10, fontWeight: '700' }}>
+            <Text style={{ color: diff.color, fontSize: 10, fontWeight: '800' }}>
               {diff.label}
             </Text>
           </View>
@@ -316,15 +351,15 @@ export function ExerciseListCard({ exercise, language, onPress, progress }: Exer
                 alignItems: 'center',
                 gap: 4,
                 paddingHorizontal: 8,
-                paddingVertical: 2,
+                paddingVertical: 3,
                 borderRadius: 20,
                 backgroundColor: '#064E3B44',
                 borderWidth: 1,
                 borderColor: '#10B98144',
               }}
             >
-              <MaterialIcons name="timer" size={10} color="#10B981" />
-              <Text style={{ color: '#10B981', fontSize: 10, fontWeight: '700' }}>
+              <MaterialIcons name="timer" size={12} color="#10B981" />
+              <Text style={{ color: '#10B981', fontSize: 10, fontWeight: '800' }}>
                 Melhor: {bestTime}s
               </Text>
             </View>
@@ -336,22 +371,24 @@ export function ExerciseListCard({ exercise, language, onPress, progress }: Exer
               alignItems: 'center',
               gap: 4,
               paddingHorizontal: 8,
-              paddingVertical: 2,
+              paddingVertical: 3,
               borderRadius: 20,
-              backgroundColor: '#1A1D21',
+              backgroundColor: isDark ? '#1A1D21' : '#F1F5F9',
               borderWidth: 1,
-              borderColor: '#2D3139',
+              borderColor: isDark ? '#2D3139' : '#E2E8F0',
             }}
           >
-            <MaterialIcons name={typeIcon as any} size={10} color="#6B7280" />
-            <Text style={{ color: '#6B7280', fontSize: 10, fontWeight: '600' }}>
+            <MaterialIcons name={typeIcon as any} size={12} color={isDark ? "#6B7280" : "#475569"} />
+            <Text style={{ color: isDark ? "#6B7280" : "#475569", fontSize: 10, fontWeight: '700' }}>
               {exercise.exerciseType}
             </Text>
           </View>
         </View>
       </View>
 
-      <MaterialIcons name="chevron-right" size={20} color="#374151" />
+      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#2D3139' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+        <MaterialIcons name="arrow-forward" size={18} color={textPrimary} />
+      </View>
     </Pressable>
   );
 }
@@ -366,11 +403,16 @@ type QuestionCardProps = {
   hintIndex: number;
   onShowHint: () => void;
   onHideHints?: () => void;
+  progressPercent?: number;
+  liveTimer?: number;
 };
 
-export function QuestionCard({ exercise, language, onBack, hintIndex, onShowHint, onHideHints }: QuestionCardProps) {
+export function QuestionCard({ exercise, language, onBack, hintIndex, onShowHint, onHideHints, progressPercent = 0, liveTimer = 0 }: QuestionCardProps) {
   const diff = DIFFICULTY_CONFIG[exercise.difficulty];
   const maxHints = exercise.hints?.length ?? 0;
+  const clampedProgress = Math.min(100, Math.max(0, progressPercent));
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   return (
     <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
@@ -384,20 +426,20 @@ export function QuestionCard({ exercise, language, onBack, hintIndex, onShowHint
             width: 36,
             height: 36,
             borderRadius: 18,
-            backgroundColor: '#1A1D21',
+            backgroundColor: isDark ? '#1A1D21' : '#F1F5F9',
             alignItems: 'center',
             justifyContent: 'center',
             borderStyle: 'solid',
             borderWidth: 1,
-            borderColor: '#2D3139',
+            borderColor: isDark ? '#2D3139' : '#E2E8F0',
           }}
         >
-          <MaterialIcons name="close" size={18} color="#9BA1A6" />
+          <MaterialIcons name="close" size={18} color={isDark ? '#9BA1A6' : '#64748B'} />
         </TouchableOpacity>
 
-        {/* Progress-like bar */}
-        <View style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: '#1A1D21', overflow: 'hidden' }}>
-          <View style={{ height: '100%', width: '0%', backgroundColor: language.accent, borderRadius: 4 }} />
+        {/* Progress bar */}
+        <View style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: isDark ? '#1A1D21' : '#E2E8F0', overflow: 'hidden' }}>
+          <View style={{ height: '100%', width: `${clampedProgress}%`, backgroundColor: language.accent, borderRadius: 4, transition: 'width 0.3s ease' } as any} />
         </View>
 
         {/* Hint button */}
@@ -424,14 +466,14 @@ export function QuestionCard({ exercise, language, onBack, hintIndex, onShowHint
       </View>
 
       {/* Question text */}
-      <Text style={{ color: '#ECEDEE', fontSize: 20, fontWeight: '700', lineHeight: 28, marginBottom: 6 }}>
+      <Text style={{ color: isDark ? '#ECEDEE' : '#11181C', fontSize: 20, fontWeight: '700', lineHeight: 28, marginBottom: 6 }}>
         Monte o código:
       </Text>
-      <Text style={{ color: '#9BA1A6', fontSize: 15, lineHeight: 22, marginBottom: 10 }}>
+      <Text style={{ color: isDark ? '#9BA1A6' : '#64748B', fontSize: 15, lineHeight: 22, marginBottom: 10 }}>
         {exercise.description}
       </Text>
 
-      {/* Meta badges */}
+      {/* Meta badges + Timer */}
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 4 }}>
         <View
           style={{
@@ -445,8 +487,15 @@ export function QuestionCard({ exercise, language, onBack, hintIndex, onShowHint
         >
           <Text style={{ color: diff.color, fontSize: 10, fontWeight: '700' }}>{diff.label}</Text>
         </View>
-        <Text style={{ color: '#374151', fontSize: 11 }}>•</Text>
-        <Text style={{ color: '#4B5563', fontSize: 11, fontWeight: '600' }}>{language.label}</Text>
+        <Text style={{ color: isDark ? '#374151' : '#CBD5E1', fontSize: 11 }}>•</Text>
+        <Text style={{ color: isDark ? '#4B5563' : '#94A3B8', fontSize: 11, fontWeight: '600' }}>{language.label}</Text>
+        <View style={{ flex: 1 }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, backgroundColor: isDark ? '#1A1D21' : '#F1F5F9', borderWidth: 1, borderColor: isDark ? '#2D3139' : '#E2E8F0' }}>
+          <MaterialIcons name="timer" size={12} color={isDark ? '#6B7280' : '#94A3B8'} />
+          <Text style={{ color: isDark ? '#6B7280' : '#94A3B8', fontSize: 10, fontWeight: '700', fontFamily: 'monospace' }}>
+            {Math.floor(liveTimer / 60).toString().padStart(2, '0')}:{(liveTimer % 60).toString().padStart(2, '0')}
+          </Text>
+        </View>
       </View>
 
       {/* Hints Dropdown */}
@@ -509,8 +558,12 @@ type AnswerAreaProps = {
   onRemove: (instanceId: string) => void;
   onRename: (instanceId: string, newLabel: string) => void;
   onClear: () => void;
+  onAddToken: (instanceId: string) => void;
+  onReorder: (fromInstanceId: string, toIndex: number) => void;
+  onInsertAt: (instanceId: string, atIndex: number) => void;
   isCorrect: boolean | null;
   expectedCount: number;
+  solution: string[];
 };
 
 export function AnswerArea({
@@ -519,15 +572,47 @@ export function AnswerArea({
   onRemove,
   onRename,
   onClear,
+  onAddToken,
+  onReorder,
+  onInsertAt,
   isCorrect,
   expectedCount,
+  solution = [],
 }: AnswerAreaProps) {
-  const tokenMap = new Map(allTokens.map((t) => [t.id, t]));
-  tokenMap.set('sym_newline', { id: 'sym_newline', label: '↵', category: 'symbol' });
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const tokenMap = React.useMemo(() => {
+    const map = new Map(allTokens.map((t) => [t.id, t]));
+    map.set('sym_newline', { id: 'sym_newline', label: '↵', category: 'symbol' });
+    return map;
+  }, [allTokens]);
   const displayPlacedCount = placed.filter(p => p.tokenId !== 'sym_newline').length;
 
-  const borderColor = isCorrect === false ? '#EF4444' : '#2D3139';
-  const bgColor = isCorrect === false ? '#2D000005' : 'transparent';
+  // Pre-compute correct position flags in O(N) instead of O(N²)
+  const correctFlags = React.useMemo(() => {
+    if (!solution || solution.length === 0) return [];
+    let allCorrect = true;
+    return placed.map((p, i) => {
+      if (p.tokenId === 'sym_newline') return false;
+      if (!allCorrect) return false;
+      allCorrect = p.tokenId === solution[i];
+      return allCorrect;
+    });
+  }, [placed, solution]);
+
+  const borderColor = isCorrect === false ? '#EF4444' : (isDark ? '#2D3139' : '#E2E8F0');
+  const bgColor = isCorrect === false ? (isDark ? '#2D000005' : '#FEF2F2') : 'transparent';
+
+  // Handle drop on a specific index (reorder or insert)
+  const handleDropOnIndex = React.useCallback((payload: string, targetIndex: number) => {
+    if (payload.startsWith('ans_')) {
+      const fromId = payload.replace('ans_', '');
+      onReorder(fromId, targetIndex);
+    } else if (payload.startsWith('kb_')) {
+      const id = payload.replace('kb_', '');
+      onInsertAt(id, targetIndex);
+    }
+  }, [onReorder, onInsertAt]);
 
   return (
     <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
@@ -544,7 +629,28 @@ export function AnswerArea({
           padding: 12,
         }}
       >
-        {/* Clear button */}
+        <DraxView
+          style={{ flex: 1, minHeight: 60 }}
+          receptive
+          onReceiveDragDrop={(event) => {
+            const payload = event.dragged.payload;
+            if (payload && typeof payload === 'string') {
+              if (payload.startsWith('kb_')) {
+                const id = payload.replace('kb_', '');
+                onAddToken(id);
+              }
+              // ans_* drops on empty space = no-op (already in list)
+            }
+          }}
+          renderHoverContent={undefined}
+          receivingStyle={{
+            borderColor: '#10B981',
+            borderWidth: 2,
+            borderRadius: 14,
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+          }}
+        >
+          {/* Clear button */}
         {placed.length > 0 && (
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 4 }}>
             <TouchableOpacity
@@ -558,11 +664,11 @@ export function AnswerArea({
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 borderRadius: 8,
-                backgroundColor: '#1A1D21',
+                backgroundColor: isDark ? '#1A1D21' : '#F1F5F9',
               }}
             >
-              <MaterialIcons name="backspace" size={13} color="#4B5563" />
-              <Text style={{ color: '#4B5563', fontSize: 10, fontWeight: '600' }}>Limpar</Text>
+              <MaterialIcons name="backspace" size={13} color={isDark ? '#4B5563' : '#94A3B8'} />
+              <Text style={{ color: isDark ? '#4B5563' : '#94A3B8', fontSize: 10, fontWeight: '600' }}>Limpar</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -579,12 +685,13 @@ export function AnswerArea({
         >
           {placed.length === 0 ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10 }}>
-              <Text style={{ color: '#2D3139', fontSize: 13 }}>
-                Toque nas peças abaixo para montar
+              <MaterialIcons name="drag-indicator" size={20} color={isDark ? '#2D3139' : '#CBD5E1'} style={{ marginBottom: 4 }} />
+              <Text style={{ color: isDark ? '#2D3139' : '#CBD5E1', fontSize: 13 }}>
+                Arraste ou toque nas peças para montar
               </Text>
             </View>
           ) : (
-            placed.map((p) => {
+            placed.map((p, index) => {
               const token = tokenMap.get(p.tokenId);
               if (!token) return null;
 
@@ -593,7 +700,7 @@ export function AnswerArea({
                   <View key={p.instanceId} style={{ width: '100%', flexDirection: 'row', paddingVertical: 2 }}>
                     <TouchableOpacity
                       onPress={() => onRemove(p.instanceId)}
-                      style={{ paddingHorizontal: 6, paddingVertical: 4, backgroundColor: '#1A1D21', borderRadius: 6 }}
+                      style={{ paddingHorizontal: 6, paddingVertical: 4, backgroundColor: isDark ? '#1A1D21' : '#F1F5F9', borderRadius: 6 }}
                     >
                       <MaterialIcons name="keyboard-return" size={12} color="#6B7280" />
                     </TouchableOpacity>
@@ -602,14 +709,33 @@ export function AnswerArea({
               }
 
               return (
-                <PuzzlePiece
+                <DraxView
                   key={p.instanceId}
-                  token={token}
-                  customLabel={p.customLabel}
-                  variant="answer"
-                  onPress={() => onRemove(p.instanceId)}
-                  onRename={(newLabel) => onRename(p.instanceId, newLabel)}
-                />
+                  receptive
+                  onReceiveDragDrop={(event) => {
+                    const payload = event.dragged.payload;
+                    if (payload && typeof payload === 'string') {
+                      handleDropOnIndex(payload, index);
+                    }
+                  }}
+                  receivingStyle={{
+                    opacity: 0.7,
+                    borderLeftWidth: 3,
+                    borderLeftColor: '#10B981',
+                    borderRadius: 4,
+                  }}
+                  renderHoverContent={undefined}
+                >
+                  <PuzzlePiece
+                    instanceId={p.instanceId}
+                    token={token}
+                    customLabel={p.customLabel}
+                    variant="answer"
+                    onPress={() => onRemove(p.instanceId)}
+                    onRename={(newLabel) => onRename(p.instanceId, newLabel)}
+                    isCorrectPosition={correctFlags[index] || false}
+                  />
+                </DraxView>
               );
             })
           )}
@@ -623,6 +749,7 @@ export function AnswerArea({
             </Text>
           </View>
         )}
+        </DraxView>
       </View>
       {isCorrect === false && (
         <View
@@ -659,11 +786,12 @@ type TokenKeyboardProps = {
   pool: PlacedToken[];
   allTokens: SyntaxToken[];
   onAddToken: (instanceId: string) => void;
-  onAddNewline: () => void;
 };
 
-export function TokenKeyboard({ pool, allTokens, onAddToken, onAddNewline }: TokenKeyboardProps) {
-  const tokenMap = new Map(allTokens.map((t) => [t.id, t]));
+export function TokenKeyboard({ pool, allTokens, onAddToken }: TokenKeyboardProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const tokenMap = React.useMemo(() => new Map(allTokens.map((t) => [t.id, t])), [allTokens]);
 
   // Split into symbols (first row) and words (remaining rows) using the instances in the pool
   const symbolInstances = pool
@@ -691,9 +819,9 @@ export function TokenKeyboard({ pool, allTokens, onAddToken, onAddNewline }: Tok
   return (
     <View
       style={{
-        backgroundColor: '#111316',
+        backgroundColor: isDark ? '#111316' : '#F8FAFC',
         borderTopWidth: 1,
-        borderTopColor: '#1E2328',
+        borderTopColor: isDark ? '#1E2328' : '#E2E8F0',
         paddingTop: 10,
         paddingBottom: 6,
         paddingHorizontal: 4,
@@ -717,6 +845,7 @@ export function TokenKeyboard({ pool, allTokens, onAddToken, onAddNewline }: Tok
             return (
               <PuzzlePiece
                 key={p.instanceId}
+                instanceId={p.instanceId}
                 token={token}
                 customLabel={p.customLabel}
                 variant="key"
@@ -743,6 +872,7 @@ export function TokenKeyboard({ pool, allTokens, onAddToken, onAddNewline }: Tok
           return (
             <PuzzlePiece
               key={p.instanceId}
+              instanceId={p.instanceId}
               token={token}
               customLabel={p.customLabel}
               variant="key"
@@ -751,47 +881,9 @@ export function TokenKeyboard({ pool, allTokens, onAddToken, onAddNewline }: Tok
           );
         })}
       </View>
-
-      {/* Row 3: Action keys (Enter) */}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'flex-end',
-          paddingHorizontal: 16,
-          marginTop: 10,
-          marginBottom: 4,
-        }}
-      >
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={onAddNewline}
-          style={{
-            backgroundColor: '#3B82F6',
-            paddingHorizontal: 22,
-            paddingVertical: 12,
-            borderRadius: 12,
-            borderBottomWidth: 3,
-            borderColor: '#2563EB',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-          }}
-        >
-          <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 14, textTransform: 'uppercase' }}>
-            Enter
-          </Text>
-          <MaterialIcons name="keyboard-return" size={18} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
-
-import { Animated } from 'react-native';
-import { useEffect, useRef } from 'react';
-
-// ... (já temos React no topo, mas eu uso lá direto como React.useEffect)
 
 // ─────────────────────────────────────────────
 // Validate Button

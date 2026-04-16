@@ -1,6 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import React, { useState } from 'react';
-import { Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, View, Animated } from 'react-native';
+import { DraxView } from 'react-native-drax';
 
 import { TOKEN_CATEGORY_COLORS } from '../coding-practice.constants';
 import { type SyntaxToken } from '../coding-practice.types';
@@ -14,6 +15,8 @@ type PuzzlePieceProps = {
   onRemove?: () => void;
   used?: boolean;
   variant?: 'key' | 'answer';
+  instanceId?: string;
+  isCorrectPosition?: boolean;
 };
 
 export function PuzzlePiece({
@@ -25,6 +28,8 @@ export function PuzzlePiece({
   onRemove,
   used = false,
   variant = 'key',
+  instanceId,
+  isCorrectPosition = false,
 }: PuzzlePieceProps) {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [draftLabel, setDraftLabel] = useState(customLabel ?? token.label);
@@ -32,6 +37,28 @@ export function PuzzlePiece({
   const colors = TOKEN_CATEGORY_COLORS[token.category] ?? TOKEN_CATEGORY_COLORS.symbol;
   const displayLabel = customLabel ?? token.label;
   const isKey = variant === 'key';
+
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isCorrectPosition && !isKey) {
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 0.9,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 1000,
+          delay: 500,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (!isCorrectPosition) {
+      glowAnim.setValue(0);
+    }
+  }, [isCorrectPosition, isKey]);
 
   function handleConfirmEdit() {
     const trimmed = draftLabel.trim();
@@ -41,7 +68,7 @@ export function PuzzlePiece({
 
   // Key style (keyboard look)
   if (isKey) {
-    return (
+    const keyContent = (
       <>
         <TouchableOpacity
           onPress={used ? undefined : onPress}
@@ -60,9 +87,9 @@ export function PuzzlePiece({
             paddingVertical: 8,
             borderRadius: 8,
             borderStyle: 'solid',
-            backgroundColor: used ? 'transparent' : colors.bg,
+            backgroundColor: used ? 'transparent' : '#1E2128',
             borderWidth: 1.5,
-            borderColor: used ? '#1A1D21' : colors.border,
+            borderColor: used ? '#1A1D21' : '#3A3F47',
             borderBottomWidth: used ? 1.5 : 3,
             opacity: used ? 0.3 : 1,
             minWidth: 32,
@@ -74,7 +101,7 @@ export function PuzzlePiece({
         >
           <Text
             style={{
-              color: used ? '#4B5563' : colors.text,
+              color: used ? '#4B5563' : '#D1D5DB',
               fontSize: 13,
               fontWeight: '700',
               fontFamily: 'monospace',
@@ -87,12 +114,38 @@ export function PuzzlePiece({
         {renderModal()}
       </>
     );
+
+    if (used || !instanceId) {
+      return keyContent;
+    }
+
+    return (
+      <DraxView
+        dragPayload={`kb_${instanceId}`}
+        draggingStyle={{ opacity: 0.5 }}
+        dragReleasedStyle={{ opacity: 0.5 }}
+        hoverDraggingStyle={{ opacity: 0.8 }}
+      >
+        {keyContent}
+      </DraxView>
+    );
   }
 
   // Answer variant (inside the answer area)
   return (
-    <>
-      <TouchableOpacity
+    <View style={{ position: 'relative', marginHorizontal: 2, marginVertical: 2 }}>
+      <Animated.View style={{
+        position: 'absolute',
+        top: -3, bottom: -3, left: -3, right: -3,
+        backgroundColor: '#34D399',
+        borderRadius: 11,
+        opacity: glowAnim,
+      }} />
+      <DraxView
+        dragPayload={`ans_${instanceId}`}
+        draggingStyle={{ opacity: 0.5 }}
+      >
+        <TouchableOpacity
         onPress={onPress}
         onLongPress={() => {
           if (token.editable && onRename) {
@@ -111,17 +164,16 @@ export function PuzzlePiece({
           borderStyle: 'solid',
           borderWidth: 1.5,
           borderBottomWidth: 3,
-          backgroundColor: colors.bg,
-          borderColor: colors.border,
+          backgroundColor: '#1E2128',
+          borderColor: '#3A3F47',
           minHeight: 30,
         }}
       >
         <Text
           style={{
-            color: colors.text,
+            color: '#D1D5DB',
             fontSize: 12,
-            fontWeight:
-              token.category === 'keyword' || token.category === 'modifier' ? '700' : '600',
+            fontWeight: '700',
             fontFamily: 'monospace',
             letterSpacing: 0.1,
           }}
@@ -129,8 +181,9 @@ export function PuzzlePiece({
           {displayLabel}
         </Text>
       </TouchableOpacity>
+      </DraxView>
       {renderModal()}
-    </>
+    </View>
   );
 
   // Shared rename modal

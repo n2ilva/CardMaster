@@ -52,3 +52,4 @@ cardmaster-*.json
 # Environment files
 .env
 
+service-account.json

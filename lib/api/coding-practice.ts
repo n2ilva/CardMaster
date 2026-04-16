@@ -1,7 +1,7 @@
 import { collection, doc, getDocs, serverTimestamp, setDoc, query, where, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { CodingPracticeResult } from './types';
-
+import type { Exercise } from '@/app/(features)/coding-practice/coding-practice.types';
 export async function fetchCodingPracticeProgress(uid: string): Promise<Record<string, { completed: boolean; bestTime: number }>> {
   const colRef = collection(db, 'users', uid, 'codingPracticeResults');
   const snapshot = await getDocs(colRef);
@@ -40,4 +40,17 @@ export async function saveCodingPracticeResult(uid: string, exerciseId: string, 
       updatedAt: serverTimestamp(),
     });
   }
+}
+
+export async function fetchCodingExercises(): Promise<Exercise[]> {
+  const colRef = collection(db, 'coding_exercises');
+  const snapshot = await getDocs(colRef);
+  
+  const exercises: Exercise[] = [];
+  snapshot.docs.forEach(d => {
+    const data = d.data() as Exercise;
+    exercises.push(data);
+  });
+  
+  return exercises;
 }

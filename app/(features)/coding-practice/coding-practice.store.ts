@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchCodingPracticeProgress, saveCodingPracticeResult } from '@/lib/api/coding-practice';
-
+import { fetchCodingPracticeProgress, saveCodingPracticeResult, fetchCodingExercises } from '@/lib/api/coding-practice';
+import type { Exercise } from './coding-practice.types';
 const STORAGE_KEY = 'coding-practice-progress';
+const DATA_CACHE_KEY = 'coding-exercises-cache';
 
 export type ExerciseProgress = {
   completed: boolean;
@@ -11,6 +12,30 @@ export type ExerciseProgress = {
 export type GlobalProgress = Record<string, ExerciseProgress>;
 
 export const CodingPracticeStore = {
+  async getAllExercises(): Promise<Exercise[]> {
+    try {
+      // 1. Try fetching from remote first (to always be updated)
+      const remote = await fetchCodingExercises();
+      if (remote && remote.length > 0) {
+        await AsyncStorage.setItem(DATA_CACHE_KEY, JSON.stringify(remote));
+        return remote;
+      }
+    } catch(e) {
+      console.log('Failed fetching from remote', e);
+    }
+    
+    // 2. Fallback to local cache
+    try {
+      const local = await AsyncStorage.getItem(DATA_CACHE_KEY);
+      if (local) {
+        return JSON.parse(local) as Exercise[];
+      }
+    } catch(e) {
+      console.log('Failed fetching local cache', e);
+    }
+    return [];
+  },
+
   async getProgress(uid?: string): Promise<GlobalProgress> {
     // 1. Load local first
     let localData: GlobalProgress = {};

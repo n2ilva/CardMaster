@@ -46,15 +46,15 @@ export function HomeScreen() {
               {user ? `Olá, ${user.name}!` : 'Bem-vindo!'}
             </Text>
             <Text style={{ color: '#687076', fontSize: 14, marginTop: 4 }}>
-              Teste seus conhecimentos e evolua com questões desafiadoras.
+              Teste seus conhecimentos com quiz e pratique programação montando código.
             </Text>
           </View>
         </View>
 
         <View style={{ flexDirection: 'row', gap: 16, marginBottom: 24 }}>
           <QuizStatCard label="Quiz" value={stats ? stats.totalCards.toLocaleString('pt-BR') : '…'} subtitle="questões disponíveis" icon="layers" accentColor="#FFFFFF" backgroundColor="#0EA5E9" borderColor="#0EA5E9" valueColor="#FFFFFF" labelColor="rgba(255,255,255,0.8)" subtitleColor="rgba(255,255,255,0.7)" iconBackgroundColor="rgba(255,255,255,0.14)" style={{ flex: 1 }} />
+          <QuizStatCard label="Código" value="Puzzle" subtitle="monte o código" icon="extension" accentColor="#FFFFFF" backgroundColor="#22C55E" borderColor="#22C55E" valueColor="#FFFFFF" labelColor="rgba(255,255,255,0.8)" subtitleColor="rgba(255,255,255,0.7)" iconBackgroundColor="rgba(255,255,255,0.14)" style={{ flex: 1 }} />
           <QuizStatCard label="Temas" value={stats ? stats.activeTracks : '…'} subtitle="temas ativos" icon="category" accentColor="#FFFFFF" backgroundColor="#8B5CF6" borderColor="#8B5CF6" valueColor="#FFFFFF" labelColor="rgba(255,255,255,0.8)" subtitleColor="rgba(255,255,255,0.7)" iconBackgroundColor="rgba(255,255,255,0.14)" style={{ flex: 1 }} />
-          <QuizStatCard label="Sistema" value="Repetição" subtitle="espaçada adaptativa" icon="auto-awesome" accentColor={QUIZ_COLORS.primarySoft} backgroundColor={QUIZ_COLORS.surfaceStrong} borderColor={QUIZ_COLORS.borderSubtle} valueColor={QUIZ_COLORS.textPrimary} labelColor={QUIZ_COLORS.textMuted} subtitleColor={QUIZ_COLORS.textMuted} style={{ flex: 1 }} />
         </View>
 
         <View style={{ flexDirection: isDesktop ? 'row' : 'column', gap: 16 }}>
@@ -82,10 +82,10 @@ export function HomeScreen() {
               </View>
               <View style={{ gap: 12 }}>
                 {[
-                  { n: '1', text: 'Escolha um tema e uma categoria na aba Quiz' },
-                  { n: '2', text: 'O sistema seleciona automaticamente as melhores perguntas para você' },
-                  { n: '3', text: 'Responda e aprenda com explicações detalhadas e exemplos' },
-                  { n: '4', text: 'Perguntas erradas voltam mais frequência — repetição espaçada para fixar' },
+                  { n: '1', text: 'Quiz: Escolha um tema e responda questões com repetição espaçada' },
+                  { n: '2', text: 'Código: Monte trechos de código arrastando peças no lugar certo' },
+                  { n: '3', text: 'O sistema adapta dificuldade e frequência ao seu desempenho' },
+                  { n: '4', text: 'Acompanhe seu progresso em tempo real com estatísticas detalhadas' },
                 ].map((step) => (
                   <View key={step.n} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
                     <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: QUIZ_COLORS.primary, alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
@@ -129,7 +129,7 @@ export function HomeScreen() {
           <MaterialIcons name="style" size={22} color="#FFFFFF" />
         </View>
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">QuizMaster</Text>
+          <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">QMaster</Text>
         </View>
         <Pressable
           onPress={() => {
@@ -151,7 +151,7 @@ export function HomeScreen() {
         ) : (
           'Bem-vindo!'
         )}{' '}
-        Teste seus conhecimentos e evolua com questões desafiadoras.
+        Teste seus conhecimentos com quiz e pratique programação montando código.
       </Text>
 
       <View className="mt-5 flex-row gap-3">
@@ -164,6 +164,18 @@ export function HomeScreen() {
             {stats ? stats.totalCards.toLocaleString('pt-BR') : '…'}
           </Text>
         </View>
+        <View className="flex-1 rounded-2xl bg-[#F0FDF4] p-4 dark:bg-[#22C55E]/10">
+          <View className="flex-row items-center gap-2">
+            <MaterialIcons name="extension" size={16} color="#22C55E" />
+            <Text className="text-xs uppercase tracking-wide text-[#166534] dark:text-[#86EFAC]">Código</Text>
+          </View>
+          <Text className="mt-2 text-2xl font-bold text-[#14532D] dark:text-[#DCFCE7]">
+            Puzzle
+          </Text>
+        </View>
+      </View>
+
+      <View className="mt-3 flex-row gap-3">
         <View className="flex-1 rounded-2xl bg-[#F5F3FF] p-4 dark:bg-[#8B5CF6]/10">
           <View className="flex-row items-center gap-2">
             <MaterialIcons name="category" size={16} color="#8B5CF6" />
@@ -171,6 +183,15 @@ export function HomeScreen() {
           </View>
           <Text className="mt-2 text-3xl font-bold text-[#3B0764] dark:text-[#EDE9FE]">
             {stats ? stats.activeTracks : '…'}
+          </Text>
+        </View>
+        <View className="flex-1 rounded-2xl bg-[#FFF7ED] p-4 dark:bg-[#F59E0B]/10">
+          <View className="flex-row items-center gap-2">
+            <MaterialIcons name="auto-awesome" size={16} color="#F59E0B" />
+            <Text className="text-xs uppercase tracking-wide text-[#92400E] dark:text-[#FDE68A]">Sistema</Text>
+          </View>
+          <Text className="mt-2 text-lg font-bold text-[#78350F] dark:text-[#FEF3C7]">
+            Repetição Espaçada
           </Text>
         </View>
       </View>
@@ -198,10 +219,10 @@ export function HomeScreen() {
         </View>
         <View className="mt-3 gap-3">
           {[
-            'Escolha um tema e uma categoria na aba Quiz',
-            'O sistema seleciona automaticamente as melhores perguntas para você com base no seu desempenho',
-            'Responda e aprenda com explicações detalhadas e exemplos',
-            'Perguntas que você errou voltam com mais frequência — repetição espaçada para fixar o conteúdo',
+            'Quiz: Escolha um tema e responda questões com repetição espaçada',
+            'Código: Monte trechos de código arrastando peças no lugar certo',
+            'O sistema adapta dificuldade e frequência ao seu desempenho',
+            'Acompanhe seu progresso em tempo real com estatísticas detalhadas',
           ].map((step, index) => (
             <View key={index} className="flex-row items-start gap-2.5">
               <View className="mt-0.5 h-5 w-5 items-center justify-center rounded-full bg-[#3F51B5]">

@@ -13,8 +13,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: '/(features)/(main)', label: 'Início', icon: 'house' },
-  { href: '/(features)/(main)/coding-practice', label: 'Praticar', icon: 'extension' },
-  { href: '/(features)/(main)/quiz', label: 'Quiz', icon: 'library-books' },
+  { href: '/(features)/(main)/practice', label: 'Praticar', icon: 'sports-esports' },
   { href: '/(features)/(main)/progress', label: 'Progresso', icon: 'bar-chart' },
   { href: '/(features)/(main)/community', label: 'Comunidade', icon: 'groups' },
 ];
@@ -26,6 +25,13 @@ export function DesktopSidebar({ onLogout = () => undefined }: { onLogout?: () =
 
   function isActive(href: string) {
     if (href === '/(features)/(main)') return pathname === '/' || pathname === '/index';
+    
+    if (href === '/(features)/(main)/practice') {
+      return pathname.startsWith('/practice') || 
+             pathname.startsWith('/coding-practice') || 
+             pathname.startsWith('/quiz');
+    }
+
     return pathname.startsWith(href.replace('/(features)/(main)', ''));
   }
 
@@ -67,7 +73,7 @@ export function DesktopSidebar({ onLogout = () => undefined }: { onLogout?: () =
           <MaterialIcons name="style" size={20} color="#FFFFFF" />
         </View>
         <Text style={{ color: '#ECEDEE', fontSize: 17, fontWeight: '700', letterSpacing: 0.3 }}>
-          QuizMaster
+          QMaster
         </Text>
       </Pressable>
 

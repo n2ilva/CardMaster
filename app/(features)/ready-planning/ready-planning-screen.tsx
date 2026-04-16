@@ -2,7 +2,9 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View, type ScrollView as ScrollViewType } from 'react-native';
+import { Pressable, ScrollView, Text, View, useColorScheme, type ScrollView as ScrollViewType } from 'react-native';
+
+import { DesktopSidebar } from '@/components/desktop-sidebar';
 
 import { QuizActionButton } from '@/components/quiz/action-button';
 import { SelectableCard } from '@/components/quiz/selectable-card';
@@ -25,6 +27,8 @@ export function ReadyPlanningScreen() {
   const router = useRouter();
   const { trackCatalog, userProgress } = useData();
   const layoutMode = useLayoutMode();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const isDesktopLayout = layoutMode === 'desktop';
   const bottomPadding = 40;
 
@@ -310,13 +314,13 @@ export function ReadyPlanningScreen() {
           <Text style={{ color: '#6B7280', fontSize: 11 }}>Arraste para reordenar</Text>
         </View>
 
-        <Text style={{ color: '#6B7280', fontSize: 12, lineHeight: 18, marginBottom: 14 }}>
+        <Text style={{ color: isDark ? '#6B7280' : '#94A3B8', fontSize: 12, lineHeight: 18, marginBottom: 14 }}>
           Cada tópico segue o mesmo ciclo: ler a documentação primeiro e depois praticar com os quizzes.
         </Text>
 
         <View style={{ gap: 10 }}>
           {sequence.map((category, index) => (
-            <View key={category} style={{ borderRadius: 14, borderWidth: 1, borderColor: '#1E2328', backgroundColor: '#151718', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View key={category} style={{ borderRadius: 16, borderWidth: 1, borderColor: isDark ? '#30363D' : '#E2E8F0', backgroundColor: isDark ? '#1C1F24' : '#FFFFFF', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={{ gap: 2 }}>
                 <Pressable
                   onPress={() => moveItem(index, index - 1)}
@@ -332,14 +336,14 @@ export function ReadyPlanningScreen() {
                 </Pressable>
               </View>
 
-              <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: index === 0 ? `${trackColor}30` : '#1E2328', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: index === 0 ? trackColor : '#6B7280', fontSize: 12, fontWeight: '700' }}>{index + 1}</Text>
+              <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: index === 0 ? `${trackColor}30` : isDark ? '#2D3139' : '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: index === 0 ? trackColor : isDark ? '#9BA1A6' : '#64748B', fontSize: 12, fontWeight: '700' }}>{index + 1}</Text>
               </View>
 
               <Pressable onPress={() => router.push(getCategoryRoute(category, index) as never)} style={{ flex: 1 }}>
-                <Text style={{ color: '#ECEDEE', fontSize: 14, fontWeight: '600' }}>{category}</Text>
-                {CATEGORY_TYPE_LABEL[category] && <Text style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>{CATEGORY_TYPE_LABEL[category]}</Text>}
-                <Text style={{ color: trackColor, fontSize: 11, fontWeight: '600', marginTop: 4 }}>
+                <Text style={{ color: isDark ? '#ECEDEE' : '#11181C', fontSize: 14, fontWeight: '700', letterSpacing: -0.3 }}>{category}</Text>
+                {CATEGORY_TYPE_LABEL[category] && <Text style={{ color: isDark ? '#9BA1A6' : '#64748B', fontSize: 11, marginTop: 2 }}>{CATEGORY_TYPE_LABEL[category]}</Text>}
+                <Text style={{ color: trackColor, fontSize: 11, fontWeight: '700', marginTop: 4 }}>
                   {hasDocumentation(selectedTrack!, category) ? '1. Ler documentação  2. Responder quizzes' : 'Ir direto para os quizzes'}
                 </Text>
                 {(() => {
@@ -383,18 +387,75 @@ export function ReadyPlanningScreen() {
     );
   }
 
+  if (isDesktopLayout) {
+    return (
+      <View style={{ flex: 1, flexDirection: 'row', backgroundColor: isDark ? '#111316' : '#F8FAFC' }}>
+        <DesktopSidebar />
+        <ScrollView
+          ref={scrollRef}
+          style={{ flex: 1, backgroundColor: isDark ? '#111316' : '#F8FAFC' }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 40, paddingTop: 40, paddingBottom: bottomPadding }}>
+          
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 32, gap: 12 }}>
+            <Pressable
+              onPress={() => router.back()}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: isDark ? '#1C1F24' : '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 4,
+                opacity: pressed ? 0.6 : 1,
+              })}>
+              <MaterialIcons name="arrow-back" size={24} color={isDark ? '#ECEDEE' : '#11181C'} />
+            </Pressable>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: isDark ? '#ECEDEE' : '#11181C', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 }}>Planejamento</Text>
+              <Text style={{ color: isDark ? '#9BA1A6' : '#64748B', fontSize: 14, marginTop: 4 }}>Configure sua rota de estudos ideal.</Text>
+            </View>
+          </View>
+          
+          <View style={{ maxWidth: 720, width: '100%', alignSelf: 'center' }}>
+            <PlanningStepIndicator current={step} labels={stepLabels} />
+
+            {step === 1 && renderTrackStep()}
+            {step === 2 && (isLanguageTrack ? renderLanguageStep() : renderLevelStep())}
+            {step === 3 && (isLanguageTrack ? renderLevelStep() : renderPlanStep())}
+            {step === 4 && renderPlanStep()}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       ref={scrollRef}
-      style={{ flex: 1, backgroundColor: '#111316' }}
+      style={{ flex: 1, backgroundColor: isDark ? '#111316' : '#FFFFFF' }}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ padding: isDesktopLayout ? 40 : 20, paddingTop: isDesktopLayout ? 40 : 56, paddingBottom: bottomPadding, maxWidth: 720, alignSelf: isDesktopLayout ? 'center' : undefined, width: isDesktopLayout ? '100%' : undefined }}>
-      <Pressable
-        onPress={() => router.back()}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 24, opacity: pressed ? 0.6 : 1, alignSelf: 'flex-start' })}>
-        <MaterialIcons name="arrow-back" size={20} color="#6B7280" />
-        <Text style={{ color: '#6B7280', fontSize: 14 }}>Voltar</Text>
-      </Pressable>
+      contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: bottomPadding }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24, gap: 12 }}>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => ({
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: isDark ? '#1C1F24' : '#F1F5F9',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: pressed ? 0.6 : 1,
+          })}>
+          <MaterialIcons name="arrow-back" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
+        </Pressable>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: isDark ? '#ECEDEE' : '#11181C', fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}>Planejamento</Text>
+          <Text style={{ color: isDark ? '#9BA1A6' : '#64748B', fontSize: 14, marginTop: 2 }}>Crie sua rota de estudos ideal.</Text>
+        </View>
+      </View>
 
       <PlanningStepIndicator current={step} labels={stepLabels} />
 

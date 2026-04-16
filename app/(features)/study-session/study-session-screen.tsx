@@ -433,15 +433,27 @@ export function StudySessionScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]" style={isDesktopLayout ? { alignItems: 'center' } : undefined}>
+    <View className="flex-1 bg-white px-5 pt-6 dark:bg-[#151718]" style={isDesktopLayout ? { alignItems: 'center' } : undefined}>
       <View style={[{ flex: 1 }, isDesktopLayout ? { width: '60%', alignSelf: 'center' } : undefined]}>
-        {isDesktopLayout && (
-          <Pressable onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16, alignSelf: 'flex-start' }}>
-            <MaterialIcons name="arrow-back" size={18} color="#687076" />
-            <Text style={{ color: '#687076', fontSize: 14 }}>Voltar</Text>
+        {/* Custom header */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 12 }}>
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => ({
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: isDark ? '#1C1F24' : '#F1F5F9',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.6 : 1,
+            })}>
+            <MaterialIcons name="arrow-back" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
           </Pressable>
-        )}
-        <Text className="text-xs font-medium tracking-wide text-[#687076] dark:text-[#9BA1A6]">{contextLabel}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: isDark ? '#ECEDEE' : '#11181C' }}>{contextLabel}</Text>
+          </View>
+        </View>
 
         <View className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#E6E8EB] dark:bg-[#2A2F36]">
           <View className="h-full rounded-full bg-[#3F51B5]" style={{ width: `${progressPercent}%` }} />

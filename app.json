@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "QuizMaster",
+    "name": "QMaster",
     "slug": "cardmaster",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,7 +14,6 @@
     "android": {
       "package": "com.n2ilva.cardmaster",
       "googleServicesFile": "./google-services.json",
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/icone.png",
@@ -50,7 +49,7 @@
       ]
     ],
     "experiments": {
-      "baseUrl": "/QuizMaster",
+      "baseUrl": "/QMaster",
       "typedRoutes": true,
       "reactCompiler": true
     },

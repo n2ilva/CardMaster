@@ -1,4 +1,4 @@
-# QuizMaster
+# QMaster
 
 Instruções para executar o projeto localmente.
 

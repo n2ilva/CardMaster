@@ -24,7 +24,7 @@ export function LoadingScreen({ progress }: LoadingScreenProps) {
 
   return (
     <View className="flex-1 items-center justify-center bg-[#151718]">
-      <Text className="mb-2 text-3xl font-bold text-white">QuizMaster</Text>
+      <Text className="mb-2 text-3xl font-bold text-white">QMaster</Text>
       <Text className="mb-8 text-base text-gray-400">Preparando tudo para você...</Text>
 
       <View className="h-2 w-64 overflow-hidden rounded-full bg-gray-700">

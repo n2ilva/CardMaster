@@ -16,6 +16,7 @@ type IconSymbolName = keyof typeof MAPPING;
 const MAPPING = {
   'house.fill': 'dashboard',
   'paperplane.fill': 'school',
+  'gamecontroller.fill': 'sports-esports',
   'chart.bar.fill': 'bar-chart',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'trending-up',

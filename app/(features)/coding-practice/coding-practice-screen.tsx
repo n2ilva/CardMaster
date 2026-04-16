@@ -1,8 +1,11 @@
 import { Audio } from 'expo-av';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { router } from 'expo-router';
 import { ScrollView, Text, TouchableOpacity, View, Animated, useColorScheme, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { DraxProvider } from 'react-native-drax';
 
 import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
 import { useAuth } from '@/providers/auth-provider';
@@ -27,31 +30,14 @@ import {
   TokenKeyboard,
   ValidateButton,
 } from './components/coding-practice-components';
+import { CodingPracticeStore, type GlobalProgress } from './coding-practice.store';
 
 // ─── helpers ─────────────────────────────────────────────
 function uid() {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
-// JSON data source — exercises loaded from separate files per language
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const jsExercises = require('./data/exjavascript.json') as { exercises: Exercise[] };
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const javaExercises = require('./data/exjava.json') as { exercises: Exercise[] };
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const csharpExercises = require('./data/excsharp.json') as { exercises: Exercise[] };
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pythonExercises = require('./data/expython.json') as { exercises: Exercise[] };
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const typescriptExercises = require('./data/extypescript.json') as { exercises: Exercise[] };
-
-const ALL_EXERCISES: Exercise[] = [
-  ...jsExercises.exercises,
-  ...javaExercises.exercises,
-  ...csharpExercises.exercises,
-  ...pythonExercises.exercises,
-  ...typescriptExercises.exercises,
-];
+// Exercises will be loaded dynamically from CodingPracticeStore
 
 
 function validate(placed: PlacedToken[], exercise: Exercise): boolean {
@@ -60,8 +46,6 @@ function validate(placed: PlacedToken[], exercise: Exercise): boolean {
   if (cleanPlaced.length !== cleanSolution.length) return false;
   return cleanPlaced.every((p, i) => p.tokenId === cleanSolution[i]);
 }
-
-import { CodingPracticeStore, type GlobalProgress } from './coding-practice.store';
 
 // ─── Main Screen ─────────────────────────────────────────
 export function CodingPracticeScreen() {
@@ -84,6 +68,18 @@ export function CodingPracticeScreen() {
   const [showCompletionEffect, setShowCompletionEffect] = useState(false);
   const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | null>(null);
   const [userProgress, setUserProgress] = useState<GlobalProgress>({});
+  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
+  const [isLoadingExercises, setIsLoadingExercises] = useState(true);
+  const [attempts, setAttempts] = useState(0);
+  const [liveTimer, setLiveTimer] = useState(0);
+
+  // Load exercises from db / cache
+  React.useEffect(() => {
+    CodingPracticeStore.getAllExercises().then((data) => {
+      setAllExercises(data);
+      setIsLoadingExercises(false);
+    });
+  }, []);
 
   // Load progress
   React.useEffect(() => {
@@ -94,6 +90,15 @@ export function CodingPracticeScreen() {
     const p = await CodingPracticeStore.getProgress(user?.id);
     setUserProgress(p);
   }, [user?.id]);
+
+  // Live timer
+  useEffect(() => {
+    if (!startTime || finished) return;
+    const interval = setInterval(() => {
+      setLiveTimer(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startTime, finished]);
 
   // Animated values for feedback
   const iconScale = useRef(new Animated.Value(0)).current;
@@ -128,6 +133,12 @@ export function CodingPracticeScreen() {
       }
     });
     
+    // Shuffle to avoid giving away the solution order
+    for (let i = newPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newPool[i], newPool[j]] = [newPool[j], newPool[i]];
+    }
+    
     setPool(newPool);
   }, []);
 
@@ -150,12 +161,18 @@ export function CodingPracticeScreen() {
   };
 
   const exercisesForLang = useMemo(
-    () => ALL_EXERCISES.filter((e) => e.language === (selectedLang.id as Language)),
-    [selectedLang.id],
+    () => allExercises.filter((e) => e.language === (selectedLang.id as Language)),
+    [allExercises, selectedLang.id],
   );
 
   const categories = useMemo(() => {
     return Array.from(new Set(exercisesForLang.map((e) => e.exerciseType)));
+  }, [exercisesForLang]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    exercisesForLang.forEach(e => counts.set(e.exerciseType, (counts.get(e.exerciseType) || 0) + 1));
+    return counts;
   }, [exercisesForLang]);
 
   const exercisesForCategory = useMemo(() => {
@@ -195,6 +212,8 @@ export function CodingPracticeScreen() {
     setIsCorrect(null);
     setHintIndex(0);
     setStartTime(Date.now());
+    setAttempts(0);
+    setLiveTimer(0);
   }, [initPool]);
   const handleBack = useCallback(async () => {
     setActiveExercise(null);
@@ -214,6 +233,8 @@ export function CodingPracticeScreen() {
     setHintIndex(0);
     setStartTime(Date.now());
     setFinished(false);
+    setAttempts(0);
+    setLiveTimer(0);
     await refreshProgress();
   }, [activeExercise, initPool, refreshProgress]);
 
@@ -222,6 +243,33 @@ export function CodingPracticeScreen() {
       const token = prevPool.find((p) => p.instanceId === instanceId);
       if (!token) return prevPool;
       setPlaced((prevPlaced) => [...prevPlaced, token]);
+      return prevPool.filter((p) => p.instanceId !== instanceId);
+    });
+    setIsCorrect(null);
+  }, []);
+
+  const handleReorder = useCallback((fromInstanceId: string, toIndex: number) => {
+    setPlaced((prev) => {
+      const fromIdx = prev.findIndex((p) => p.instanceId === fromInstanceId);
+      if (fromIdx === -1 || fromIdx === toIndex) return prev;
+      const item = prev[fromIdx];
+      const without = [...prev.slice(0, fromIdx), ...prev.slice(fromIdx + 1)];
+      const insertIdx = toIndex > fromIdx ? toIndex - 1 : toIndex;
+      without.splice(Math.min(insertIdx, without.length), 0, item);
+      return without;
+    });
+    setIsCorrect(null);
+  }, []);
+
+  const handleInsertAt = useCallback((instanceId: string, atIndex: number) => {
+    setPool((prevPool) => {
+      const token = prevPool.find((p) => p.instanceId === instanceId);
+      if (!token) return prevPool;
+      setPlaced((prevPlaced) => {
+        const copy = [...prevPlaced];
+        copy.splice(atIndex, 0, token);
+        return copy;
+      });
       return prevPool.filter((p) => p.instanceId !== instanceId);
     });
     setIsCorrect(null);
@@ -260,8 +308,47 @@ export function CodingPracticeScreen() {
     setIsCorrect(null);
   }, [placed]);
 
+  const handleUndo = useCallback(() => {
+    setPlaced((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      if (last.tokenId !== 'sym_newline') {
+        setPool((prevPool) => [...prevPool, last]);
+      }
+      return prev.slice(0, -1);
+    });
+    setIsCorrect(null);
+  }, []);
+
+  const handleNextExercise = useCallback(() => {
+    if (!activeExercise) return;
+    const currentCatExercises = allExercises.filter(
+      (e) => e.language === activeExercise.language && e.exerciseType === activeExercise.exerciseType
+    );
+    const currentIdx = currentCatExercises.findIndex((e) => e.id === activeExercise.id);
+    // Find next uncompleted, or just next in list
+    const nextEx = currentCatExercises.find(
+      (e, i) => i > currentIdx && !userProgress[e.id]?.completed
+    ) || currentCatExercises[currentIdx + 1];
+    if (nextEx) {
+      setActiveExercise(nextEx);
+      setPlaced([]);
+      initPool(nextEx);
+      setIsCorrect(null);
+      setHintIndex(0);
+      setStartTime(Date.now());
+      setFinished(false);
+      setAttempts(0);
+      setLiveTimer(0);
+    } else {
+      // No more exercises, go back to list
+      handleBack();
+    }
+  }, [activeExercise, allExercises, userProgress, initPool, handleBack]);
+
   const handleValidate = useCallback(async () => {
     if (!activeExercise || placed.length === 0) return;
+    setAttempts((a) => a + 1);
     const correct = validate(placed, activeExercise);
 
     if (correct) {
@@ -275,44 +362,33 @@ export function CodingPracticeScreen() {
       
       await playSound('concluido');
 
-      // Feedback Popup
-      setFeedbackType('correct');
-      iconScale.setValue(0);
-      iconOpacity.setValue(1);
+      // Completion Effect (gold overlay with music sync)
+      setShowCompletionEffect(true);
+      completionBgOpacity.setValue(0);
+      completionIconScale.setValue(0);
+      completionTextOpacity.setValue(0);
+      completionRingScale.setValue(0.8);
+      completionRingOpacity.setValue(0.7);
 
       Animated.sequence([
-        Animated.spring(iconScale, { toValue: 1, friction: 4, tension: 160, useNativeDriver: true }),
-        Animated.delay(800),
-        Animated.timing(iconOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
-      ]).start(() => {
-        // Completion Effect
-        setShowCompletionEffect(true);
-        completionBgOpacity.setValue(0);
-        completionIconScale.setValue(0);
-        completionTextOpacity.setValue(0);
-        completionRingScale.setValue(0.8);
-        completionRingOpacity.setValue(0.7);
-
-        Animated.sequence([
-          Animated.parallel([
-            Animated.timing(completionBgOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-            Animated.sequence([
-              Animated.timing(completionIconScale, { toValue: 1.15, duration: 300, useNativeDriver: true }),
-              Animated.timing(completionIconScale, { toValue: 0.92, duration: 120, useNativeDriver: true }),
-              Animated.timing(completionIconScale, { toValue: 1.0, duration: 100, useNativeDriver: true }),
-            ]),
-            Animated.timing(completionTextOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-            Animated.parallel([
-              Animated.timing(completionRingScale, { toValue: 2.4, duration: 1400, useNativeDriver: true }),
-              Animated.timing(completionRingOpacity, { toValue: 0, duration: 1400, useNativeDriver: true }),
-            ]),
+        Animated.parallel([
+          Animated.timing(completionBgOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.sequence([
+            Animated.timing(completionIconScale, { toValue: 1.15, duration: 300, useNativeDriver: true }),
+            Animated.timing(completionIconScale, { toValue: 0.92, duration: 120, useNativeDriver: true }),
+            Animated.timing(completionIconScale, { toValue: 1.0, duration: 100, useNativeDriver: true }),
           ]),
-          Animated.delay(800),
-          Animated.timing(completionBgOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
-        ]).start(() => {
-          setShowCompletionEffect(false);
-          setFinished(true);
-        });
+          Animated.timing(completionTextOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+          Animated.parallel([
+            Animated.timing(completionRingScale, { toValue: 2.4, duration: 1400, useNativeDriver: true }),
+            Animated.timing(completionRingOpacity, { toValue: 0, duration: 1400, useNativeDriver: true }),
+          ]),
+        ]),
+        Animated.delay(800),
+        Animated.timing(completionBgOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+      ]).start(() => {
+        setShowCompletionEffect(false);
+        setFinished(true);
       });
     } else {
       setIsCorrect(false);
@@ -363,20 +439,31 @@ export function CodingPracticeScreen() {
       const accentColor = '#22C55E';
 
       return (
-        <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <ScrollView
+          style={{ flex: 1, backgroundColor: bg }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            paddingTop: topPadding + 12,
+            paddingBottom: Math.max(insets.bottom, 20),
+          }}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={{ width: '100%', maxWidth: 420 }}>
-            <View style={{ alignItems: 'center', marginBottom: 32 }}>
-              <View style={{ width: 148, height: 148, borderRadius: 74, borderWidth: 2, borderColor: `${accentColor}30`, backgroundColor: `${accentColor}0D`, alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-                <View style={{ width: 108, height: 108, borderRadius: 54, borderWidth: 2, borderColor: `${accentColor}50`, backgroundColor: `${accentColor}18`, alignItems: 'center', justifyContent: 'center' }}>
-                  <MaterialIcons name="emoji-events" size={58} color={accentColor} />
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <View style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: `${accentColor}30`, backgroundColor: `${accentColor}0D`, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <View style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: `${accentColor}50`, backgroundColor: `${accentColor}18`, alignItems: 'center', justifyContent: 'center' }}>
+                  <MaterialIcons name="emoji-events" size={38} color={accentColor} />
                 </View>
               </View>
 
-              <Text style={{ fontSize: 42, fontWeight: '800', color: accentColor, letterSpacing: -1, textAlign: 'center' }}>EXCELENTE!</Text>
-              <Text style={{ fontSize: 15, color: textMuted, marginTop: 8 }}>Exercício concluído com sucesso</Text>
+              <Text style={{ fontSize: 32, fontWeight: '800', color: accentColor, letterSpacing: -1, textAlign: 'center' }}>EXCELENTE!</Text>
+              <Text style={{ fontSize: 14, color: textMuted, marginTop: 6 }}>Exercício concluído com sucesso</Text>
             </View>
 
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24 }}>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
               <QuizStatCard 
                 label="tempo" 
                 value={`${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, '0')}`} 
@@ -386,25 +473,25 @@ export function CodingPracticeScreen() {
                 borderColor="rgba(63,81,181,0.25)" 
                 valueColor={QUIZ_COLORS.primary} 
                 subtitleColor={textMuted} 
-                style={{ flex: 1, padding: 16 }} 
+                style={{ flex: 1, padding: 12 }} 
                 align="center" 
               />
               <QuizStatCard 
                 label="precisão" 
-                value="100%" 
+                value={attempts > 0 ? `${Math.round((1 / attempts) * 100)}%` : '100%'} 
                 icon="check-circle" 
                 accentColor={QUIZ_COLORS.success} 
                 backgroundColor="rgba(34,197,94,0.09)" 
                 borderColor="rgba(34,197,94,0.25)" 
                 valueColor={QUIZ_COLORS.success} 
                 subtitleColor={textMuted} 
-                style={{ flex: 1, padding: 16 }} 
+                style={{ flex: 1, padding: 12 }} 
                 align="center" 
               />
             </View>
 
-            <View style={{ alignItems: 'center', marginBottom: 30 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(63,81,181,0.08)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1.5, borderColor: 'rgba(63,81,181,0.22)' }}>
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(63,81,181,0.08)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1.5, borderColor: 'rgba(63,81,181,0.22)' }}>
                 <MaterialIcons name="code" size={14} color="#3F51B5" />
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#3F51B5', letterSpacing: 0.2 }}>
                   {selectedLang.label} · {activeExercise.exerciseType}
@@ -412,103 +499,123 @@ export function CodingPracticeScreen() {
               </View>
             </View>
 
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: 8 }}>
               <TouchableOpacity
-                onPress={handleRestartExercise}
-                style={{ padding: 16, borderRadius: 14, backgroundColor: '#3F51B5', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                onPress={handleNextExercise}
+                style={{ padding: 14, borderRadius: 14, backgroundColor: '#22C55E', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                 activeOpacity={0.7}
               >
-                <MaterialIcons name="replay" size={20} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 }}>Praticar Novamente</Text>
+                <MaterialIcons name="arrow-forward" size={18} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 }}>Próximo Exercício</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleRestartExercise}
+                style={{ padding: 14, borderRadius: 14, backgroundColor: '#3F51B5', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="replay" size={18} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 }}>Praticar Novamente</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 onPress={handleBack}
-                style={{ padding: 16, borderRadius: 14, backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                style={{ padding: 14, borderRadius: 14, backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                 activeOpacity={0.7}
               >
-                <MaterialIcons name="grid-view" size={20} color={textMuted} />
-                <Text style={{ color: textMuted, fontWeight: 'bold', fontSize: 16 }}>Voltar aos Tópicos</Text>
+                <MaterialIcons name="grid-view" size={18} color={textMuted} />
+                <Text style={{ color: textMuted, fontWeight: 'bold', fontSize: 15 }}>Voltar aos Tópicos</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ScrollView>
       );
     }
 
     // 2. ACTIVE EXERCISE VIEW
     if (activeExercise) {
       return (
-        <View style={{ flex: 1 }}>
-          {/* Scrollable area: pergunta + resposta */}
-          <View style={{ flex: 1 }}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingTop: topPadding + 8,
-                paddingBottom: 16,
-                flexGrow: 1,
-                alignItems: 'center',
-              }}
-            >
-              <View style={{ width: '100%', maxWidth: 768 }}>
-                {/* ① Pergunta */}
-                <QuestionCard
-                  exercise={activeExercise}
-                  language={selectedLang}
-                  onBack={handleBack}
-                  hintIndex={hintIndex}
-                  onShowHint={handleShowHint}
-                  onHideHints={() => setHintIndex(0)}
-                />
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <DraxProvider>
+            <View style={{ flex: 1 }}>
+              {/* Scrollable area: pergunta + resposta */}
+              <View style={{ flex: 1 }}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingTop: topPadding + 8,
+                    paddingBottom: 16,
+                    flexGrow: 1,
+                    alignItems: 'center',
+                  }}
+                >
+                  <View style={{ width: '100%', maxWidth: 768 }}>
+                    {/* ① Pergunta */}
+                    <QuestionCard
+                      exercise={activeExercise}
+                      language={selectedLang}
+                      onBack={handleBack}
+                      hintIndex={hintIndex}
+                      onShowHint={handleShowHint}
+                      onHideHints={() => setHintIndex(0)}
+                      progressPercent={activeExercise.solution.length > 0
+                        ? Math.round((placed.filter(p => p.tokenId !== 'sym_newline').length / activeExercise.solution.length) * 100)
+                        : 0
+                      }
+                      liveTimer={liveTimer}
+                    />
 
-                {/* ② Área de resposta */}
-                <AnswerArea
-                  placed={placed}
-                  allTokens={availableTokens}
-                  onRemove={handleRemove}
-                  onRename={handleRename}
-                  onClear={handleClear}
-                  isCorrect={isCorrect}
-                  expectedCount={activeExercise.solution.length}
-                />
+                    {/* ② Área de resposta */}
+                    <AnswerArea
+                      placed={placed}
+                      allTokens={availableTokens}
+                      onRemove={handleRemove}
+                      onRename={handleRename}
+                      onClear={handleClear}
+                      onAddToken={handleAddToken}
+                      onReorder={handleReorder}
+                      onInsertAt={handleInsertAt}
+                      isCorrect={isCorrect}
+                      expectedCount={activeExercise.solution.length}
+                      solution={activeExercise.solution}
+                    />
+                  </View>
+                </ScrollView>
               </View>
-            </ScrollView>
-          </View>
 
-          {/* ③④ Painel fixo na base: peças + botão verificar */}
-          <View
-            className="bg-white dark:bg-[#111316] border-t border-gray-200 dark:border-[#1E2328]"
-            style={{
-              paddingBottom: Math.max(insets.bottom, 12),
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -3 },
-              shadowOpacity: 0.12,
-              shadowRadius: 8,
-              elevation: 12,
-              alignItems: 'center',
-            }}
-          >
-            <View style={{ width: '100%', maxWidth: 768 }}>
-              <View>
-                {/* ③ Teclado de peças — fixo, sempre visível */}
-                <TokenKeyboard
-                  pool={pool}
-                  allTokens={availableTokens}
-                  onAddToken={handleAddToken}
-                  onAddNewline={handleAddNewline}
-                />
+              {/* ③④ Painel fixo na base: peças + botão verificar */}
+              <View
+                className="bg-white dark:bg-[#111316] border-t border-gray-200 dark:border-[#1E2328]"
+                style={{
+                  paddingBottom: Math.max(insets.bottom, 12),
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: -3 },
+                  shadowOpacity: 0.12,
+                  shadowRadius: 8,
+                  elevation: 12,
+                  alignItems: 'center',
+                }}
+              >
+                <View style={{ width: '100%', maxWidth: 768 }}>
+                  <View>
+                    {/* ③ Teclado de peças — fixo, sempre visível */}
+                    <TokenKeyboard
+                      pool={pool}
+                      allTokens={availableTokens}
+                      onAddToken={handleAddToken}
+                    />
 
-                {/* ④ Botão verificar */}
-                <ValidateButton
-                  onPress={handleValidate}
-                  disabled={placed.length === 0}
-                  isCorrect={isCorrect}
-                />
+                    {/* ④ Botão verificar */}
+                    <ValidateButton
+                      onPress={handleValidate}
+                      disabled={placed.filter(p => p.tokenId !== 'sym_newline').length < activeExercise.solution.length}
+                      isCorrect={isCorrect}
+                    />
+                  </View>
+                </View>
               </View>
             </View>
-          </View>
-        </View>
+          </DraxProvider>
+        </GestureHandlerRootView>
       );
     }
 
@@ -520,17 +627,30 @@ export function CodingPracticeScreen() {
           contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPadding + 16 }}
         >
           {/* Header - Padrão Quiz/Categorias */}
-          <View className="px-5 mb-4 mt-5">
-            <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">
-              Prática de Código
-            </Text>
-            <Text className="mt-1 text-[#687076] dark:text-[#9BA1A6] text-sm">
-              Monte a sintaxe como blocos de quebra-cabeça.
-            </Text>
+          <View className="px-5 mb-4 mt-5 flex-row items-center">
+            <TouchableOpacity 
+              onPress={() => router.push('/practice')} 
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#1C1F24' : '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}
+            >
+              <MaterialIcons name="arrow-back" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
+            </TouchableOpacity>
+            <View>
+              <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">
+                Prática de Código
+              </Text>
+              <Text className="mt-1 text-[#687076] dark:text-[#9BA1A6] text-sm">
+                Monte a sintaxe como blocos de quebra-cabeça.
+              </Text>
+            </View>
           </View>
 
-          {/* Body limited container */}
-          <View style={{ width: '100%', maxWidth: 880, alignSelf: 'center' }}>
+          {isLoadingExercises ? (
+            <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator size="large" color="#3F51B5" />
+              <Text style={{ marginTop: 16, color: '#6B7280' }}>Carregando exercícios base...</Text>
+            </View>
+          ) : (
+            <View style={{ width: '100%', maxWidth: 880, alignSelf: 'center' }}>
             {/* Language selector */}
           <LanguageSelector
             languages={LANGUAGES}
@@ -543,19 +663,20 @@ export function CodingPracticeScreen() {
             /* CATEGORY GRID */
             <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#1E2328' }} />
-                <Text style={{ color: '#6B7280', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Tópicos de Estudo</Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#1E2328' }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: isDark ? '#30363D' : '#E2E8F0' }} />
+                <Text style={{ color: isDark ? '#9BA1A6' : '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' }}>
+                  Tópicos de Estudo • {selectedLang.label}
+                </Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: isDark ? '#30363D' : '#E2E8F0' }} />
               </View>
 
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
                 {categories.map((cat) => {
-                  const count = exercisesForLang.filter((e) => e.exerciseType === cat).length;
                   return (
                     <CategoryGridCard
                       key={cat}
                       categoryName={cat}
-                      count={count}
+                      count={categoryCounts.get(cat) || 0}
                       onPress={() => setSelectedCategory(cat)}
                     />
                   );
@@ -670,6 +791,7 @@ export function CodingPracticeScreen() {
             </View>
           )}
         </View>
+        )}
         </ScrollView>
       </View>
     );

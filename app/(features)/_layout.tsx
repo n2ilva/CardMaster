@@ -14,7 +14,7 @@ export default function FeaturesLayout() {
         options={{
           title: 'Categorias',
           headerBackTitle: 'Voltar',
-          headerShown: compactHeader,
+          headerShown: false,
         }}
       />
       <Stack.Screen
@@ -22,7 +22,7 @@ export default function FeaturesLayout() {
         options={{
           title: 'Quizzes',
           headerBackTitle: 'Voltar',
-          headerShown: compactHeader,
+          headerShown: false,
         }}
       />
       <Stack.Screen
@@ -30,7 +30,7 @@ export default function FeaturesLayout() {
         options={{
           title: 'Planejamento de Estudos',
           headerBackTitle: 'Voltar',
-          headerShown: compactHeader,
+          headerShown: false,
         }}
       />
       <Stack.Screen

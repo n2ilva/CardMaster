@@ -94,7 +94,7 @@ export default function LoginScreen() {
 
   const title =
     mode === 'login'
-      ? 'Entrar no QuizMaster'
+      ? 'Entrar no QMaster'
       : mode === 'register'
         ? 'Criar conta'
         : 'Redefinir senha';

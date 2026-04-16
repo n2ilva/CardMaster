@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Fuse from 'fuse.js';
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View, useColorScheme } from 'react-native';
 
 import { DesktopSidebar } from '@/components/desktop-sidebar';
 import { QUIZ_COLORS, QUIZ_RADII } from '@/constants/quiz-ui';
@@ -21,6 +21,7 @@ export function ReadyTrackCategoriesScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const layoutMode = useLayoutMode();
+  const colorScheme = useColorScheme();
   const track = useMemo(() => decodeURIComponent(encodedTrack ?? ''), [encodedTrack]);
   const label = resolveTrackLabel(track);
 
@@ -103,14 +104,25 @@ export function ReadyTrackCategoriesScreen() {
       <View style={{ flex: 1, flexDirection: 'row', backgroundColor: QUIZ_COLORS.surfaceStrong }}>
         <DesktopSidebar />
         <ScrollView style={{ flex: 1, backgroundColor: QUIZ_COLORS.surfaceBase }} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 32, paddingTop: 32, paddingBottom: 48 }}>
-          <Pressable onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 24, alignSelf: 'flex-start' }}>
-            <MaterialIcons name="arrow-back" size={18} color={QUIZ_COLORS.textFaint} />
-            <Text style={{ color: QUIZ_COLORS.textFaint, fontSize: 14 }}>Voltar para Temas</Text>
-          </Pressable>
-
-          <View style={{ marginBottom: 28 }}>
-            <Text style={{ color: QUIZ_COLORS.textPrimary, fontSize: 28, fontWeight: '700' }}>{label}</Text>
-            <Text style={{ color: QUIZ_COLORS.textFaint, fontSize: 14, marginTop: 6 }}>{categories.length} categorias disponíveis para estudo.</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 28, gap: 12 }}>
+            <Pressable
+              onPress={() => router.back()}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: '#1C1F24',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 4,
+                opacity: pressed ? 0.6 : 1,
+              })}>
+              <MaterialIcons name="arrow-back" size={24} color={QUIZ_COLORS.textPrimary} />
+            </Pressable>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: QUIZ_COLORS.textPrimary, fontSize: 26, fontWeight: '800', letterSpacing: -0.5 }}>{label}</Text>
+              <Text style={{ color: QUIZ_COLORS.textFaint, fontSize: 14, marginTop: 4 }}>{categories.length} categorias disponíveis para estudo.</Text>
+            </View>
           </View>
 
           <View style={{ width: '100%', maxWidth: 1040, alignSelf: 'center' }}>
@@ -136,9 +148,9 @@ export function ReadyTrackCategoriesScreen() {
               <Text style={{ color: QUIZ_COLORS.textFaint }}>Nenhuma categoria encontrada.</Text>
             ) : (
               <View style={{ flexDirection: 'row', gap: 16 }}>
-                {[filtered.filter((_, index) => index % 2 === 0), filtered.filter((_, index) => index % 2 !== 0)].map((column, columnIndex) => (
+                {[0, 1, 2].map((columnIndex) => (
                   <View key={columnIndex} style={{ flex: 1, gap: 12 }}>
-                    {column.map((category) => (
+                    {filtered.filter((_, index) => index % 3 === columnIndex).map((category) => (
                       <ReadyCategoryCard key={category} category={category} track={track ?? ''} stats={statsMap[category]} />
                     ))}
                   </View>
@@ -151,10 +163,29 @@ export function ReadyTrackCategoriesScreen() {
     );
   }
 
+  const isDark = colorScheme === 'dark';
+
   return (
-    <ScrollView className="flex-1 bg-white px-5 pt-14 dark:bg-[#151718]" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-      <Text className="text-2xl font-bold text-[#11181C] dark:text-[#ECEDEE]">{label}</Text>
-      <Text className="mt-2 text-[#687076] dark:text-[#9BA1A6]">{categories.length} categorias disponíveis para estudo.</Text>
+    <ScrollView className="flex-1 bg-white px-5 pt-6 dark:bg-[#151718]" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24, gap: 12 }}>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => ({
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: isDark ? '#1C1F24' : '#F1F5F9',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: pressed ? 0.6 : 1,
+          })}>
+          <MaterialIcons name="arrow-back" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
+        </Pressable>
+        <View style={{ flex: 1 }}>
+          <Text className="text-2xl font-bold tracking-tight text-[#11181C] dark:text-[#ECEDEE]">{label}</Text>
+          <Text className="mt-1 text-sm text-[#687076] dark:text-[#9BA1A6]">{categories.length} categorias de estudo.</Text>
+        </View>
+      </View>
 
       <View style={{ marginTop: 16, marginBottom: 12 }}>
         <MasterTestButton track={track ?? ''} style={{ width: '100%' }} />

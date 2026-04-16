@@ -28,8 +28,9 @@ function DesktopTabLayout() {
             tabBarStyle: { display: 'none' },
           }}>
           <Tabs.Screen name="index" options={{ title: 'Início' }} />
-          <Tabs.Screen name="coding-practice" options={{ title: 'Praticar' }} />
-          <Tabs.Screen name="quiz" options={{ title: 'Quiz' }} />
+          <Tabs.Screen name="practice" options={{ title: 'Praticar' }} />
+          <Tabs.Screen name="coding-practice" options={{ href: null }} />
+          <Tabs.Screen name="quiz" options={{ href: null }} />
           <Tabs.Screen name="progress" options={{ title: 'Progresso' }} />
           <Tabs.Screen name="community" options={{ title: 'Comunidade' }} />
         </Tabs>
@@ -75,18 +76,19 @@ function CompactTabLayout() {
             }}
           />
           <Tabs.Screen
-            name="coding-practice"
+            name="practice"
             options={{
               title: 'Praticar',
-              tabBarIcon: ({ color }) => <IconSymbol size={28} name="chevron.left.forwardslash.chevron.right" color={color} />,
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="gamecontroller.fill" color={color} />,
             }}
           />
           <Tabs.Screen
+            name="coding-practice"
+            options={{ href: null }}
+          />
+          <Tabs.Screen
             name="quiz"
-            options={{
-              title: 'Quiz',
-              tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-            }}
+            options={{ href: null }}
           />
           <Tabs.Screen
             name="progress"
