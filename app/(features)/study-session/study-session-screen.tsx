@@ -525,7 +525,7 @@ export function StudySessionScreen() {
                       {currentCard.explanation ? (
                         <>
                           <Text className="text-xs font-bold uppercase tracking-wide text-[#3F51B5]">Explicação</Text>
-                          <GlossaryText text={currentCard.explanation} track={decodedTrack} className="mt-1.5 text-sm leading-5 text-[#11181C] dark:text-[#ECEDEE]" />
+                          <Text style={{ marginTop: 6, fontSize: 14, lineHeight: 20, color: isDark ? '#ECEDEE' : '#11181C' }}>{currentCard.explanation}</Text>
                         </>
                       ) : null}
 

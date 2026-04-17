@@ -20,6 +20,7 @@ import { QUIZ_COLORS } from '@/constants/quiz-ui';
 import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
 import { fetchQuickResponseProgress, saveQuickResponseResult } from '@/lib/api';
+import { GlossaryText } from '@/components/glossary-text';
 
 import SupportData from '../coding-practice/Data/suportetecnico.json';
 import { 
@@ -353,7 +354,11 @@ export function QuickResponseScreen() {
                 <Text style={{ color: isDark ? '#FFD1D9' : '#9F1239', fontSize: 14, fontWeight: '700' }}>Ação imediata requerida</Text>
               </View>
             </View>
-            <Text style={{ fontSize: 16, color: isDark ? '#ECEDEE' : '#11181C', lineHeight: 24, fontWeight: '600' }}>"{activeExercise.alert}"</Text>
+            <GlossaryText 
+              text={`"${activeExercise.alert}"`} 
+              track="Incidentes"
+              style={{ fontSize: 16, color: isDark ? '#ECEDEE' : '#11181C', lineHeight: 24, fontWeight: '600' }} 
+            />
           </View>
         </View>
 

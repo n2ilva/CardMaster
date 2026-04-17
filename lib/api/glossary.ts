@@ -34,7 +34,7 @@ export async function fetchGlossary(): Promise<Record<string, GlossaryEntry>> {
 /**
  * Busca glossário específico de um track (ex.: glossary_matematica).
  */
-const TRACKS_WITH_GLOSSARY = new Set(["matematica", "portugues", "ingles"]);
+const TRACKS_WITH_GLOSSARY = new Set(["matematica", "portugues", "ingles", "Incidentes", "DataCenter"]);
 
 export function hasTrackGlossary(track: string): boolean {
   return TRACKS_WITH_GLOSSARY.has(track);

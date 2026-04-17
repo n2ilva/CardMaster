@@ -1,4 +1,4 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, Text, useColorScheme, useWindowDimensions, View } from 'react-native';
@@ -76,7 +76,7 @@ export function ProgressScreen() {
           alignItems: 'center', 
           justifyContent: 'center' 
         }}>
-          <MaterialIcons name={icon} size={22} color={iconColor} />
+          <MaterialCommunityIcons name={icon as any} size={22} color={iconColor} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: textPrimary, fontSize: 18, fontWeight: '800', letterSpacing: -0.3 }}>{title}</Text>
@@ -260,7 +260,7 @@ export function ProgressScreen() {
 
               {/* CODING */}
               <View style={{ width: layoutMode === 'desktop' ? '49%' : '100%' }}>
-                <ModernSection title="Prática de Código" subtitle="Sintaxe e Lógica" icon="terminal" iconColor="#10B981">
+                <ModernSection title="Prática de Código" subtitle="Sintaxe e Lógica" icon="terminal-box" iconColor="#10B981">
                   <View style={{ paddingVertical: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                       <Text style={{ color: textMuted }}>Exercícios Concluídos</Text>
@@ -281,7 +281,7 @@ export function ProgressScreen() {
 
               {/* INCIDENTS */}
               <View style={{ width: layoutMode === 'desktop' ? '49%' : '100%' }}>
-                <ModernSection title="Gestão de Incidentes" subtitle="Troubleshooting Real" icon="shield-checkmark" iconColor="#F43F5E">
+                <ModernSection title="Gestão de Incidentes" subtitle="Troubleshooting Real" icon="shield-check" iconColor="#F43F5E">
                   <View style={{ paddingVertical: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                       <Text style={{ color: textMuted }}>Incidentes Resolvidos</Text>
@@ -306,7 +306,7 @@ export function ProgressScreen() {
 
               {/* DATA CENTER */}
               <View style={{ width: layoutMode === 'desktop' ? '49%' : '100%' }}>
-                <ModernSection title="Data Center Builder" subtitle="Infraestrutura Física" icon="server" iconColor="#8B5CF6">
+                <ModernSection title="Data Center Builder" subtitle="Infraestrutura Física" icon="server-network" iconColor="#8B5CF6">
                   <View style={{ paddingVertical: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                       <Text style={{ color: textMuted }}>Projetos Finalizados</Text>
@@ -373,7 +373,7 @@ export function ProgressScreen() {
           </ModernSection>
 
           {/* CODING */}
-          <ModernSection title="Prática de Código" icon="terminal" iconColor="#10B981">
+          <ModernSection title="Prática de Código" icon="terminal-box" iconColor="#10B981">
             <View style={{ paddingVertical: 4 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Text style={{ color: textMuted, fontSize: 13 }}>Geral</Text>
@@ -387,7 +387,7 @@ export function ProgressScreen() {
           </ModernSection>
 
           {/* INCIDENTS */}
-          <ModernSection title="Gestão de Incidentes" icon="shield-checkmark" iconColor="#F43F5E">
+          <ModernSection title="Gestão de Incidentes" icon="shield-check" iconColor="#F43F5E">
             <View style={{ paddingVertical: 4 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Text style={{ color: textMuted, fontSize: 13 }}>SLA OK Rate</Text>
@@ -404,7 +404,7 @@ export function ProgressScreen() {
           </ModernSection>
 
           {/* DATA CENTER */}
-          <ModernSection title="Data Center Builder" icon="server" iconColor="#8B5CF6">
+          <ModernSection title="Data Center Builder" icon="server-network" iconColor="#8B5CF6">
             <View style={{ paddingVertical: 4 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Text style={{ color: textMuted, fontSize: 13 }}>Eficiência</Text>

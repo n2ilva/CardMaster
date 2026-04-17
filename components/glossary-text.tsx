@@ -23,7 +23,7 @@ let glossaryLoading = false;
 const glossaryListeners: (() => void)[] = [];
 
 /** Build the shared regex once when glossary data arrives */
-function buildPattern(glossary: Glossary): RegExp {
+function buildPattern(glossary: Glossary): RegExp | null {
   const terms = Object.keys(glossary)
     .filter((t) => t.length >= MIN_TERM_LENGTH)
     .sort((a, b) => b.length - a.length);
@@ -31,6 +31,9 @@ function buildPattern(glossary: Glossary): RegExp {
   const escaped = terms.map((t) =>
     t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
   );
+
+  if (escaped.length === 0) return null as any;
+
   return new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi');
 }
 
@@ -101,7 +104,7 @@ function useGlossary() {
 // ---- Track-specific glossary cache ----
 
 const trackGlossaryCache: Record<string, Glossary> = {};
-const trackGlossaryPatterns: Record<string, RegExp> = {};
+const trackGlossaryPatterns: Record<string, RegExp | null> = {};
 const trackGlossaryLoading: Record<string, boolean> = {};
 const trackGlossaryListeners: Record<string, (() => void)[]> = {};
 
@@ -290,6 +293,12 @@ export function GlossaryText({
         result.push({ text: matched });
       }
       lastIndex = pattern.lastIndex;
+
+      // Safety: if the pattern doesn't advance, we must break to avoid infinite loop
+      if (lastIndex === match.index) {
+        pattern.lastIndex++;
+        lastIndex++;
+      }
     }
 
     if (lastIndex < text.length) {

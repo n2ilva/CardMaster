@@ -10,6 +10,7 @@ export * from "./lessons";
 export * from "./progress";
 export * from "./coding-practice";
 export * from "./quick-response";
+export * from "./datacenter";
 export * from "./types";
 
 

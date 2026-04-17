@@ -23,6 +23,7 @@ import { QuizStatCard } from '@/components/quiz/stat-card';
 import { QUIZ_COLORS } from '@/constants/quiz-ui';
 import { useAuth } from '@/providers/auth-provider';
 import { saveDataCenterResult, fetchDataCenterProgress } from '@/lib/api/datacenter';
+import { GlossaryText } from '@/components/glossary-text';
 
 import RackData from '../coding-practice/Data/datacenterbuild.json';
 import { 
@@ -798,7 +799,25 @@ export function DataCenterBuilderScreen() {
 
           <View style={styles.rulesContainer}>
             <View style={{ flexDirection: 'row', gap: 6, marginBottom: 8 }}><MaterialIcons name="info-outline" size={16} color="#9BA1A6" /><Text style={styles.rulesTitle}>DIRETRIZES TÉCNICAS</Text></View>
-            {activeLevel.rules ? activeLevel.rules.map((rule, i) => (<Text key={i} style={styles.ruleItem}>• {rule}</Text>)) : (<Text style={styles.ruleItem}>• Realize o cabeamento conforme o diagrama lógico do projeto.</Text>)}
+            {activeLevel.rules ? activeLevel.rules.map((rule, i) => (
+              <View key={i} style={{ flexDirection: 'row', gap: 4 }}>
+                <Text style={styles.ruleItem}>• </Text>
+                <GlossaryText 
+                  text={rule} 
+                  track="DataCenter"
+                  style={styles.ruleItem} 
+                />
+              </View>
+            )) : (
+              <View style={{ flexDirection: 'row', gap: 4 }}>
+                <Text style={styles.ruleItem}>• </Text>
+                <GlossaryText 
+                  text="Realize o cabeamento conforme o diagrama lógico do projeto." 
+                  track="DataCenter"
+                  style={styles.ruleItem} 
+                />
+              </View>
+            )}
           </View>
         </ScrollView>
 

@@ -11,6 +11,7 @@ import {
 import { type Difficulty, type Exercise, type ExerciseType, type PlacedToken, type SyntaxToken } from '../coding-practice.types';
 import { type ExerciseProgress } from '../coding-practice.store';
 import { PuzzlePiece } from './puzzle-piece';
+import { GlossaryText } from '@/components/glossary-text';
 
 // ─────────────────────────────────────────────
 // Config tables
@@ -540,9 +541,10 @@ export function QuestionCard({
       <Text style={{ color: isDark ? '#ECEDEE' : '#11181C', fontSize: 20, fontWeight: '700', lineHeight: 28, marginBottom: 6 }}>
         Monte o código:
       </Text>
-      <Text style={{ color: isDark ? '#9BA1A6' : '#64748B', fontSize: 15, lineHeight: 22, marginBottom: 10 }}>
-        {exercise.description}
-      </Text>
+      <GlossaryText 
+        text={exercise.description}
+        style={{ color: isDark ? '#9BA1A6' : '#64748B', fontSize: 15, lineHeight: 22, marginBottom: 10 }}
+      />
 
       {/* Meta badges + Timer */}
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 4 }}>
