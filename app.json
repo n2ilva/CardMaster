@@ -49,7 +49,6 @@
       ]
     ],
     "experiments": {
-      "baseUrl": "/QMaster",
       "typedRoutes": true,
       "reactCompiler": true
     },
