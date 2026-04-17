@@ -1,0 +1,330 @@
+{
+  "game": "Apaga o Incidente",
+  "version": "1.0",
+  "categories": [
+    {
+      "id": "suporte_tecnico",
+      "name": "Suporte Técnico",
+      "description": "Incidentes do dia a dia do helpdesk e suporte N1/N2",
+      "color": "#00d4ff",
+      "exercises": [
+        {
+          "id": "st_01",
+          "level": "fácil",
+          "alert": "Usuário liga relatando que não consegue acessar a internet. O computador está ligado e o cabo de rede está conectado.",
+          "options": [
+            { "id": "a", "text": "Reinstalar o sistema operacional", "correct": false, "feedback": "Reinstalar o SO é drástico demais para esse sintoma. Sempre comece pelo mais simples." },
+            { "id": "b", "text": "Verificar se o cabo está bem encaixado e testar o ping para o gateway", "correct": true, "feedback": "Correto! O primeiro passo é verificar a conexão física e testar conectividade básica com ping." },
+            { "id": "c", "text": "Trocar o computador do usuário imediatamente", "correct": false, "feedback": "Substituir o equipamento sem diagnóstico é desperdício de recurso e tempo." }
+          ]
+        },
+        {
+          "id": "st_02",
+          "level": "fácil",
+          "alert": "Usuária relata que a impressora de rede não imprime. Outros usuários do setor estão com o mesmo problema.",
+          "options": [
+            { "id": "a", "text": "Reinstalar o driver de impressora em todos os computadores", "correct": false, "feedback": "Se todos têm o mesmo problema, o erro provavelmente está na impressora ou na rede, não no driver." },
+            { "id": "b", "text": "Verificar se a impressora está ligada, online e com papel/toner", "correct": true, "feedback": "Correto! Quando vários usuários são afetados, o problema é no equipamento compartilhado. Verifique o estado físico da impressora primeiro." },
+            { "id": "c", "text": "Pedir para os usuários salvarem em PDF por enquanto e ignorar", "correct": false, "feedback": "Ignorar o incidente não é uma solução. O problema precisa ser investigado e resolvido." }
+          ]
+        },
+        {
+          "id": "st_03",
+          "level": "médio",
+          "alert": "Usuário relata que está recebendo e-mails de cobrança de serviços que nunca contratou. Ele clicou em um link de e-mail recentemente.",
+          "options": [
+            { "id": "a", "text": "Orientar o usuário a ignorar os e-mails e marcar como spam", "correct": false, "feedback": "Clicar em links suspeitos pode indicar phishing ou comprometimento de credenciais. Ignorar é arriscado." },
+            { "id": "b", "text": "Isolar a máquina da rede, trocar a senha do e-mail e acionar o time de segurança", "correct": true, "feedback": "Correto! Possível phishing ou comprometimento. Isole a máquina, troque as credenciais e escale para análise de segurança." },
+            { "id": "c", "text": "Formatar o computador imediatamente sem registrar o incidente", "correct": false, "feedback": "Formatar sem registro elimina evidências importantes para investigação do incidente de segurança." }
+          ]
+        },
+        {
+          "id": "st_04",
+          "level": "médio",
+          "alert": "Computador de um colaborador está muito lento. O gerenciador de tarefas mostra CPU a 95% constantemente, mas nenhum programa pesado está aberto.",
+          "options": [
+            { "id": "a", "text": "Adicionar mais memória RAM ao computador", "correct": false, "feedback": "O problema relatado é de CPU, não de RAM. Adicionar RAM não resolveria o alto consumo de processador." },
+            { "id": "b", "text": "Verificar os processos em background, checar por malware e analisar programas de inicialização", "correct": true, "feedback": "Correto! CPU alta sem programa aparente pode indicar malware, processo travado ou minerador. Analise os processos e execute um scan de segurança." },
+            { "id": "c", "text": "Pedir ao usuário para reiniciar o computador e ver se melhora", "correct": false, "feedback": "Reiniciar pode resolver temporariamente, mas sem diagnóstico o problema voltará. Não resolve a causa raiz." }
+          ]
+        },
+        {
+          "id": "st_05",
+          "level": "médio",
+          "alert": "Usuário esqueceu a senha do Windows e não consegue fazer login. É um computador ingressado no domínio Active Directory.",
+          "options": [
+            { "id": "a", "text": "Usar um CD bootável para resetar a senha local do Windows", "correct": false, "feedback": "Em máquinas no domínio, a autenticação é feita pelo AD. Resetar senha local não resolve o login de domínio." },
+            { "id": "b", "text": "Resetar a senha do usuário pelo Active Directory Users and Computers", "correct": true, "feedback": "Correto! Em ambientes com AD, a gestão de senhas é centralizada. O reset deve ser feito pelo console de administração do AD." },
+            { "id": "c", "text": "Criar um novo usuário local no computador para o colaborador usar", "correct": false, "feedback": "Criar usuário local burla as políticas de segurança e o usuário perde acesso aos recursos de rede do domínio." }
+          ]
+        },
+        {
+          "id": "st_06",
+          "level": "difícil",
+          "alert": "Após atualização automática do Windows, vários usuários relatam que o sistema não inicializa mais, exibindo tela azul (BSOD) com código INACCESSIBLE_BOOT_DEVICE.",
+          "options": [
+            { "id": "a", "text": "Formatar todos os computadores afetados e reinstalar o Windows", "correct": false, "feedback": "Formatação é destrutiva e demorada. Existe uma abordagem muito mais rápida e eficiente para esse tipo de problema." },
+            { "id": "b", "text": "Inicializar pelo modo de recuperação e fazer rollback da atualização problemática via DISM ou ponto de restauração", "correct": true, "feedback": "Correto! O BSOD após update indica driver ou atualização incompatível. O rollback via Recovery Mode ou WinRE é a solução correta e preserva os dados." },
+            { "id": "c", "text": "Ignorar e aguardar que a Microsoft lance um hotfix", "correct": false, "feedback": "Aguardar sem ação deixa os usuários sem trabalhar. O time de suporte deve agir para restaurar o serviço rapidamente." }
+          ]
+        },
+        {
+          "id": "st_07",
+          "level": "fácil",
+          "alert": "Usuário relata que o monitor está sem imagem, mas o computador parece ligado (luzes acesas, fan girando).",
+          "options": [
+            { "id": "a", "text": "Verificar se o cabo de vídeo está bem conectado e testar com outro monitor", "correct": true, "feedback": "Correto! Antes de qualquer diagnóstico de software, verifique a conexão física do cabo e teste com outro monitor para isolar o problema." },
+            { "id": "b", "text": "Reinstalar os drivers de vídeo remotamente", "correct": false, "feedback": "Sem imagem no monitor, o usuário não consegue interagir com o sistema. O problema provavelmente é físico." },
+            { "id": "c", "text": "Solicitar troca do computador completo", "correct": false, "feedback": "Trocar o equipamento sem diagnóstico básico é precipitado. O problema pode ser apenas um cabo solto ou o monitor." }
+          ]
+        },
+        {
+          "id": "st_08",
+          "level": "médio",
+          "alert": "Colaborador do RH relata que todos os arquivos na pasta de trabalho têm a extensão '.locked' e não abrem. Um arquivo de texto na área de trabalho pede pagamento em Bitcoin.",
+          "options": [
+            { "id": "a", "text": "Efetuar o pagamento solicitado para recuperar os arquivos", "correct": false, "feedback": "Nunca pague resgates. Não há garantia de recuperação e isso financia criminosos. Siga o protocolo de resposta a incidentes." },
+            { "id": "b", "text": "Isolar imediatamente o computador da rede, acionar o time de segurança e verificar backups para restauração", "correct": true, "feedback": "Correto! São sinais clássicos de ransomware. Isole a máquina para evitar propagação na rede, acione segurança e restaure via backup limpo." },
+            { "id": "c", "text": "Reiniciar o computador para ver se os arquivos voltam ao normal", "correct": false, "feedback": "Reiniciar não desfaz a criptografia do ransomware e pode até piorar, permitindo que ele continue cifrando arquivos." }
+          ]
+        },
+        {
+          "id": "st_09",
+          "level": "fácil",
+          "alert": "Usuário liga reclamando que o VPN da empresa não conecta desde que ele trocou de rede Wi-Fi (está em casa usando outra operadora hoje).",
+          "options": [
+            { "id": "a", "text": "Pedir para o usuário ir até o escritório para trabalhar", "correct": false, "feedback": "Isso não resolve o problema técnico e impede o trabalho remoto, que é o objetivo do VPN." },
+            { "id": "b", "text": "Verificar se o cliente VPN está atualizado, checar as configurações de firewall da rede doméstica e testar a porta usada pelo VPN", "correct": true, "feedback": "Correto! Redes domésticas podem bloquear portas usadas pelo VPN. Verifique a porta (ex: UDP 1194 para OpenVPN), firewall local e versão do cliente." },
+            { "id": "c", "text": "Desinstalar e reinstalar o sistema operacional", "correct": false, "feedback": "Reinstalar o SO é completamente desproporcional para um problema de conectividade VPN." }
+          ]
+        },
+        {
+          "id": "st_10",
+          "level": "difícil",
+          "alert": "Três usuários de departamentos diferentes ligam ao mesmo tempo dizendo que não conseguem acessar o sistema ERP da empresa. O sistema estava funcionando normalmente 30 minutos atrás.",
+          "options": [
+            { "id": "a", "text": "Resolver os chamados individualmente, um por vez, verificando cada computador", "correct": false, "feedback": "Múltiplos usuários afetados simultaneamente indicam problema de infraestrutura, não de máquina individual. Escale imediatamente." },
+            { "id": "b", "text": "Identificar que é um incidente crítico de múltiplos usuários, verificar o servidor do ERP e banco de dados, e acionar o time de N2/infraestrutura", "correct": true, "feedback": "Correto! Quando múltiplos usuários são afetados ao mesmo tempo, é um incidente de maior impacto. Escale para N2, verifique servidor, banco de dados e conectividade de rede." },
+            { "id": "c", "text": "Aguardar mais chamados antes de tomar qualquer ação", "correct": false, "feedback": "Aguardar aumenta o impacto no negócio. Incidentes com múltiplos usuários devem ser priorizados e escalados imediatamente." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "noc",
+      "name": "NOC",
+      "description": "Incidentes de monitoramento, redes e infraestrutura",
+      "color": "#00ff9d",
+      "exercises": [
+        {
+          "id": "noc_01",
+          "level": "fácil",
+          "alert": "Alerta no monitoramento: Interface GigabitEthernet0/1 do switch de distribuição com utilização de 98% há 10 minutos.",
+          "options": [
+            { "id": "a", "text": "Ignorar o alerta, picos de utilização são normais", "correct": false, "feedback": "98% de utilização sustentada causa descarte de pacotes e lentidão. Não deve ser ignorado." },
+            { "id": "b", "text": "Verificar quais hosts estão gerando mais tráfego via NetFlow ou SNMP e avaliar se há necessidade de QoS ou link adicional", "correct": true, "feedback": "Correto! Identifique a origem do tráfego com NetFlow. Pode ser backup, transferência massiva ou ataque. Avalie QoS para tráfego crítico." },
+            { "id": "c", "text": "Reiniciar o switch imediatamente", "correct": false, "feedback": "Reiniciar o switch derruba todos os usuários conectados a ele. Nunca reinicie sem diagnóstico e janela de manutenção." }
+          ]
+        },
+        {
+          "id": "noc_02",
+          "level": "médio",
+          "alert": "Servidor de e-mail apresenta fila de mensagens com 50.000 e-mails pendentes. Usuários reclamam que e-mails estão demorando horas para chegar.",
+          "options": [
+            { "id": "a", "text": "Deletar toda a fila de e-mails para limpar o acúmulo", "correct": false, "feedback": "Deletar a fila apaga e-mails legítimos que os usuários aguardam. Nunca exclua sem análise." },
+            { "id": "b", "text": "Analisar os logs do servidor de e-mail, verificar o consumo de CPU/disco, identificar se há loop de e-mail ou spam e tratar a causa raiz", "correct": true, "feedback": "Correto! Fila acumulada pode ser loop de mensagens, spam, disco cheio ou falta de recursos. Analise os logs para identificar a causa raiz antes de agir." },
+            { "id": "c", "text": "Reiniciar o serviço de e-mail imediatamente", "correct": false, "feedback": "Reiniciar o serviço sem entender a causa não resolve o problema. A fila voltará a crescer pelo mesmo motivo." }
+          ]
+        },
+        {
+          "id": "noc_03",
+          "level": "médio",
+          "alert": "Alerta crítico: Link de internet principal caiu. BGP session down com o ISP. Usuários sem acesso à internet.",
+          "options": [
+            { "id": "a", "text": "Aguardar o ISP resolver sozinho sem abrir chamado", "correct": false, "feedback": "Sem acionar o ISP, o tempo de resolução é indefinido. Abra o chamado imediatamente para iniciar o SLA de atendimento." },
+            { "id": "b", "text": "Ativar o link de contingência (failover), abrir chamado no ISP com os logs de BGP e comunicar os impactados", "correct": true, "feedback": "Correto! Ative o failover para restaurar o serviço, abra chamado no ISP com evidências (logs de BGP, horário da queda) e comunique os usuários sobre o incidente." },
+            { "id": "c", "text": "Reiniciar o roteador de borda imediatamente", "correct": false, "feedback": "Reiniciar sem diagnóstico pode piorar. O link BGP pode estar caído por problema no ISP e o reinício apenas atrasa a resolução." }
+          ]
+        },
+        {
+          "id": "noc_04",
+          "level": "difícil",
+          "alert": "O Zabbix dispara alertas simultâneos para 15 servidores diferentes com perda de pacotes acima de 30%. Os servidores estão em VLANs distintas.",
+          "options": [
+            { "id": "a", "text": "Reiniciar todos os servidores afetados em sequência", "correct": false, "feedback": "15 servidores com problema simultâneo em VLANs diferentes indica problema de infraestrutura de rede, não dos servidores individualmente." },
+            { "id": "b", "text": "Investigar o core switch ou roteador central, pois múltiplos hosts em VLANs diferentes sendo afetados indica problema no ponto comum da rede", "correct": true, "feedback": "Correto! Quando múltiplos hosts em VLANs diferentes são afetados ao mesmo tempo, o problema está no ponto convergente: core switch, uplink ou roteador central." },
+            { "id": "c", "text": "Abrir chamado individual para cada um dos 15 servidores", "correct": false, "feedback": "Abrir chamados individuais para um incidente de massa gera retrabalho. O correto é abrir um único P1 correlacionando todos os alertas." }
+          ]
+        },
+        {
+          "id": "noc_05",
+          "level": "fácil",
+          "alert": "Alerta de disco: Servidor de arquivos com partição /dados em 92% de utilização.",
+          "options": [
+            { "id": "a", "text": "Aguardar chegar a 100% para então tomar uma ação", "correct": false, "feedback": "A 92% o risco é iminente. Partição cheia pode corromper dados e derrubar serviços que dependem de escrita em disco." },
+            { "id": "b", "text": "Identificar os maiores arquivos/diretórios, mover ou arquivar dados antigos e provisionar mais espaço se necessário", "correct": true, "feedback": "Correto! Use du/ncdu para identificar o que ocupa mais espaço. Limpe logs antigos, mova backups e avalie expansão do volume antes de chegar a 100%." },
+            { "id": "c", "text": "Formatar a partição para liberar espaço", "correct": false, "feedback": "Formatar apaga todos os dados. Nunca formate uma partição de produção sem backup e sem necessidade extrema." }
+          ]
+        },
+        {
+          "id": "noc_06",
+          "level": "médio",
+          "alert": "Um servidor de aplicação está respondendo em 8 segundos nas requisições HTTP. O tempo normal é abaixo de 300ms. CPU e RAM estão normais.",
+          "options": [
+            { "id": "a", "text": "Reiniciar o servidor de aplicação", "correct": false, "feedback": "CPU e RAM normais indicam que o gargalo não é processamento. Reiniciar pode mascarar o problema real sem resolver a causa." },
+            { "id": "b", "text": "Investigar o banco de dados (queries lentas, locks, pool de conexões) e verificar a latência de rede entre a aplicação e o banco", "correct": true, "feedback": "Correto! Lentidão na aplicação com recursos ok geralmente aponta para banco de dados (slow queries, deadlocks, conexões esgotadas) ou latência de rede. Analise os logs do banco." },
+            { "id": "c", "text": "Adicionar mais RAM ao servidor", "correct": false, "feedback": "RAM está normal. Adicionar memória não resolveria um gargalo de banco de dados ou rede." }
+          ]
+        },
+        {
+          "id": "noc_07",
+          "level": "difícil",
+          "alert": "Spanning Tree Protocol (STP) está gerando TCN (Topology Change Notification) a cada 5 segundos no switch de acesso do andar 3. Usuários relatam quedas intermitentes de rede.",
+          "options": [
+            { "id": "a", "text": "Desabilitar o STP para parar as notificações", "correct": false, "feedback": "Desabilitar o STP sem proteção em redes com redundância causa tempestade de broadcast e pode derrubar toda a rede." },
+            { "id": "b", "text": "Identificar a porta com mudança de estado usando 'show spanning-tree detail', investigar o dispositivo conectado e habilitar PortFast nas portas de acesso de usuário", "correct": true, "feedback": "Correto! TCN frequente indica porta oscilando. Identifique qual porta está gerando o evento, verifique o cabo/dispositivo conectado e aplique PortFast com BPDU Guard nas portas de acesso." },
+            { "id": "c", "text": "Reiniciar todos os switches do andar", "correct": false, "feedback": "Reiniciar os switches derruba todos os usuários e não resolve a causa raiz, que é uma porta instável." }
+          ]
+        },
+        {
+          "id": "noc_08",
+          "level": "médio",
+          "alert": "Temperatura do data center subiu para 32°C (limite crítico: 35°C). Dois sensores de temperatura dispararam alerta amarelo.",
+          "options": [
+            { "id": "a", "text": "Ignorar, pois ainda está abaixo do limite crítico", "correct": false, "feedback": "A temperatura está subindo e já atingiu o alerta amarelo. Ignorar pode resultar em desligamento de segurança dos equipamentos ou danos permanentes." },
+            { "id": "b", "text": "Verificar o sistema de ar-condicionado, checar se há equipamentos bloqueando o fluxo de ar e acionar a equipe de facilities imediatamente", "correct": true, "feedback": "Correto! Temperatura em alta representa risco físico para os equipamentos. Verifique o CRAC/CRAH, remova obstruções no corredor de ar frio/quente e acione manutenção predial urgente." },
+            { "id": "c", "text": "Desligar metade dos servidores para reduzir o calor", "correct": false, "feedback": "Desligar servidores em produção sem autorização causa indisponibilidade. Existe processo correto para gestão térmica emergencial." }
+          ]
+        },
+        {
+          "id": "noc_09",
+          "level": "fácil",
+          "alert": "Alerta de certificado SSL: O certificado do site principal da empresa expira em 7 dias.",
+          "options": [
+            { "id": "a", "text": "Aguardar o certificado expirar para então renovar", "correct": false, "feedback": "Certificado expirado derruba o acesso HTTPS ao site. Navegadores bloqueiam acesso e isso impacta diretamente os clientes." },
+            { "id": "b", "text": "Iniciar o processo de renovação do certificado imediatamente junto à CA ou via Let's Encrypt, e planejar a substituição antes do vencimento", "correct": true, "feedback": "Correto! Com 7 dias de antecedência há tempo hábil para renovar sem impacto. Solicite o novo certificado, valide a cadeia e planeje a substituição em janela de manutenção." },
+            { "id": "c", "text": "Remover o HTTPS do site para evitar o erro de certificado", "correct": false, "feedback": "Remover HTTPS expõe dados dos usuários e viola boas práticas de segurança. Nunca remova criptografia como solução." }
+          ]
+        },
+        {
+          "id": "noc_10",
+          "level": "difícil",
+          "alert": "O sistema de backup noturno falhou nos últimos 3 dias seguidos. Os logs mostram erro: 'Connection timeout to backup server'. Nenhum alerta foi escalado.",
+          "options": [
+            { "id": "a", "text": "Aguardar o próximo backup noturno para ver se resolve sozinho", "correct": false, "feedback": "Três falhas consecutivas sem resposta já é crítico. A empresa está sem backup há 3 dias, o que é um risco grave de perda de dados." },
+            { "id": "b", "text": "Investigar a conectividade entre o servidor de origem e o servidor de backup, verificar firewall e revisar por que os alertas não foram escalados nos 3 dias anteriores", "correct": true, "feedback": "Correto! Resolva a conectividade (firewall, rota, serviço do agente de backup), execute um backup manual de validação e investigue a falha no processo de alertas para evitar reincidência." },
+            { "id": "c", "text": "Desativar os alertas de falha de backup para não poluir o monitoramento", "correct": false, "feedback": "Silenciar alertas de backup é extremamente perigoso. Backup é a última linha de defesa contra perda de dados." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "soc",
+      "name": "SOC",
+      "description": "Incidentes de segurança, análise de ameaças e resposta a incidentes",
+      "color": "#ff4d6d",
+      "exercises": [
+        {
+          "id": "soc_01",
+          "level": "fácil",
+          "alert": "SIEM dispara alerta: 500 tentativas de login falhas na conta 'admin' do sistema de RH em menos de 2 minutos originadas de um único IP externo.",
+          "options": [
+            { "id": "a", "text": "Ignorar, pois a conta não foi comprometida ainda", "correct": false, "feedback": "500 tentativas em 2 minutos é um ataque de brute force ativo. Aguardar o comprometimento para agir é uma postura reativa inaceitável no SOC." },
+            { "id": "b", "text": "Bloquear o IP de origem no firewall, bloquear temporariamente a conta 'admin', investigar o vetor de ataque e documentar o incidente", "correct": true, "feedback": "Correto! Bloqueio imediato do IP e da conta evita o comprometimento. Investigue se há outros IPs no ataque, verifique logs e documente para análise de padrão." },
+            { "id": "c", "text": "Mudar a senha da conta admin para uma mais forte", "correct": false, "feedback": "Mudar a senha é insuficiente. O ataque continua, pois o IP não foi bloqueado. A conta e o vetor de ataque precisam ser tratados." }
+          ]
+        },
+        {
+          "id": "soc_02",
+          "level": "médio",
+          "alert": "Analista identifica tráfego de saída na porta 4444 de um servidor interno em direção a um IP externo desconhecido. Esse servidor não deveria ter comunicação externa.",
+          "options": [
+            { "id": "a", "text": "Bloquear a porta 4444 no firewall e continuar as atividades normais", "correct": false, "feedback": "Bloquear a porta resolve o sintoma mas não a causa. A porta 4444 é associada a Metasploit/reverse shells. O servidor pode estar comprometido." },
+            { "id": "b", "text": "Isolar o servidor da rede, coletar evidências (logs, dump de memória, conexões ativas), investigar processo responsável pelo tráfego e iniciar resposta a incidente", "correct": true, "feedback": "Correto! Porta 4444 é um indicador forte de reverse shell ou C2 (Command and Control). Isole, preserve evidências e investigue. Não desligue o servidor antes de coletar os artefatos." },
+            { "id": "c", "text": "Reiniciar o servidor para encerrar a conexão suspeita", "correct": false, "feedback": "Reiniciar elimina artefatos voláteis (processos, conexões, memória RAM) essenciais para a investigação forense." }
+          ]
+        },
+        {
+          "id": "soc_03",
+          "level": "médio",
+          "alert": "Um colaborador reporta que recebeu um e-mail do 'CEO' pedindo transferência bancária urgente de R$ 85.000 para um fornecedor novo. O e-mail veio de um domínio ligeiramente diferente do oficial.",
+          "options": [
+            { "id": "a", "text": "Efetuar a transferência pois o pedido veio do CEO", "correct": false, "feedback": "Esse é um ataque clássico de BEC (Business Email Compromise) / CEO Fraud. Domínio diferente é um forte indicador de spoofing ou phishing." },
+            { "id": "b", "text": "Alertar o colaborador que é um golpe de BEC, bloquear o domínio falso, preservar o e-mail como evidência e comunicar a empresa sobre a tentativa", "correct": true, "feedback": "Correto! CEO Fraud / BEC é um dos ataques mais custosos. Bloqueie o domínio, preserve evidências, oriente o colaborador e faça um comunicado interno de alerta." },
+            { "id": "c", "text": "Ligar para o CEO para confirmar o pedido e depois efetuar a transferência", "correct": false, "feedback": "Confirmar com o CEO é correto, mas o procedimento inclui também preservar evidências e bloquear o domínio fraudulento para proteger outros colaboradores." }
+          ]
+        },
+        {
+          "id": "soc_04",
+          "level": "difícil",
+          "alert": "EDR detecta criação de processo suspeito: powershell.exe disparado por Word.exe com parâmetros encoded. O arquivo Word foi recebido por e-mail.",
+          "options": [
+            { "id": "a", "text": "Desinstalar o Microsoft Office do computador afetado", "correct": false, "feedback": "Desinstalar o Office não desfaz a execução maliciosa. O payload pode já ter sido executado e o sistema comprometido." },
+            { "id": "b", "text": "Isolar a máquina, decodificar o comando PowerShell para analisar o payload, verificar conexões externas estabelecidas e iniciar resposta a incidente de malware", "correct": true, "feedback": "Correto! Word disparando PowerShell encoded é indicador clássico de macro maliciosa / fileless malware. Isole, decodifique o Base64 do comando, analise o payload e verifique persistência e C2." },
+            { "id": "c", "text": "Executar o antivírus tradicional para limpar a ameaça", "correct": false, "feedback": "Ataques fileless vivem na memória e frequentemente evitam detecção por antivírus tradicionais. O EDR já detectou. A análise manual é necessária." }
+          ]
+        },
+        {
+          "id": "soc_05",
+          "level": "fácil",
+          "alert": "Scan de vulnerabilidades aponta que um servidor web em produção está rodando Apache 2.4.49, versão com CVE crítica de path traversal/RCE.",
+          "options": [
+            { "id": "a", "text": "Ignorar, pois o servidor está atrás de um firewall", "correct": false, "feedback": "Firewall não protege contra exploração de aplicações web. CVEs críticas com RCE devem ser corrigidas com urgência independente do perímetro." },
+            { "id": "b", "text": "Atualizar o Apache imediatamente para a versão corrigida, em janela de manutenção emergencial, e verificar logs de acesso por tentativas de exploração", "correct": true, "feedback": "Correto! CVE crítica com RCE é prioridade máxima. Planeje atualização emergencial, aplique mitigação temporária (WAF rule) se necessário e analise os logs para verificar se já foi explorada." },
+            { "id": "c", "text": "Reiniciar o servidor Apache para limpar possível exploração", "correct": false, "feedback": "Reiniciar não remove a vulnerabilidade. O servidor reinicia com a mesma versão vulnerável e continua exposto." }
+          ]
+        },
+        {
+          "id": "soc_06",
+          "level": "médio",
+          "alert": "Analista observa no SIEM que um usuário do financeiro está fazendo download de 15GB de arquivos do servidor de documentos às 2h da manhã. Comportamento não habitual.",
+          "options": [
+            { "id": "a", "text": "Aguardar o horário comercial para falar com o usuário e entender o que aconteceu", "correct": false, "feedback": "Um possível vazamento de dados não deve aguardar até o horário comercial. O impacto pode ser irreversível. Aja imediatamente." },
+            { "id": "b", "text": "Suspender a sessão do usuário, bloquear preventivamente o acesso, contactar o gestor do colaborador e iniciar investigação de insider threat ou conta comprometida", "correct": true, "feedback": "Correto! 15GB às 2h é uma anomalia crítica de comportamento. Pode ser insider threat ou credencial comprometida. Suspenda a sessão, preserve logs e investigue antes de liberar o acesso." },
+            { "id": "c", "text": "Ligar para o usuário para perguntar o que está fazendo", "correct": false, "feedback": "Se for um insider threat, alertar o usuário dá tempo para ele cobrir os rastros. Preserve evidências antes de qualquer contato." }
+          ]
+        },
+        {
+          "id": "soc_07",
+          "level": "difícil",
+          "alert": "Threat intelligence indica que o IP 198.51.100.42 é um nó ativo de botnet C2. Logs do firewall mostram que 3 máquinas internas estabeleceram conexão com esse IP nas últimas 2 horas.",
+          "options": [
+            { "id": "a", "text": "Bloquear o IP no firewall e fechar o ticket", "correct": false, "feedback": "Bloquear o IP interrompe a comunicação, mas as 3 máquinas já comprometidas continuam infectadas. O incidente não está resolvido." },
+            { "id": "b", "text": "Isolar as 3 máquinas comprometidas, bloquear o IP no firewall, investigar outros possíveis IPs de C2 associados ao botnet e executar resposta a incidente nas máquinas afetadas", "correct": true, "feedback": "Correto! Bloqueie o C2 e isole as máquinas. Pesquise o indicador de comprometimento (IoC) para identificar outros IPs da mesma infraestrutura. As máquinas precisam de análise forense e reimagem." },
+            { "id": "c", "text": "Formatar as 3 máquinas imediatamente para eliminar a infecção", "correct": false, "feedback": "Formatar antes da análise elimina evidências valiosas para entender o vetor inicial, escopo do comprometimento e possível exfiltração de dados." }
+          ]
+        },
+        {
+          "id": "soc_08",
+          "level": "médio",
+          "alert": "Usuário reporta que recebeu SMS de um número desconhecido pedindo para confirmar um código MFA que chegou no celular. Ele não estava tentando fazer login em nada.",
+          "options": [
+            { "id": "a", "text": "Orientar o usuário a informar o código ao solicitante para confirmar sua identidade", "correct": false, "feedback": "Jamais compartilhe códigos MFA. Alguém já possui a senha do usuário e está tentando bypassar o segundo fator. Isso é um ataque de MFA fatigue ou engenharia social." },
+            { "id": "b", "text": "Orientar o usuário a ignorar o SMS, trocar a senha imediatamente, verificar acessos recentes à conta e acionar o SOC para investigação", "correct": true, "feedback": "Correto! Código MFA chegando sem ação do usuário significa que alguém já tem a senha e está tentando completar o login. Troca de senha urgente e análise de acessos recentes são obrigatórios." },
+            { "id": "c", "text": "Desabilitar o MFA da conta do usuário para parar de receber os SMS", "correct": false, "feedback": "Desabilitar o MFA deixa a conta protegida apenas por senha, que já está comprometida. Isso piora drasticamente a segurança." }
+          ]
+        },
+        {
+          "id": "soc_09",
+          "level": "difícil",
+          "alert": "Durante análise de rotina, analista encontra uma tarefa agendada no servidor de autenticação executando um script desconhecido todo dia às 3h. O script não está documentado e faz requisições para um domínio externo.",
+          "options": [
+            { "id": "a", "text": "Deletar a tarefa agendada e o script para remover a ameaça", "correct": false, "feedback": "Deletar sem analisar elimina evidências. É necessário entender o que o script faz, quando foi criado e como chegou lá antes de removê-lo." },
+            { "id": "b", "text": "Preservar o script como evidência, analisar seu conteúdo em ambiente seguro, investigar o domínio externo, verificar quando e como foi criado e iniciar resposta a incidente de APT", "correct": true, "feedback": "Correto! Script desconhecido em servidor crítico com comunicação externa é altamente suspeito de APT (Advanced Persistent Threat) ou backdoor. Preserve, analise em sandbox e faça investigação completa do timeline." },
+            { "id": "c", "text": "Reiniciar o servidor para interromper a execução do script", "correct": false, "feedback": "A tarefa agendada voltará a executar no próximo ciclo. Reiniciar não resolve e pode eliminar artefatos voláteis da investigação." }
+          ]
+        },
+        {
+          "id": "soc_10",
+          "level": "difícil",
+          "alert": "Alerta crítico no DLP: um arquivo comprimido de 4GB foi enviado para um serviço de nuvem pessoal (Google Drive pessoal) por um colaborador do departamento de P&D que pediu demissão ontem.",
+          "options": [
+            { "id": "a", "text": "Conversar com o colaborador amigavelmente sobre o upload antes de tomar qualquer ação", "correct": false, "feedback": "Em casos de possível exfiltração por colaborador desligado, a abordagem deve ser formal e com preservação de evidências antes de qualquer contato." },
+            { "id": "b", "text": "Revogar imediatamente os acessos do colaborador, preservar os logs do DLP como evidência, identificar o conteúdo do arquivo, acionar jurídico e RH e documentar o incidente formalmente", "correct": true, "feedback": "Correto! Exfiltração de dados por colaborador em processo de desligamento é um incidente grave de insider threat. Revogue acessos, preserve evidências, envolva jurídico e siga o protocolo de gestão de desligamentos." },
+            { "id": "c", "text": "Deletar o arquivo do Google Drive do colaborador para evitar o vazamento", "correct": false, "feedback": "Deletar o arquivo de uma conta pessoal externa não é tecnicamente viável sem autorização legal e destruiria evidências importantes." }
+          ]
+        }
+      ]
+    }
+  ]
+}

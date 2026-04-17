@@ -117,6 +117,90 @@ export function PracticeHubScreen() {
             </View>
           </PanelCard>
         </TouchableOpacity>
+
+        {/* Apaga o Incidente (Quick Response) Card */}
+        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/quick-response')}>
+          <PanelCard compact={false} style={{
+            backgroundColor: isDark ? '#1C1F24' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(244,63,94,0.2)' : 'rgba(244,63,94,0.1)',
+            borderWidth: 1,
+            borderRadius: 24,
+            padding: 24,
+            shadowColor: '#F43F5E',
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: isDark ? 0.2 : 0.08,
+            shadowRadius: 16,
+            elevation: 4,
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 20 }}>
+              <View style={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: 20, 
+                backgroundColor: 'rgba(244,63,94,0.12)', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(244,63,94,0.25)',
+              }}>
+                <MaterialIcons name="fire-extinguisher" size={32} color="#F43F5E" />
+              </View>
+              <View style={{ flex: 1, paddingTop: 4 }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#ECEDEE' : '#11181C', marginBottom: 6, letterSpacing: -0.5 }}>
+                  Apaga o Incidente
+                </Text>
+                <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#9BA1A6' : '#687076' }}>
+                  Resposta rápida para incidentes de suporte e segurança.
+                </Text>
+              </View>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#2D3139' : '#F1F5F9', alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}>
+                <MaterialIcons name="arrow-forward" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
+              </View>
+            </View>
+          </PanelCard>
+        </TouchableOpacity>
+
+        {/* DataCenter Builder Card */}
+        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/datacenter-builder')}>
+          <PanelCard compact={false} style={{
+            backgroundColor: isDark ? '#1C1F24' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.1)',
+            borderWidth: 1,
+            borderRadius: 24,
+            padding: 24,
+            shadowColor: '#10B981',
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: isDark ? 0.2 : 0.08,
+            shadowRadius: 16,
+            elevation: 4,
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 20 }}>
+              <View style={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: 20, 
+                backgroundColor: 'rgba(16,185,129,0.12)', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(16,185,129,0.25)',
+              }}>
+                <MaterialIcons name="dns" size={32} color="#10B981" />
+              </View>
+              <View style={{ flex: 1, paddingTop: 4 }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#ECEDEE' : '#11181C', marginBottom: 6, letterSpacing: -0.5 }}>
+                  DataCenter Builder
+                </Text>
+                <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#9BA1A6' : '#687076' }}>
+                  Simule a montagem e conexão de um rack real.
+                </Text>
+              </View>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#2D3139' : '#F1F5F9', alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}>
+                <MaterialIcons name="arrow-forward" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
+              </View>
+            </View>
+          </PanelCard>
+        </TouchableOpacity>
       </View>
     </>
   );

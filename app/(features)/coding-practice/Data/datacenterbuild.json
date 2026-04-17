@@ -1,0 +1,255 @@
+{
+  "game": {
+    "name": "DataCenter Builder",
+    "version": "2.0"
+  },
+  "cables": [
+    { "id": "cat6", "type": "ethernet", "speed": "1Gbps" },
+    { "id": "cat6a", "type": "ethernet", "speed": "10Gbps" },
+    { "id": "fiber", "type": "fiber", "speed": "40Gbps" },
+    { "id": "coaxial", "type": "coaxial", "speed": "1Gbps" }
+  ],
+  "levels": [
+    {
+      "id": 1,
+      "name": "Conexão básica de rede",
+      "difficulty": "easy",
+      "inventory": [
+        { "id": "modem", "type": "telecom", "ports": ["wan_out"] },
+        { "id": "router", "type": "network", "ports": ["wan_in", "lan_out"] },
+        { "id": "switch", "type": "network", "ports": ["uplink", "lan1", "lan2"] },
+        { "id": "server", "type": "compute", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "modem.wan_out", "to": "router.wan_in", "cable": "coaxial" },
+        { "from": "router.lan_out", "to": "switch.uplink", "cable": "cat6" },
+        { "from": "switch.lan1", "to": "server.eth0", "cable": "cat6" }
+      ],
+      "rules": [
+        "Internet must start from telecom",
+        "Router must be before switch",
+        "Server must connect to switch"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Rede com dois servidores",
+      "difficulty": "easy",
+      "inventory": [
+        { "id": "modem", "type": "telecom", "ports": ["wan_out"] },
+        { "id": "router", "type": "network", "ports": ["wan_in", "lan_out"] },
+        { "id": "switch", "type": "network", "ports": ["uplink", "lan1", "lan2", "lan3"] },
+        { "id": "server1", "type": "compute", "ports": ["eth0"] },
+        { "id": "server2", "type": "compute", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "modem.wan_out", "to": "router.wan_in", "cable": "coaxial" },
+        { "from": "router.lan_out", "to": "switch.uplink", "cable": "cat6" },
+        { "from": "switch.lan1", "to": "server1.eth0", "cable": "cat6" },
+        { "from": "switch.lan2", "to": "server2.eth0", "cable": "cat6" }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Adicionando Firewall",
+      "difficulty": "medium",
+      "inventory": [
+        { "id": "modem", "type": "telecom", "ports": ["wan_out"] },
+        { "id": "firewall", "type": "security", "ports": ["wan_in", "lan_out"] },
+        { "id": "switch", "type": "network", "ports": ["uplink", "lan1", "lan2"] },
+        { "id": "server", "type": "compute", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "modem.wan_out", "to": "firewall.wan_in", "cable": "coaxial" },
+        { "from": "firewall.lan_out", "to": "switch.uplink", "cable": "cat6a" },
+        { "from": "switch.lan1", "to": "server.eth0", "cable": "cat6" }
+      ],
+      "rules": [
+        "Firewall must be between telecom and network"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Storage em rede",
+      "difficulty": "medium",
+      "inventory": [
+        { "id": "router", "type": "network", "ports": ["wan_in", "lan_out"] },
+        { "id": "switch", "type": "network", "ports": ["uplink", "lan1", "lan2", "lan3"] },
+        { "id": "server", "type": "compute", "ports": ["eth0"] },
+        { "id": "storage", "type": "storage", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "router.lan_out", "to": "switch.uplink", "cable": "cat6a" },
+        { "from": "switch.lan1", "to": "server.eth0", "cable": "cat6" },
+        { "from": "switch.lan2", "to": "storage.eth0", "cable": "cat6a" }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Infraestrutura completa",
+      "difficulty": "hard",
+      "inventory": [
+        { "id": "modem", "type": "telecom", "ports": ["wan_out"] },
+        { "id": "firewall", "type": "security", "ports": ["wan_in", "lan_out"] },
+        { "id": "core_switch", "type": "network", "ports": ["uplink", "lan1", "lan2", "lan3", "lan4"] },
+        { "id": "server", "type": "compute", "ports": ["eth0"] },
+        { "id": "storage", "type": "storage", "ports": ["eth0"] },
+        { "id": "camera_system", "type": "security", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "modem.wan_out", "to": "firewall.wan_in", "cable": "fiber" },
+        { "from": "firewall.lan_out", "to": "core_switch.uplink", "cable": "fiber" },
+        { "from": "core_switch.lan1", "to": "server.eth0", "cable": "cat6a" },
+        { "from": "core_switch.lan2", "to": "storage.eth0", "cable": "cat6a" },
+        { "from": "core_switch.lan3", "to": "camera_system.eth0", "cable": "cat6" }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Data Center Empresarial Completo",
+      "difficulty": "hard",
+      "inventory": [
+        { "id": "modem", "type": "telecom", "ports": ["wan_out"] },
+        { "id": "firewall", "type": "security", "ports": ["wan_in", "lan_out"] },
+        { "id": "core_switch", "type": "network", "ports": ["uplink", "lan1", "lan2", "lan3", "lan4", "lan5"] },
+        { "id": "server1", "type": "compute", "ports": ["eth0"] },
+        { "id": "server2", "type": "compute", "ports": ["eth0"] },
+        { "id": "storage", "type": "storage", "ports": ["eth0"] },
+        { "id": "voip", "type": "telephony", "ports": ["eth0"] },
+        { "id": "camera", "type": "security", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "modem.wan_out", "to": "firewall.wan_in", "cable": "fiber" },
+        { "from": "firewall.lan_out", "to": "core_switch.uplink", "cable": "fiber" },
+        { "from": "core_switch.lan1", "to": "server1.eth0", "cable": "cat6a" },
+        { "from": "core_switch.lan2", "to": "server2.eth0", "cable": "cat6a" },
+        { "from": "core_switch.lan3", "to": "storage.eth0", "cable": "fiber" },
+        { "from": "core_switch.lan4", "to": "voip.eth0", "cable": "cat6" },
+        { "from": "core_switch.lan5", "to": "camera.eth0", "cable": "cat6" }
+      ],
+      "rules": [
+        "Correct cable type must be used",
+        "Fiber required for backbone",
+        "All devices must be reachable from core"
+      ]
+    },
+
+    {
+      "id": 7,
+      "name": "Segmentação com VLAN",
+      "difficulty": "medium",
+      "inventory": [
+        { "id": "router", "type": "network", "ports": ["wan_in", "lan_out"] },
+        { "id": "switch_managed", "type": "network", "ports": ["uplink", "lan1", "lan2", "lan3", "lan4"] },
+        { "id": "server", "type": "compute", "ports": ["eth0"] },
+        { "id": "camera", "type": "security", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "router.lan_out", "to": "switch_managed.uplink", "cable": "cat6a" },
+        { "from": "switch_managed.lan1", "to": "server.eth0", "cable": "cat6" },
+        { "from": "switch_managed.lan2", "to": "camera.eth0", "cable": "cat6" }
+      ],
+      "rules": [
+        "Devices must be in different VLANs",
+        "Server VLAN must not access camera VLAN directly"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Link Aggregation (LACP)",
+      "difficulty": "medium",
+      "inventory": [
+        { "id": "switch_core", "type": "network", "ports": ["uplink1", "uplink2", "lan1", "lan2"] },
+        { "id": "server", "type": "compute", "ports": ["eth0", "eth1"] }
+      ],
+      "connections_required": [
+        { "from": "switch_core.uplink1", "to": "server.eth0", "cable": "cat6a" },
+        { "from": "switch_core.uplink2", "to": "server.eth1", "cable": "cat6a" }
+      ],
+      "rules": [
+        "Both links must be active",
+        "Aggregation required for full bandwidth"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Alta disponibilidade com 2 switches",
+      "difficulty": "hard",
+      "inventory": [
+        { "id": "switch1", "type": "network", "ports": ["uplink", "lan1", "lan2"] },
+        { "id": "switch2", "type": "network", "ports": ["uplink", "lan1", "lan2"] },
+        { "id": "server", "type": "compute", "ports": ["eth0", "eth1"] }
+      ],
+      "connections_required": [
+        { "from": "switch1.lan1", "to": "server.eth0", "cable": "cat6" },
+        { "from": "switch2.lan1", "to": "server.eth1", "cable": "cat6" }
+      ],
+      "rules": [
+        "Server must stay online if one switch fails",
+        "Connections must be redundant"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Load Balancer",
+      "difficulty": "hard",
+      "inventory": [
+        { "id": "router", "type": "network", "ports": ["wan_in", "lan_out"] },
+        { "id": "load_balancer", "type": "network", "ports": ["in", "out1", "out2"] },
+        { "id": "server1", "type": "compute", "ports": ["eth0"] },
+        { "id": "server2", "type": "compute", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "router.lan_out", "to": "load_balancer.in", "cable": "cat6a" },
+        { "from": "load_balancer.out1", "to": "server1.eth0", "cable": "cat6" },
+        { "from": "load_balancer.out2", "to": "server2.eth0", "cable": "cat6" }
+      ],
+      "rules": [
+        "Traffic must be distributed",
+        "Both servers must be reachable"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Backbone com fibra",
+      "difficulty": "hard",
+      "inventory": [
+        { "id": "core_switch", "type": "network", "ports": ["fiber1", "fiber2"] },
+        { "id": "distribution_switch", "type": "network", "ports": ["fiber1", "lan1"] },
+        { "id": "server", "type": "compute", "ports": ["eth0"] }
+      ],
+      "connections_required": [
+        { "from": "core_switch.fiber1", "to": "distribution_switch.fiber1", "cable": "fiber" },
+        { "from": "distribution_switch.lan1", "to": "server.eth0", "cable": "cat6a" }
+      ],
+      "rules": [
+        "Fiber must be used in backbone",
+        "Copper not allowed for core links"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Data Center Tier Avançado",
+      "difficulty": "hard",
+      "inventory": [
+        { "id": "isp1", "type": "telecom", "ports": ["out"] },
+        { "id": "isp2", "type": "telecom", "ports": ["out"] },
+        { "id": "firewall", "type": "security", "ports": ["wan1", "wan2", "lan"] },
+        { "id": "core_switch", "type": "network", "ports": ["uplink", "lan1", "lan2", "lan3"] },
+        { "id": "server_cluster", "type": "compute", "ports": ["eth0", "eth1"] }
+      ],
+      "connections_required": [
+        { "from": "isp1.out", "to": "firewall.wan1", "cable": "fiber" },
+        { "from": "isp2.out", "to": "firewall.wan2", "cable": "fiber" },
+        { "from": "firewall.lan", "to": "core_switch.uplink", "cable": "fiber" },
+        { "from": "core_switch.lan1", "to": "server_cluster.eth0", "cable": "cat6a" },
+        { "from": "core_switch.lan2", "to": "server_cluster.eth1", "cable": "cat6a" }
+      ],
+      "rules": [
+        "Dual ISP required",
+        "Failover must be possible",
+        "Cluster must have redundancy"
+      ]
+    }
+  ]
+}

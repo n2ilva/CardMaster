@@ -31,6 +31,8 @@ function DesktopTabLayout() {
           <Tabs.Screen name="practice" options={{ title: 'Praticar' }} />
           <Tabs.Screen name="coding-practice" options={{ href: null }} />
           <Tabs.Screen name="quiz" options={{ href: null }} />
+          <Tabs.Screen name="quick-response" options={{ href: null }} />
+          <Tabs.Screen name="datacenter-builder" options={{ href: null }} />
           <Tabs.Screen name="progress" options={{ title: 'Progresso' }} />
           <Tabs.Screen name="community" options={{ title: 'Comunidade' }} />
         </Tabs>
@@ -88,6 +90,14 @@ function CompactTabLayout() {
           />
           <Tabs.Screen
             name="quiz"
+            options={{ href: null }}
+          />
+          <Tabs.Screen
+            name="quick-response"
+            options={{ href: null }}
+          />
+          <Tabs.Screen
+            name="datacenter-builder"
             options={{ href: null }}
           />
           <Tabs.Screen
