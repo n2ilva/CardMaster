@@ -41,6 +41,8 @@ server/.env
 # data (JSON card banks are generated / too large to track)
 data/cards/
 data/cards/glossary/
+data/data-center/
+data/gestaodeincidentes/
 
 # generated native folders
 /ios

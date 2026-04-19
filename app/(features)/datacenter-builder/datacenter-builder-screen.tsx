@@ -3,50 +3,55 @@ import { Audio } from "expo-av";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Animated,
-    Keyboard,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-    useWindowDimensions,
+  Animated,
+  Keyboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
 } from "react-native";
 
+import { ConfirmExitModal } from "@/components/ui/confirm-exit-modal";
 import { useTabContentPadding, useTopContentPadding } from "@/hooks/use-tab-content-padding";
 import {
-    fetchDataCenterProgress,
-    saveDataCenterResult,
+  fetchDataCenterProgress,
+  saveDataCenterResult,
 } from "@/lib/api/datacenter";
 import { useAuth } from "@/providers/auth-provider";
+import { useData } from "@/providers/data-provider";
 
-import RackData from "../coding-practice/Data/datacenterbuild.json";
 import { DcModal } from "./components/dc-modal";
 import { LevelCard } from "./components/level-card";
 import { WorkbenchCanvas } from "./components/workbench-canvas";
+import {
+  FAB_SIZE,
+  FAB_STACK_GAP,
+  WorkbenchFab,
+  WorkbenchValidateFab,
+} from "./components/workbench-fab";
 import { WorkbenchToolbar } from "./components/workbench-toolbar";
 import {
-    DC_BREAKPOINTS,
-    DC_CABLE_VISUALS,
-    DC_COLORS,
-    DC_RADII,
+  DC_BREAKPOINTS,
+  DC_CABLE_VISUALS,
+  DC_COLORS,
+  DC_RADII,
 } from "./datacenter-builder.constants";
 import {
-    getCableVisual,
-    getDeviceIcon,
-    makeConnectionId,
+  getCableVisual,
+  getDeviceIcon,
+  makeConnectionId,
 } from "./datacenter-builder.helpers";
 import type {
-    ActiveConnection,
-    Cable,
-    DataCenterData,
-    DataCenterLevel,
-    InventoryDevice,
-    PortStatusMap,
+  ActiveConnection,
+  Cable,
+  DataCenterData,
+  DataCenterLevel,
+  InventoryDevice,
+  PortStatusMap,
 } from "./datacenter-builder.types";
-
-const rawData = RackData as unknown as DataCenterData;
 
 /**
  * Stable empty set used as the default `completedTokens` prop for the
@@ -56,20 +61,39 @@ const rawData = RackData as unknown as DataCenterData;
 const EMPTY_TOKEN_SET: ReadonlySet<string> = new Set();
 
 /**
- * Some levels in the JSON catalog omit `inventory`, `connections_required` or
- * `rules`. We normalize them here so downstream components can rely on arrays
- * always being present.
+ * Fallback usado enquanto o `datacenterCatalog` ainda não chegou do Firestore
+ * (loading inicial). Mantém a tela renderizável sem quebrar.
  */
-const data: DataCenterData = {
-  ...rawData,
-  cable_types: rawData.cable_types ?? [],
-  levels: (rawData.levels ?? []).map((lvl) => ({
-    ...lvl,
-    inventory: lvl.inventory ?? [],
-    connections_required: lvl.connections_required ?? [],
-    rules: lvl.rules ?? [],
-  })),
-};
+const EMPTY_CATALOG: DataCenterData = {
+  game: { name: "DataCenter Builder", version: "0" },
+  cable_types: [],
+  levels: [],
+} as unknown as DataCenterData;
+
+/**
+ * Normaliza o catálogo bruto (vindo do Firestore) — alguns cenários no JSON
+ * omitem `inventory`, `connections_required` ou `rules`; garantimos arrays.
+ *
+ * Também filtra níveis que só existem como documentação (sem `inventory`
+ * preenchido), como os tiers Multi-Site e Hyperscale — sem inventário o
+ * usuário não teria equipamentos para instalar no rack.
+ */
+function normalizeCatalog(raw: unknown): DataCenterData {
+  if (!raw) return EMPTY_CATALOG;
+  const src = raw as DataCenterData;
+  return {
+    ...src,
+    cable_types: src.cable_types ?? [],
+    levels: (src.levels ?? [])
+      .map((lvl) => ({
+        ...lvl,
+        inventory: lvl.inventory ?? [],
+        connections_required: lvl.connections_required ?? [],
+        rules: lvl.rules ?? [],
+      }))
+      .filter((lvl) => lvl.inventory.length > 0),
+  };
+}
 
 /**
  * Datacenter Builder — top-level screen.
@@ -83,8 +107,17 @@ export function DataCenterBuilderScreen() {
   const topPadding = useTopContentPadding();
   const bottomPadding = useTabContentPadding();
   const { user } = useAuth();
+  const { datacenterCatalog } = useData();
+
+  // Catálogo vem do Firestore via DataProvider (preload). Enquanto não chega,
+  // usamos um fallback vazio para não quebrar renderização.
+  const data = useMemo(() => normalizeCatalog(datacenterCatalog), [datacenterCatalog]);
 
   const isCompactChrome = windowWidth < DC_BREAKPOINTS.compactChrome;
+  // On stacked layouts we render either the rack OR the laptop at a time, so
+  // asking the user to click the laptop's serial port is awkward — we
+  // auto-complete the console cable connection to the laptop instead.
+  const isStackedCanvas = windowWidth < DC_BREAKPOINTS.stackCanvas;
 
   // ----------------------------------------------------------------- state
   const [activeLevel, setActiveLevel] = useState<DataCenterLevel | null>(null);
@@ -101,11 +134,23 @@ export function DataCenterBuilderScreen() {
   const [ledOn, setLedOn] = useState(true);
 
   const [showCableMenu, setShowCableMenu] = useState(false);
-  const [showPhaseAlert, setShowPhaseAlert] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [manualCollapsed, setManualCollapsed] = useState(false);
+  /**
+   * In mobile/stacked layouts we show either the rack OR the notebook at a
+   * time — never both — so the visualization stays legible on small screens.
+   * This is ignored by `WorkbenchCanvas` on desktop widths.
+   *
+   *  - "rack"     → rack visible + install manual below.
+   *  - "notebook" → laptop + console cable visible + CLI manual below.
+   *
+   * The view auto-switches to "notebook" the first time the user connects a
+   * console cable, and snaps back to "rack" when the user closes the
+   * terminal.
+   */
+  const [mobileView, setMobileView] = useState<"rack" | "notebook">("rack");
   /**
    * CLI validation tokens the user has already completed, keyed by device id.
    * The terminal emits `onSectionCompleted(token, section)` as the user types
@@ -119,6 +164,7 @@ export function DataCenterBuilderScreen() {
     { title: string; message: string; items?: string[] } | null
   >(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
 
   const successOpacity = useRef(new Animated.Value(0)).current;
   const successScale = useRef(new Animated.Value(0.6)).current;
@@ -179,11 +225,6 @@ export function DataCenterBuilderScreen() {
     },
     [],
   );
-
-  const isHardwareInstalled = useMemo(() => {
-    if (!activeLevel) return false;
-    return Object.keys(installedDevices).length === activeLevel.inventory.length;
-  }, [installedDevices, activeLevel]);
 
   /**
    * Per-port status used to drive the LED colors on the rack.
@@ -283,9 +324,35 @@ export function DataCenterBuilderScreen() {
   }, []);
 
   const handleLeaveLevel = useCallback(() => {
+    // Fully cancel the current exercise: drop the active level and wipe all
+    // per-exercise state (rack contents, wiring, console session, timers,
+    // transient modals) so the level list reflects a clean slate.
     setActiveLevel(null);
+    setInstalledDevices({});
+    setConnections([]);
+    setSourceNode(null);
+    setSelectedCable(null);
+    setSelectedSlotForInstall(null);
+    setConsoleDevice(null);
+    setMovements(0);
+    setStartTime(null);
+    setShowCableMenu(false);
+    setShowInstallHelp(false);
+    setValidationError(null);
     setCompletedCliTokensByDevice({});
+    setMobileView("rack");
   }, []);
+
+  // Auto-switch the mobile view to "notebook" the moment the user connects a
+  // console cable, and snap back to "rack" when the console session ends.
+  // On desktop widths `mobileView` is ignored so this is a no-op there.
+  useEffect(() => {
+    if (consoleDevice) {
+      setMobileView("notebook");
+    } else {
+      setMobileView("rack");
+    }
+  }, [consoleDevice]);
 
   // ----------------------------------------------------------------- install
   const handleInstallItem = useCallback(
@@ -325,10 +392,10 @@ export function DataCenterBuilderScreen() {
   const handlePortPress = useCallback(
     (deviceId: string, port: string) => {
       if (!activeLevel) return;
-      if (!isHardwareInstalled && deviceId !== "laptop") {
-        setShowPhaseAlert(true);
-        return;
-      }
+
+      // Note: intentionally no "all hardware must be installed first" gate —
+      // the user is free to install a device and immediately wire/configure
+      // it without populating the rest of the rack.
 
       // Clicking an already-connected port disconnects it.
       const existing = connections.find(
@@ -410,12 +477,49 @@ export function DataCenterBuilderScreen() {
       setSelectedCable(null);
       setMovements((m) => m + 1);
     },
-    [activeLevel, connections, installedDevices, isHardwareInstalled, selectedCable, sourceNode],
+    [activeLevel, connections, installedDevices, selectedCable, sourceNode],
   );
 
   const handleLaptopSerialPress = useCallback(() => {
     handlePortPress("laptop", "console");
   }, [handlePortPress]);
+
+  /**
+   * Mobile/stacked shortcut: when the user picks the console cable after
+   * selecting a device's console/serial port as source, there's no laptop
+   * visible on screen to click. Finish the wiring in one step by linking
+   * the source port directly to `laptop.console`.
+   *
+   * Returns true when it handled the connection (caller should skip the
+   * usual "wait for second port click" flow).
+   */
+  const tryAutoConnectConsoleToLaptop = useCallback((): boolean => {
+    if (!sourceNode) return false;
+    if (sourceNode.deviceId === "laptop") return false;
+    const srcIsConsole =
+      sourceNode.port === "console" || sourceNode.port === "serial";
+    if (!srcIsConsole) return false;
+
+    const device = Object.values(installedDevices).find(
+      (d) => d.id === sourceNode.deviceId,
+    );
+    if (!device) return false;
+
+    setConsoleDevice(device);
+    setConnections((conns) => [
+      ...conns,
+      {
+        id: makeConnectionId(),
+        from: sourceNode,
+        to: { deviceId: "laptop", port: "console" },
+        cableId: "console",
+      },
+    ]);
+    setMovements((m) => m + 1);
+    setSourceNode(null);
+    setSelectedCable(null);
+    return true;
+  }, [installedDevices, sourceNode]);
 
   /**
    * When the user finishes typing a full CLI section in the terminal,
@@ -593,7 +697,33 @@ export function DataCenterBuilderScreen() {
         ? 360 // web mobile: reserve room; viewport is already smaller
         : keyboardHeight + 40
       : 0;
+
+    // Informational overlays — "Instalar", "Regras", "Legenda". In desktop
+    // these sit inline on the toolbar; in mobile they collapse into a
+    // floating action button (see WorkbenchFab below).
+    const helpActions = [
+      {
+        id: "install",
+        icon: "build" as const,
+        label: "Instalar",
+        onPress: () => setShowInstallHelp(true),
+      },
+      {
+        id: "rules",
+        icon: "rule" as const,
+        label: "Regras",
+        onPress: () => setShowGuidelines(true),
+      },
+      {
+        id: "legend",
+        icon: "info-outline" as const,
+        label: "Legenda",
+        onPress: () => setShowLegend(true),
+      },
+    ];
+
     return (
+      <View style={{ flex: 1 }}>
       <ScrollView
         ref={workbenchScrollRef}
         showsVerticalScrollIndicator={false}
@@ -611,7 +741,7 @@ export function DataCenterBuilderScreen() {
       >
         <View style={styles.wbHeader}>
           <Pressable
-            onPress={handleLeaveLevel}
+            onPress={() => setConfirmExitOpen(true)}
             style={({ hovered }: { hovered?: boolean }) => [
               styles.iconButton,
               { backgroundColor: hovered ? DC_COLORS.bgSurfaceHover : DC_COLORS.bgSurface },
@@ -641,36 +771,21 @@ export function DataCenterBuilderScreen() {
           </View>
         </View>
 
-        <WorkbenchToolbar
-          compact={isCompactChrome}
-          actions={[
-            {
-              id: "install",
-              icon: "build",
-              label: "Instalar",
-              onPress: () => setShowInstallHelp(true),
-            },
-            {
-              id: "rules",
-              icon: "rule",
-              label: "Regras",
-              onPress: () => setShowGuidelines(true),
-            },
-            {
-              id: "legend",
-              icon: "info-outline",
-              label: "Legenda",
-              onPress: () => setShowLegend(true),
-            },
-            {
-              id: "validate",
-              icon: "fact-check",
-              label: "Validar",
-              variant: "success",
-              onPress: handleValidate,
-            },
-          ]}
-        />
+        {isCompactChrome ? null : (
+          <WorkbenchToolbar
+            compact={false}
+            actions={[
+              ...helpActions,
+              {
+                id: "validate",
+                icon: "fact-check",
+                label: "Validar",
+                variant: "success",
+                onPress: handleValidate,
+              },
+            ]}
+          />
+        )}
 
         <View
           style={styles.canvasSurface}
@@ -679,6 +794,7 @@ export function DataCenterBuilderScreen() {
           }}
         >
           <WorkbenchCanvas
+            level={activeLevel}
             inventory={activeLevel.inventory}
             installedDevices={installedDevices}
             connections={connections}
@@ -694,6 +810,8 @@ export function DataCenterBuilderScreen() {
             }
             consoleManualCollapsed={manualCollapsed}
             onConsoleManualToggle={() => setManualCollapsed((v) => !v)}
+            mobileView={mobileView}
+            onMobileViewChange={setMobileView}
             onSlotPress={(slot) => setSelectedSlotForInstall(slot)}
             onUninstall={handleUninstall}
             onPortPress={handlePortPress}
@@ -707,6 +825,21 @@ export function DataCenterBuilderScreen() {
           />
         </View>
       </ScrollView>
+      {isCompactChrome ? (
+        <>
+          {/* Validate sits on the bottom (thumb-friendly zone); the help
+              speed-dial is stacked just above it. */}
+          <WorkbenchValidateFab
+            onPress={handleValidate}
+            bottomInset={bottomPadding}
+          />
+          <WorkbenchFab
+            actions={helpActions}
+            bottomInset={bottomPadding + FAB_SIZE + FAB_STACK_GAP}
+          />
+        </>
+      ) : null}
+      </View>
     );
   };
 
@@ -730,22 +863,6 @@ export function DataCenterBuilderScreen() {
           </Animated.View>
         </Animated.View>
       )}
-
-      {/* Hardware pending */}
-      <DcModal
-        visible={showPhaseAlert}
-        onClose={() => setShowPhaseAlert(false)}
-        title="Hardware pendente"
-        subtitle="Instale todos os equipamentos no rack antes de iniciar o cabeamento."
-        icon="warning-amber"
-        tone="warning"
-        primaryAction={{ label: "Entendi", onPress: () => setShowPhaseAlert(false) }}
-      >
-        <Text style={styles.modalBody}>
-          Clique em um slot vazio do rack e selecione o equipamento correspondente na lista.
-          Só depois será possível ligar os cabos.
-        </Text>
-      </DcModal>
 
       {/* Validation */}
       <DcModal
@@ -863,6 +980,12 @@ export function DataCenterBuilderScreen() {
               onPress={() => {
                 setSelectedCable(c);
                 setShowCableMenu(false);
+                // Mobile/stacked shortcut: the laptop isn't visible on screen
+                // while the rack is active, so auto-wire the console cable to
+                // laptop.console as soon as the user picks it.
+                if (c.id === "console" && isStackedCanvas) {
+                  tryAutoConnectConsoleToLaptop();
+                }
               }}
               style={({ hovered }: { hovered?: boolean }) => [
                 styles.cableItem,
@@ -954,6 +1077,21 @@ export function DataCenterBuilderScreen() {
           </View>
         ))}
       </DcModal>
+
+      {/* Confirm exit — intercepts the workbench back button so the user
+          doesn't accidentally lose an in-progress level. */}
+      <ConfirmExitModal
+        visible={confirmExitOpen}
+        onCancel={() => setConfirmExitOpen(false)}
+        onConfirm={() => {
+          setConfirmExitOpen(false);
+          handleLeaveLevel();
+        }}
+        title="Sair do cenário?"
+        message="Seu progresso neste cenário (instalações, cabos e sessão do console) será descartado. Deseja realmente sair?"
+        confirmLabel="Sair do cenário"
+        cancelLabel="Continuar"
+      />
     </View>
   );
 }

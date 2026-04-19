@@ -12,8 +12,6 @@ import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
 import { useRouter } from 'expo-router';
 
-import DataCenterData from '../coding-practice/Data/datacenterbuild.json';
-import SupportData from '../coding-practice/Data/suportetecnico.json';
 import { type HomeThemeItem } from './components/home-theme-card';
 import { HOME_FEATURES } from './home.constants';
 
@@ -21,19 +19,32 @@ export function HomeScreen() {
   const bottomPadding = useTabContentPadding();
   const topPadding = useTopContentPadding();
   const { user } = useAuth();
-  const { trackCatalog, dbStats: stats, userProgress: progress } = useData();
+  const {
+    trackCatalog,
+    dbStats: stats,
+    userProgress: progress,
+    datacenterCatalog,
+    quickResponseCatalog,
+  } = useData();
   const layoutMode = useLayoutMode();
   const { isDesktop } = useScreenSize();
   const { loggingOut, handleLogout } = useLogout();
   const router = useRouter();
-  
+
   const totalIncidents = useMemo(() => {
-    return (SupportData.categories || []).reduce((acc, cat) => acc + (cat.exercises || []).length, 0);
-  }, []);
+    const categories = (quickResponseCatalog?.categories as
+      | { exercises?: unknown[] }[]
+      | undefined) ?? [];
+    return categories.reduce(
+      (acc, cat) => acc + (cat.exercises?.length ?? 0),
+      0,
+    );
+  }, [quickResponseCatalog]);
 
   const totalDataCenter = useMemo(() => {
-    return (DataCenterData.levels || []).length;
-  }, []);
+    const levels = (datacenterCatalog?.levels as unknown[] | undefined) ?? [];
+    return levels.length;
+  }, [datacenterCatalog]);
 
   const themes: HomeThemeItem[] = trackCatalog.map((item) => {
     const style = trackStyles[item.key] ?? TRACK_STYLE_FALLBACK;

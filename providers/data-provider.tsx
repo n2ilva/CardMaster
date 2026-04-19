@@ -1,23 +1,25 @@
 import {
-    createContext,
-    PropsWithChildren,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
 import { AppState, Platform } from 'react-native';
 
 import { preloadGlossary } from '@/components/glossary-text';
 import {
-    fetchUserProgress,
-    getDatabaseStats,
-    getTrackCatalog,
-    syncDataVersion,
-    type ProgressSummary,
-    type TrackCatalogItem,
+  fetchDataCenterCatalog,
+  fetchQuickResponseCatalog,
+  fetchUserProgress,
+  getDatabaseStats,
+  getTrackCatalog,
+  syncDataVersion,
+  type ProgressSummary,
+  type TrackCatalogItem
 } from '@/lib/api';
 import { cacheRemove } from '@/lib/cache';
 import { useAuth } from '@/providers/auth-provider';
@@ -34,6 +36,10 @@ type DataContextValue = {
   dbStats: { totalCards: number; activeTracks: number } | null;
   /** Cached user progress (refreshable) */
   userProgress: ProgressSummary | null;
+  /** Cached DataCenter Builder catalog (game/levels/cable_types) */
+  datacenterCatalog: Record<string, unknown> | null;
+  /** Cached Quick Response / Suporte Técnico catalog (categories/exercises) */
+  quickResponseCatalog: Record<string, unknown> | null;
 
   /** Re-fetch user progress (after a lesson ends, etc.) */
   refreshUserProgress: () => Promise<void>;
@@ -68,14 +74,23 @@ export function DataProvider({ children }: PropsWithChildren) {
   const [trackCatalog, setTrackCatalog] = useState<TrackCatalogItem[]>([]);
   const [dbStats, setDbStats] = useState<{ totalCards: number; activeTracks: number } | null>(null);
   const [userProgress, setUserProgress] = useState<ProgressSummary | null>(null);
+  const [datacenterCatalog, setDatacenterCatalog] = useState<Record<string, unknown> | null>(null);
+  const [quickResponseCatalog, setQuickResponseCatalog] = useState<Record<string, unknown> | null>(null);
 
   const refreshCatalog = useCallback(async () => {
     try {
       // Invalida cache local para forçar busca fresca do Firestore
       await Promise.all([cacheRemove('catalog'), cacheRemove('dbStats')]);
-      const [catalog, stats] = await Promise.all([getTrackCatalog(), getDatabaseStats()]);
+      const [catalog, stats, dcCatalog, qrCatalog] = await Promise.all([
+        getTrackCatalog(),
+        getDatabaseStats(),
+        fetchDataCenterCatalog(),
+        fetchQuickResponseCatalog(),
+      ]);
       setTrackCatalog(catalog);
       setDbStats(stats);
+      setDatacenterCatalog(dcCatalog);
+      setQuickResponseCatalog(qrCatalog);
     } catch (error) {
       console.error('[DataProvider] Erro ao carregar catálogo:', error);
     }
@@ -111,14 +126,22 @@ export function DataProvider({ children }: PropsWithChildren) {
         setPreloadProgress(5);
         await syncDataVersion();
 
-        // Step 1: Catalog + Stats + Glossary (independent of user)
+        // Step 1: Catalog + Stats + Glossary + Game catalogs (independent of user)
         setPreloadProgress(10);
-        const [catalog, stats] = await withRetry(() =>
-          Promise.all([getTrackCatalog(), getDatabaseStats(), preloadGlossary()])
+        const [catalog, stats, , dcCatalog, qrCatalog] = await withRetry(() =>
+          Promise.all([
+            getTrackCatalog(),
+            getDatabaseStats(),
+            preloadGlossary(),
+            fetchDataCenterCatalog(),
+            fetchQuickResponseCatalog(),
+          ])
         );
         if (cancelled) return;
         setTrackCatalog(catalog);
         setDbStats(stats);
+        setDatacenterCatalog(dcCatalog);
+        setQuickResponseCatalog(qrCatalog);
         setPreloadProgress(50);
 
         // Step 2: User progress
@@ -185,10 +208,22 @@ export function DataProvider({ children }: PropsWithChildren) {
       trackCatalog,
       dbStats,
       userProgress,
+      datacenterCatalog,
+      quickResponseCatalog,
       refreshUserProgress,
       refreshCatalog,
     }),
-    [isPreloading, preloadProgress, trackCatalog, dbStats, userProgress, refreshUserProgress, refreshCatalog],
+    [
+      isPreloading,
+      preloadProgress,
+      trackCatalog,
+      dbStats,
+      userProgress,
+      datacenterCatalog,
+      quickResponseCatalog,
+      refreshUserProgress,
+      refreshCatalog,
+    ],
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

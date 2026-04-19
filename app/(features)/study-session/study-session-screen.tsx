@@ -5,27 +5,27 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 
-import { AnswerOption } from '@/components/quiz/answer-option';
 import { GlossaryText } from '@/components/glossary-text';
 import { QuizActionButton } from '@/components/quiz/action-button';
+import { AnswerOption } from '@/components/quiz/answer-option';
 import { QuizStatCard } from '@/components/quiz/stat-card';
 import { QUIZ_COLORS } from '@/constants/quiz-ui';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useTopContentPadding } from '@/hooks/use-tab-content-padding';
-import { getNextPlanStep, parseStudyIndex, parseStudySequence } from '@/lib/study-flow';
 import {
-  clearInProgressLesson,
-  fetchCards,
-  fetchInProgressLesson,
-  fetchMasterTestCards,
-  resolveTrackLabel,
-  saveCardResult,
-  saveLesson,
-  updateUserProfile,
-  upsertInProgressLesson,
-  type Flashcard,
-  type UserLevel,
+    clearInProgressLesson,
+    fetchCards,
+    fetchInProgressLesson,
+    fetchMasterTestCards,
+    resolveTrackLabel,
+    saveCardResult,
+    saveLesson,
+    updateUserProfile,
+    upsertInProgressLesson,
+    type Flashcard,
+    type UserLevel,
 } from '@/lib/api';
+import { getNextPlanStep, parseStudyIndex, parseStudySequence } from '@/lib/study-flow';
 import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
 
@@ -75,6 +75,7 @@ export function StudySessionScreen() {
   const [finished, setFinished] = useState(false);
   const [saving, setSaving] = useState(false);
   const [questionElapsedSeconds, setQuestionElapsedSeconds] = useState(0);
+  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
 
   const startTimeRef = useRef(Date.now());
   const questionStartTimeRef = useRef(Date.now());
@@ -440,7 +441,16 @@ export function StudySessionScreen() {
         {/* Custom header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 12 }}>
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => {
+              // Mid-quiz: prompt before discarding progress. If the user has
+              // already finished or there are no cards, we fall through to
+              // a plain back navigation.
+              if (!finished && totalCards > 0) {
+                setConfirmExitOpen(true);
+              } else {
+                router.back();
+              }
+            }}
             style={({ pressed }) => ({
               width: 40,
               height: 40,
@@ -559,6 +569,21 @@ export function StudySessionScreen() {
         ringOpacity={completionRingOpacity}
       />
       <StudyFeedbackOverlay feedbackType={feedbackType} iconOpacity={iconOpacity} iconScale={iconScale} />
+
+      {/* Confirm exit — intercepts the in-progress quiz back button. Progress
+          is intentionally discarded (no save on cancel). */}
+      <ConfirmExitModal
+        visible={confirmExitOpen}
+        onCancel={() => setConfirmExitOpen(false)}
+        onConfirm={() => {
+          setConfirmExitOpen(false);
+          router.back();
+        }}
+        title="Sair do quiz?"
+        message="Seu progresso neste quiz será descartado. Deseja realmente sair?"
+        confirmLabel="Sair do quiz"
+        cancelLabel="Continuar"
+      />
     </View>
   );
 }

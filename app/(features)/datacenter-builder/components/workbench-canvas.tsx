@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import Svg, { G } from "react-native-svg";
@@ -14,8 +14,9 @@ import { getCableColor } from "../datacenter-builder.helpers";
 import type {
     ActiveConnection,
     Cable,
+    DataCenterLevel,
     InventoryDevice,
-    PortStatusMap,
+    PortStatusMap
 } from "../datacenter-builder.types";
 import { CablePath, PendingSourceMarker } from "./cable-svg";
 import { DeviceManual } from "./device-manual";
@@ -26,6 +27,7 @@ import {
     getLaptopScreenRect,
     getLaptopSerialPortLocalPos,
 } from "./laptop-svg";
+import { RackInstallManual } from "./rack-install-manual";
 import {
     RACK_PORT,
     RackSvg,
@@ -35,6 +37,12 @@ import {
 } from "./rack-svg";
 
 type WorkbenchCanvasProps = {
+  /**
+   * Full level reference — required so the install manual (shown in the
+   * mobile "rack" view) can render the cabling table, rules and required
+   * connections.
+   */
+  level: DataCenterLevel;
   inventory: InventoryDevice[];
   installedDevices: Record<number, InventoryDevice>;
   connections: ActiveConnection[];
@@ -64,6 +72,21 @@ type WorkbenchCanvasProps = {
   consoleManualCollapsed?: boolean;
   /** Toggles the manual panel open/closed. */
   onConsoleManualToggle?: () => void;
+  /**
+   * Mobile-only view switcher. When the canvas layout is stacked (narrow
+   * screens) we render either the rack OR the notebook at a time, so the
+   * user isn't squinting at both on a small screen.
+   *
+   *  - "rack"      → show rack + install manual below.
+   *  - "notebook"  → show laptop (with console cable to the connected
+   *                   device) + device CLI manual below.
+   *
+   * Ignored when the canvas is wide enough to fit rack + laptop side by
+   * side (desktop / tablet landscape).
+   */
+  mobileView?: "rack" | "notebook";
+  /** Fired when the user toggles between rack and notebook in mobile view. */
+  onMobileViewChange?: (next: "rack" | "notebook") => void;
 };
 
 /**
@@ -73,6 +96,7 @@ type WorkbenchCanvasProps = {
  * of ports and slots so clicks map 1:1 to SVG geometry.
  */
 export function WorkbenchCanvas({
+  level,
   inventory,
   installedDevices,
   connections,
@@ -91,6 +115,8 @@ export function WorkbenchCanvas({
   consoleManualCompletedTokens,
   consoleManualCollapsed,
   onConsoleManualToggle,
+  mobileView,
+  onMobileViewChange,
 }: WorkbenchCanvasProps) {
   // We measure the *container* width (not the window) so the canvas adapts
   // correctly when a sidebar or padding shrinks the available space.
@@ -105,6 +131,13 @@ export function WorkbenchCanvas({
   // so the first render doesn't collapse to zero.
   const effectiveWidth = containerWidth > 0 ? containerWidth : 960;
   const stacked = effectiveWidth < DC_BREAKPOINTS.stackCanvas;
+  // In stacked layout, we show either the rack OR the notebook — never both —
+  // so the visualization stays legible on a phone. Desktop/tablet layouts
+  // ignore `mobileView` entirely.
+  const activeMobileView: "rack" | "notebook" =
+    stacked ? mobileView ?? "rack" : "rack";
+  const showRack = !stacked || activeMobileView === "rack";
+  const showLaptop = !stacked || activeMobileView === "notebook";
 
   // Height reserved above the laptop for the device manual panel. It floats
   // just on top of the notebook so the user can see the required CLI
@@ -125,7 +158,11 @@ export function WorkbenchCanvas({
       ? MANUAL_COLLAPSED_H
       : MANUAL_OPEN_H
     : 0;
-  const manualReserved = consoleDevice ? manualHeight + MANUAL_GAP : 0;
+  // The floating manual panel only exists in non-stacked (desktop) layouts.
+  // In stacked/mobile mode the manual is rendered below the canvas as a
+  // regular block that can scroll naturally with the rest of the workbench.
+  const floatingManualActive = !stacked && !!consoleDevice;
+  const manualReserved = floatingManualActive ? manualHeight + MANUAL_GAP : 0;
 
   // Layout math --------------------------------------------------------------
   const layout = useMemo(() => {
@@ -141,23 +178,48 @@ export function WorkbenchCanvas({
     const availableWidth = Math.max(320, effectiveWidth - horizontalPadding);
 
     if (stacked) {
-      const widest = Math.max(rackW, lapW);
-      const scale = Math.min(1, availableWidth / widest);
+      // Only one shape is visible at a time in stacked mode: either the rack
+      // (with the install manual below it) or the laptop (with the device
+      // CLI manual below it). We size the canvas to just the active shape.
+      if (activeMobileView === "notebook") {
+        // On mobile the serial/console port juts out to the right of the
+        // laptop base (see getLaptopSerialPortLocalPos). Reserve extra
+        // horizontal room so the port + cable attachment aren't clipped.
+        const rightGutter = 90;
+        const effectiveLapW = lapW + rightGutter;
+        const scale = Math.min(1, availableWidth / effectiveLapW);
+        const laptopOffsetX = (availableWidth - effectiveLapW * scale) / 2;
+        // Push the laptop down to leave room for the floating manual panel.
+        const laptopOffsetY = manualReserved;
+        const totalW = availableWidth;
+        const totalH = laptopOffsetY + lapH * scale + 20;
+        // Rack is off-screen and unused in this view; positions kept stable
+        // to keep the math of `getAbsolutePortPos` well-defined even though
+        // nothing using them is rendered.
+        return {
+          stacked: true,
+          scale,
+          rackOffsetX: 0,
+          rackOffsetY: 0,
+          laptopOffsetX,
+          laptopOffsetY,
+          totalW,
+          totalH,
+        };
+      }
+      // Rack-only view.
+      const scale = Math.min(1, availableWidth / rackW);
       const rackOffsetX = (availableWidth - rackW * scale) / 2;
-      const laptopOffsetX = (availableWidth - lapW * scale) / 2;
       const rackOffsetY = 0;
-      const gap = 40;
-      // Push the laptop down to leave room for the floating manual panel.
-      const laptopOffsetY = rackH * scale + gap + manualReserved;
       const totalW = availableWidth;
-      const totalH = laptopOffsetY + lapH * scale + 20;
+      const totalH = rackOffsetY + rackH * scale + 20;
       return {
         stacked: true,
         scale,
         rackOffsetX,
         rackOffsetY,
-        laptopOffsetX,
-        laptopOffsetY,
+        laptopOffsetX: 0,
+        laptopOffsetY: 0,
         totalW,
         totalH,
       };
@@ -184,7 +246,7 @@ export function WorkbenchCanvas({
       totalW,
       totalH,
     };
-  }, [effectiveWidth, stacked, inventory.length, manualReserved]);
+  }, [effectiveWidth, stacked, activeMobileView, inventory.length, manualReserved]);
 
   const boardWidth = RACK_GEOMETRY.width - RACK_GEOMETRY.railWidth * 2;
 
@@ -252,58 +314,67 @@ export function WorkbenchCanvas({
     >
       <Svg width={layout.totalW} height={layout.totalH}>
         {/* Rack */}
-        <G
-          transform={`translate(${layout.rackOffsetX}, ${layout.rackOffsetY}) scale(${layout.scale})`}
-        >
-          <RackSvg
-            inventory={inventory}
-            installedDevices={installedDevices}
-            ledOn={ledOn}
-            portStatus={portStatus}
-            selectedPort={sourceNode}
-          />
-        </G>
+        {showRack ? (
+          <G
+            transform={`translate(${layout.rackOffsetX}, ${layout.rackOffsetY}) scale(${layout.scale})`}
+          >
+            <RackSvg
+              inventory={inventory}
+              installedDevices={installedDevices}
+              ledOn={ledOn}
+              portStatus={portStatus}
+              selectedPort={sourceNode}
+            />
+          </G>
+        ) : null}
 
         {/* Laptop */}
-        <G
-          transform={`translate(${layout.laptopOffsetX}, ${layout.laptopOffsetY}) scale(${layout.scale})`}
-        >
-          <LaptopSvg
-            connected={!!consoleDevice}
-            serialSelected={sourceNode?.deviceId === "laptop"}
-            serialOnRight={layout.stacked}
-          />
-        </G>
+        {showLaptop ? (
+          <G
+            transform={`translate(${layout.laptopOffsetX}, ${layout.laptopOffsetY}) scale(${layout.scale})`}
+          >
+            <LaptopSvg
+              connected={!!consoleDevice}
+              serialSelected={sourceNode?.deviceId === "laptop"}
+              serialOnRight={layout.stacked}
+            />
+          </G>
+        ) : null}
 
         {/* Cables (in outer coordinate space).
             Console cables (laptop endpoint) are drawn in a separate SVG overlay
             rendered AFTER the terminal screen view, so they pass in front of the
             laptop's terminal display — matching how a real console cable sits
-            visually in front of the laptop. */}
-        {connections.map((conn) => {
-          if (!conn.to) return null;
-          const isConsoleCable =
-            conn.from.deviceId === "laptop" || conn.to.deviceId === "laptop";
-          if (isConsoleCable) return null;
-          const from = getAbsolutePortFor(conn.from);
-          const to = getAbsolutePortFor(conn.to);
-          if (!from || !to) return null;
-          const color = getCableColor(conn.cableId, cableTypes);
-          return (
-            <CablePath
-              key={conn.id}
-              from={from}
-              to={to}
-              color={color}
-              dashed={conn.cableId === "console"}
-              strokeWidth={3.2 * layout.scale + 0.4}
-            />
-          );
-        })}
+            visually in front of the laptop.
+            In mobile single-shape mode we hide inter-rack cables while on the
+            notebook view (rack isn't drawn), since both endpoints would be
+            off-screen. */}
+        {showRack &&
+          connections.map((conn) => {
+            if (!conn.to) return null;
+            const isConsoleCable =
+              conn.from.deviceId === "laptop" || conn.to.deviceId === "laptop";
+            if (isConsoleCable) return null;
+            const from = getAbsolutePortFor(conn.from);
+            const to = getAbsolutePortFor(conn.to);
+            if (!from || !to) return null;
+            const color = getCableColor(conn.cableId, cableTypes);
+            return (
+              <CablePath
+                key={conn.id}
+                from={from}
+                to={to}
+                color={color}
+                dashed={conn.cableId === "console"}
+                strokeWidth={3.2 * layout.scale + 0.4}
+              />
+            );
+          })}
 
         {/* Pending source marker (only when source is not the laptop serial —
-            laptop-origin pending marker is rendered in the overlay SVG below). */}
-        {sourceAbs && sourceNode?.deviceId !== "laptop" && (
+            laptop-origin pending marker is rendered in the overlay SVG below).
+            Only meaningful when the rack is on-screen. */}
+        {showRack && sourceAbs && sourceNode?.deviceId !== "laptop" && (
           <PendingSourceMarker
             from={sourceAbs}
             strokeWidth={3.2 * layout.scale + 0.4}
@@ -312,7 +383,8 @@ export function WorkbenchCanvas({
       </Svg>
 
       {/* Interaction overlays ------------------------------------------- */}
-      {/* Slot / port presseables */}
+      {/* Slot / port presseables (only when the rack is visible) */}
+      {showRack ? (
       <View
         pointerEvents="box-none"
         style={{
@@ -327,6 +399,14 @@ export function WorkbenchCanvas({
           const installed = installedDevices[i];
           const slotTop = getSlotY(i) * layout.scale;
           const slotH = RACK_GEOMETRY.slotHeight * layout.scale;
+          const rail = RACK_GEOMETRY.railWidth;
+          // Uninstall button sits on the right rail between the two screws
+          // (screws are at y+14 and y+slotHeight-14, centered at rackWidth-rail/2).
+          const removeSize = Math.max(22, 18 * layout.scale);
+          const removeX =
+            (RACK_GEOMETRY.width - rail / 2) * layout.scale - removeSize / 2;
+          const removeY =
+            (RACK_GEOMETRY.slotHeight / 2) * layout.scale - removeSize / 2;
           return (
             <View
               key={`slot-overlay-${i}`}
@@ -339,18 +419,18 @@ export function WorkbenchCanvas({
                 height: slotH,
               }}
             >
-              <Pressable
-                onPress={() =>
-                  installed ? onUninstall(i) : onSlotPress(i)
-                }
-                style={StyleSheet.absoluteFillObject}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  installed
-                    ? `Remover ${installed.label ?? installed.id}`
-                    : `Instalar equipamento no slot ${inventory.length - i}U`
-                }
-              />
+              {/* Background press area:
+                  - empty slot → opens install picker.
+                  - occupied slot → no-op (kept transparent so clicks on the
+                    ports aren't swallowed by a remove-on-tap behavior). */}
+              {installed ? null : (
+                <Pressable
+                  onPress={() => onSlotPress(i)}
+                  style={StyleSheet.absoluteFillObject}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Instalar equipamento no slot ${inventory.length - i}U`}
+                />
+              )}
               {installed &&
                 installed.ports.map((p, pIdx) => {
                   const px =
@@ -375,30 +455,62 @@ export function WorkbenchCanvas({
                     />
                   );
                 })}
+              {installed ? (
+                <Pressable
+                  onPress={() => onUninstall(i)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remover ${installed.label ?? installed.id}`}
+                  hitSlop={6}
+                  style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
+                    styles.removeBtn,
+                    {
+                      left: removeX,
+                      top: removeY,
+                      width: removeSize,
+                      height: removeSize,
+                      borderRadius: removeSize / 2,
+                    },
+                    hovered ? styles.removeBtnHover : null,
+                    pressed ? styles.removeBtnPressed : null,
+                  ]}
+                >
+                  <MaterialIcons
+                    name="close"
+                    size={Math.max(12, removeSize * 0.6)}
+                    color={DC_COLORS.textPrimary}
+                  />
+                </Pressable>
+              ) : null}
             </View>
           );
         })}
       </View>
+      ) : null}
 
-      {/* Laptop serial port overlay */}
-      <Pressable
-        onPress={onLaptopSerialPress}
-        accessibilityRole="button"
-        accessibilityLabel="Porta serial do notebook"
-        hitSlop={8}
-        style={{
-          position: "absolute",
-          left: laptopSerialAbsPos.x - Math.max(18, LAPTOP_PORT.width * layout.scale) / 2,
-          top: laptopSerialAbsPos.y - Math.max(18, LAPTOP_PORT.height * layout.scale) / 2,
-          width: Math.max(36, LAPTOP_PORT.width * layout.scale + 12),
-          height: Math.max(36, LAPTOP_PORT.height * layout.scale + 12),
-        }}
-      />
+      {/* Laptop serial port overlay (only when the laptop is visible) */}
+      {showLaptop ? (
+        <Pressable
+          onPress={onLaptopSerialPress}
+          accessibilityRole="button"
+          accessibilityLabel="Porta serial do notebook"
+          hitSlop={8}
+          style={{
+            position: "absolute",
+            left: laptopSerialAbsPos.x - Math.max(18, LAPTOP_PORT.width * layout.scale) / 2,
+            top: laptopSerialAbsPos.y - Math.max(18, LAPTOP_PORT.height * layout.scale) / 2,
+            width: Math.max(36, LAPTOP_PORT.width * layout.scale + 12),
+            height: Math.max(36, LAPTOP_PORT.height * layout.scale + 12),
+          }}
+        />
+      ) : null}
 
       {/* Device manual — floats just above the notebook so the user can read
           the expected CLI sections while typing. Its width matches the
-          laptop body (scaled). */}
-      {consoleDevice ? (
+          laptop body (scaled).
+          In mobile stacked mode we move this manual BELOW the canvas (see the
+          outer render below) so it can scroll freely, so we skip the floating
+          variant here. */}
+      {showLaptop && consoleDevice && !layout.stacked ? (
         <View
           style={{
             position: "absolute",
@@ -417,7 +529,8 @@ export function WorkbenchCanvas({
         </View>
       ) : null}
 
-      {/* Terminal content over the laptop screen */}
+      {/* Terminal content over the laptop screen (only when laptop visible) */}
+      {showLaptop ? (
       <View
         pointerEvents={consoleDevice ? "auto" : "none"}
         style={{
@@ -448,10 +561,13 @@ export function WorkbenchCanvas({
           </View>
         )}
       </View>
+      ) : null}
 
       {/* Console cable overlay — drawn ABOVE the terminal screen so the cable
           visually passes in front of the laptop display (like a real console
-          cable plugged into the side of a notebook). */}
+          cable plugged into the side of a notebook). In mobile "rack" view
+          neither endpoint is on-screen, so we skip it entirely. */}
+      {showLaptop ? (
       <View
         pointerEvents="none"
         style={{
@@ -468,9 +584,38 @@ export function WorkbenchCanvas({
             const isConsoleCable =
               conn.from.deviceId === "laptop" || conn.to.deviceId === "laptop";
             if (!isConsoleCable) return null;
-            const from = getAbsolutePortFor(conn.from);
-            const to = getAbsolutePortFor(conn.to);
-            if (!from || !to) return null;
+            const rawFrom = getAbsolutePortFor(conn.from);
+            const rawTo = getAbsolutePortFor(conn.to);
+            if (!rawFrom || !rawTo) return null;
+
+            // The cable must enter the laptop serial port from the RIGHT
+            // side in the mobile/stacked "notebook" view — otherwise the
+            // bezier from an off-screen rack port above cuts straight
+            // across the laptop screen. We synthesize a virtual origin
+            // just above/right of the serial port so the curve enters
+            // horizontally from the right.
+            const laptopEndpointIsFrom = conn.from.deviceId === "laptop";
+            const laptopPos = laptopEndpointIsFrom ? rawFrom : rawTo;
+            const otherPos = laptopEndpointIsFrom ? rawTo : rawFrom;
+            const useSideEntry = layout.stacked && activeMobileView === "notebook";
+            let from = rawFrom;
+            let to = rawTo;
+            let routing: "default" | "side-right" = "default";
+            if (useSideEntry) {
+              // Virtual "coming from above the right edge" point — sits
+              // off the right side of the laptop so the cable drops down
+              // alongside it and curves in from the right.
+              const virtualOrigin = {
+                x: laptopPos.x + 70,
+                y: Math.max(0, laptopPos.y - 140),
+              };
+              // Always route: virtual origin (top-right) → laptop serial port.
+              from = virtualOrigin;
+              to = laptopPos;
+              routing = "side-right";
+              // `otherPos` is off-screen (rack hidden) so we ignore it.
+              void otherPos;
+            }
             const color = getCableColor(conn.cableId, cableTypes);
             return (
               <CablePath
@@ -480,6 +625,7 @@ export function WorkbenchCanvas({
                 color={color}
                 dashed={conn.cableId === "console"}
                 strokeWidth={3.2 * layout.scale + 0.4}
+                routing={routing}
               />
             );
           })}
@@ -491,12 +637,24 @@ export function WorkbenchCanvas({
           )}
         </Svg>
       </View>
+      ) : null}
     </View>
   );
 
   // Horizontal scroll only when we actually overflow -----------------------
+  // In stacked/mobile mode we also render a view toggle at the top (rack vs
+  // notebook) and the companion manual below the canvas (install manual when
+  // the rack is visible, CLI manual when the laptop is visible).
   return (
     <View onLayout={handleLayout} style={{ width: "100%", overflow: "hidden" }}>
+      {layout.stacked ? (
+        <MobileViewToggle
+          activeView={activeMobileView}
+          consoleConnected={!!consoleDevice}
+          onChange={(next) => onMobileViewChange?.(next)}
+        />
+      ) : null}
+
       <ScrollView
         horizontal={!layout.stacked}
         showsHorizontalScrollIndicator={false}
@@ -505,11 +663,196 @@ export function WorkbenchCanvas({
       >
         {content}
       </ScrollView>
+
+      {layout.stacked && activeMobileView === "rack" ? (
+        <View style={{ paddingHorizontal: 8, paddingTop: 12 }}>
+          <RackInstallManual level={level} installedDevices={installedDevices} />
+        </View>
+      ) : null}
+
+      {layout.stacked && activeMobileView === "notebook" && consoleDevice ? (
+        <View style={{ paddingHorizontal: 8, paddingTop: 12, height: manualHeight }}>
+          <DeviceManual
+            device={consoleDevice}
+            completedTokens={consoleManualCompletedTokens ?? new Set()}
+            collapsed={!!consoleManualCollapsed}
+            onToggleCollapsed={() => onConsoleManualToggle?.()}
+          />
+        </View>
+      ) : null}
+
+      {layout.stacked && activeMobileView === "notebook" && !consoleDevice ? (
+        <View style={{ paddingHorizontal: 8, paddingTop: 12 }}>
+          <View style={styles.noConsoleHint}>
+            <MaterialCommunityIcons
+              name="console-network"
+              size={22}
+              color={DC_COLORS.textFaint}
+            />
+            <Text style={styles.noConsoleTitle}>Nenhum equipamento conectado</Text>
+            <Text style={styles.noConsoleText}>
+              Volte para a visualização do rack e conecte o cabo de console do
+              notebook a um equipamento para iniciar o terminal.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * Small segmented control shown at the top of the workbench in mobile mode
+ * so the user can flip between the rack view and the notebook view. The
+ * notebook tab is disabled until a console cable has been connected, so it
+ * doesn't offer a view that would be empty otherwise.
+ */
+function MobileViewToggle({
+  activeView,
+  consoleConnected,
+  onChange,
+}: {
+  activeView: "rack" | "notebook";
+  consoleConnected: boolean;
+  onChange: (next: "rack" | "notebook") => void;
+}) {
+  const tabs: { id: "rack" | "notebook"; label: string; icon: string; disabled?: boolean }[] = [
+    { id: "rack", label: "Rack", icon: "server" },
+    {
+      id: "notebook",
+      label: "Notebook",
+      icon: "laptop",
+      disabled: !consoleConnected,
+    },
+  ];
+  return (
+    <View style={styles.toggleWrap}>
+      {tabs.map((t) => {
+        const active = t.id === activeView;
+        return (
+          <Pressable
+            key={t.id}
+            disabled={t.disabled}
+            onPress={() => onChange(t.id)}
+            style={({ hovered }: { hovered?: boolean }) => [
+              styles.toggleTab,
+              active && styles.toggleTabActive,
+              hovered && !active && !t.disabled ? styles.toggleTabHover : null,
+              t.disabled ? styles.toggleTabDisabled : null,
+            ]}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active, disabled: t.disabled }}
+            accessibilityLabel={`Visualização ${t.label}`}
+          >
+            <MaterialCommunityIcons
+              name={t.icon as any}
+              size={16}
+              color={active ? DC_COLORS.textPrimary : DC_COLORS.textMuted}
+            />
+            <Text
+              style={[
+                styles.toggleTabLabel,
+                active && styles.toggleTabLabelActive,
+              ]}
+            >
+              {t.label}
+            </Text>
+            {t.id === "notebook" && !consoleConnected ? (
+              <MaterialIcons name="lock-outline" size={13} color={DC_COLORS.textFaint} />
+            ) : null}
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  removeBtn: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(239,68,68,0.9)",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.5)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.35,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  removeBtnHover: {
+    backgroundColor: DC_COLORS.danger,
+  },
+  removeBtnPressed: {
+    backgroundColor: "rgba(185,28,28,0.95)",
+    transform: [{ scale: 0.92 }],
+  },
+  toggleWrap: {
+    flexDirection: "row",
+    alignSelf: "stretch",
+    backgroundColor: DC_COLORS.bgPanel,
+    borderRadius: DC_RADII.pill,
+    borderWidth: 1,
+    borderColor: DC_COLORS.borderMuted,
+    padding: 4,
+    gap: 4,
+    marginBottom: 10,
+    marginHorizontal: 8,
+  },
+  toggleTab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: DC_RADII.pill,
+    backgroundColor: "transparent",
+  },
+  toggleTabActive: {
+    backgroundColor: DC_COLORS.bgSurfaceHover,
+    borderWidth: 1,
+    borderColor: DC_COLORS.borderStrong,
+  },
+  toggleTabHover: {
+    backgroundColor: DC_COLORS.bgSurface,
+  },
+  toggleTabDisabled: {
+    opacity: 0.5,
+  },
+  toggleTabLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: DC_COLORS.textMuted,
+    letterSpacing: 0.3,
+  },
+  toggleTabLabelActive: {
+    color: DC_COLORS.textPrimary,
+  },
+  noConsoleHint: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: 18,
+    backgroundColor: DC_COLORS.bgPanel,
+    borderRadius: DC_RADII.lg,
+    borderWidth: 1,
+    borderColor: DC_COLORS.borderMuted,
+  },
+  noConsoleTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: DC_COLORS.textPrimary,
+    letterSpacing: 0.3,
+  },
+  noConsoleText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: DC_COLORS.textSecondary,
+    textAlign: "center",
+  },
   terminal: {
     flex: 1,
     backgroundColor: DC_COLORS.terminalBg,

@@ -16,6 +16,15 @@ type CablePathProps = {
   dashed?: boolean;
   /** Stroke width in the outer SVG coordinate space. */
   strokeWidth?: number;
+  /**
+   * Routing style for the bezier control points.
+   *  - "default" (used for rack-to-rack cables): control points pull
+   *    horizontally toward each other so patch cables look neatly routed.
+   *  - "side-right": the cable approaches the `to` endpoint from its right
+   *    side — used on mobile when the console cable has to swing around
+   *    the laptop so it doesn't cross the screen.
+   */
+  routing?: "default" | "side-right";
 };
 
 /**
@@ -33,9 +42,26 @@ export function CablePath({
   state = "active",
   dashed = false,
   strokeWidth = 3.2,
+  routing = "default",
 }: CablePathProps) {
-  const dx = Math.max(60, Math.abs(to.x - from.x) * 0.5);
-  const path = `M ${from.x} ${from.y} C ${from.x + dx} ${from.y} ${to.x - dx} ${to.y} ${to.x} ${to.y}`;
+  let path: string;
+  if (routing === "side-right") {
+    // Route the cable so it comes down on the right side of the `to`
+    // endpoint and loops in from the right, then enters horizontally.
+    // The first control point keeps the cable vertical near `from`, and the
+    // second control point is placed to the RIGHT of `to` at the same Y,
+    // so the curve approaches the port horizontally from the right — never
+    // crossing whatever sits to the left of `to` (e.g. the laptop screen).
+    const approachOffset = Math.max(70, Math.abs(to.y - from.y) * 0.6);
+    const cp1x = from.x;
+    const cp1y = from.y + Math.max(40, Math.abs(to.y - from.y) * 0.4);
+    const cp2x = to.x + approachOffset;
+    const cp2y = to.y;
+    path = `M ${from.x} ${from.y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${to.x} ${to.y}`;
+  } else {
+    const dx = Math.max(60, Math.abs(to.x - from.x) * 0.5);
+    path = `M ${from.x} ${from.y} C ${from.x + dx} ${from.y} ${to.x - dx} ${to.y} ${to.x} ${to.y}`;
+  }
 
   const isError = state === "error";
   const isPending = state === "pending";

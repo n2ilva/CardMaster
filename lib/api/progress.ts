@@ -4,23 +4,23 @@ import {
     doc,
     documentId,
     getDocs,
-    orderBy,
     query,
     serverTimestamp,
     setDoc,
     where,
-    writeBatch,
+    writeBatch
 } from "firebase/firestore";
 
 import { cacheInvalidatePrefix, fetchWithCache, USER_TTL } from "@/lib/cache";
 import { db } from "@/lib/firebase";
 import { buildDifficultyProgress, resolveActiveDifficulty } from "./cards";
-import { fetchCodingPracticeProgress, fetchCodingExercises } from "./coding-practice";
-import { fetchQuickResponseProgress } from "./quick-response";
-import { fetchDataCenterProgress } from "./datacenter";
-const SupportData = require('../../app/(features)/coding-practice/Data/suportetecnico.json');
-const DataCenterData = require('../../app/(features)/coding-practice/Data/datacenterbuild.json');
 import { getTotalCardsForCategory } from "./catalog";
+import {
+    fetchCodingExercises,
+    fetchCodingPracticeProgress,
+} from "./coding-practice";
+import { fetchDataCenterProgress } from "./datacenter";
+import { fetchQuickResponseProgress } from "./quick-response";
 import type {
     CardHistory,
     CategoryProgress,
@@ -33,6 +33,13 @@ import type {
     UserLevel,
     WeakestSubject,
 } from "./types";
+// Totais estáticos (apenas para cálculos de progresso agregado). Os catálogos
+// "ao vivo" usados pelas telas são lidos do Firestore via
+// `fetchDataCenterCatalog` / `fetchQuickResponseCatalog`. Aqui mantemos um
+// snapshot do JSON local apenas para obter `total` sem precisar aguardar
+// uma leitura assíncrona extra dentro do cálculo de `ProgressSummary`.
+const SupportData = require("../../data/gestaodeincidentes/suportetecnico.json");
+const DataCenterData = require("../../data/data-center/datacenterbuild.json");
 
 // ---------------------------------------------------------------------------
 // Scoring helpers (also exported for use in community module)
@@ -67,13 +74,17 @@ export function calculateScore(
 export function calculateCodingExerciseScore(
   minMoves: number,
   bestMoves: number,
-  difficulty: "fácil" | "intermediário" | "avançado" = "fácil"
+  difficulty: "fácil" | "intermediário" | "avançado" = "fácil",
 ): number {
-  const accuracy = Math.min(100, Math.round((minMoves / (bestMoves || minMoves)) * 100));
-  const diffMultiplier = difficulty === 'avançado' ? 2 : (difficulty === 'intermediário' ? 1.5 : 1);
-  
+  const accuracy = Math.min(
+    100,
+    Math.round((minMoves / (bestMoves || minMoves)) * 100),
+  );
+  const diffMultiplier =
+    difficulty === "avançado" ? 2 : difficulty === "intermediário" ? 1.5 : 1;
+
   // Use 1 base point per exercise as requested
-  const exerciseScore = calculateScore(1, accuracy, 0); 
+  const exerciseScore = calculateScore(1, accuracy, 0);
   return Math.round(exerciseScore * diffMultiplier);
 }
 
@@ -193,13 +204,20 @@ async function _fetchUserProgressFromServer(
   const inProgressRef = collection(db, "users", uid, "inProgressLessons");
   const lessonsQuery = query(lessonsRef);
 
-  const [lessonsSnapshot, inProgressSnapshot, codingResults, allExercises, quickProgress, dcProgress] = await Promise.all([
+  const [
+    lessonsSnapshot,
+    inProgressSnapshot,
+    codingResults,
+    allExercises,
+    quickProgress,
+    dcProgress,
+  ] = await Promise.all([
     getDocs(lessonsQuery),
     getDocs(inProgressRef),
     fetchCodingPracticeProgress(uid),
     fetchCodingExercises(),
     fetchQuickResponseProgress(uid),
-    fetchDataCenterProgress(uid)
+    fetchDataCenterProgress(uid),
   ]);
 
   const uniqueSeenByCategory = await getUniqueSeenQuestionsByCategory(uid);
@@ -217,7 +235,11 @@ async function _fetchUserProgressFromServer(
 
   const hasAnyCodingResult = Object.keys(codingResults).length > 0;
 
-  if (lessons.length === 0 && inProgressLessons.length === 0 && !hasAnyCodingResult) {
+  if (
+    lessons.length === 0 &&
+    inProgressLessons.length === 0 &&
+    !hasAnyCodingResult
+  ) {
     // Mesmo sem progresso, queremos os totais dos outros jogos se possível
     return {
       accuracyPercent: 0,
@@ -227,19 +249,23 @@ async function _fetchUserProgressFromServer(
       streak: 0,
       categories: [],
       extraStats: {
-        incidents: { 
-          completed: 0, 
-          total: (SupportData.categories || []).reduce((acc: any, cat: any) => acc + (cat.exercises || []).length, 0),
-          slaRate: 0
+        incidents: {
+          completed: 0,
+          total: (SupportData.categories || []).reduce(
+            (acc: any, cat: any) => acc + (cat.exercises || []).length,
+            0,
+          ),
+          slaRate: 0,
         },
-        datacenter: { 
-          completed: 0, 
-          total: (DataCenterData.levels || DataCenterData.default?.levels || []).length,
+        datacenter: {
+          completed: 0,
+          total: (DataCenterData.levels || DataCenterData.default?.levels || [])
+            .length,
           avgTime: 0,
           avgMoves: 0,
-          avgScore: 0
-        }
-      }
+          avgScore: 0,
+        },
+      },
     };
   }
 
@@ -333,20 +359,22 @@ async function _fetchUserProgressFromServer(
   // Calculate Coding Practice Score
   // ---------------------------------------------------------------------------
   let totalCodingScore = 0;
-  Object.keys(codingResults).forEach(exerciseId => {
+  Object.keys(codingResults).forEach((exerciseId) => {
     const res = codingResults[exerciseId];
     if (!res.completed) return;
 
-    const exercise = allExercises.find(e => e.id === exerciseId);
+    const exercise = allExercises.find((e) => e.id === exerciseId);
     if (!exercise) return;
 
-    const minMoves = exercise.solution.filter(s => s !== 'sym_newline').length;
+    const minMoves = exercise.solution.filter(
+      (s) => s !== "sym_newline",
+    ).length;
     const bestMoves = res.bestMoves || minMoves;
-    
+
     totalCodingScore += calculateCodingExerciseScore(
-      minMoves, 
-      bestMoves, 
-      exercise.difficulty as any
+      minMoves,
+      bestMoves,
+      exercise.difficulty as any,
     );
   });
 
@@ -411,8 +439,10 @@ async function _fetchUserProgressFromServer(
     )
   ).sort((a, b) => b.lastStudiedAt - a.lastStudiedAt);
 
-  const accuracyPercent = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
-  const avgTimeMs = lessons.length > 0 ? Math.round(totalDuration / lessons.length) : 0;
+  const accuracyPercent =
+    totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+  const avgTimeMs =
+    lessons.length > 0 ? Math.round(totalDuration / lessons.length) : 0;
 
   return {
     accuracyPercent,
@@ -424,25 +454,45 @@ async function _fetchUserProgressFromServer(
     extraStats: {
       incidents: {
         completed: Object.keys(quickProgress).length,
-        total: (SupportData.categories || []).reduce((acc: any, cat: any) => acc + (cat.exercises || []).length, 0),
-        slaRate: Object.keys(quickProgress).length > 0 
-          ? (Object.values(quickProgress).filter((e: any) => e.withinSLA).length / Object.keys(quickProgress).length) * 100 
-          : 0
+        total: (SupportData.categories || []).reduce(
+          (acc: any, cat: any) => acc + (cat.exercises || []).length,
+          0,
+        ),
+        slaRate:
+          Object.keys(quickProgress).length > 0
+            ? (Object.values(quickProgress).filter((e: any) => e.withinSLA)
+                .length /
+                Object.keys(quickProgress).length) *
+              100
+            : 0,
       },
       datacenter: {
         completed: Object.keys(dcProgress).length,
-        total: (DataCenterData.levels || DataCenterData.default?.levels || []).length,
-        avgTime: Object.keys(dcProgress).length > 0 
-          ? Object.values(dcProgress).reduce((acc: any, curr: any) => acc + curr.bestTime, 0) / Object.keys(dcProgress).length 
-          : 0,
-        avgMoves: Object.keys(dcProgress).length > 0 
-          ? Object.values(dcProgress).reduce((acc: any, curr: any) => acc + curr.bestMoves, 0) / Object.keys(dcProgress).length 
-          : 0,
-        avgScore: Object.keys(dcProgress).length > 0 
-          ? Object.values(dcProgress).reduce((acc: any, curr: any) => acc + (curr.bestScore || 0), 0) / Object.keys(dcProgress).length 
-          : 0
-      }
-    }
+        total: (DataCenterData.levels || DataCenterData.default?.levels || [])
+          .length,
+        avgTime:
+          Object.keys(dcProgress).length > 0
+            ? Object.values(dcProgress).reduce(
+                (acc: any, curr: any) => acc + curr.bestTime,
+                0,
+              ) / Object.keys(dcProgress).length
+            : 0,
+        avgMoves:
+          Object.keys(dcProgress).length > 0
+            ? Object.values(dcProgress).reduce(
+                (acc: any, curr: any) => acc + curr.bestMoves,
+                0,
+              ) / Object.keys(dcProgress).length
+            : 0,
+        avgScore:
+          Object.keys(dcProgress).length > 0
+            ? Object.values(dcProgress).reduce(
+                (acc: any, curr: any) => acc + (curr.bestScore || 0),
+                0,
+              ) / Object.keys(dcProgress).length
+            : 0,
+      },
+    },
   };
 }
 

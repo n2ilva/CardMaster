@@ -1,35 +1,65 @@
-import { collection, doc, getDocs, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { invalidateUserCaches } from './progress';
-import { updateUserProfile } from './community';
+import { db } from "@/lib/firebase";
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    serverTimestamp,
+    setDoc,
+} from "firebase/firestore";
+import { updateUserProfile } from "./community";
+import { invalidateUserCaches } from "./progress";
+
+/**
+ * Busca o catálogo do DataCenter Builder no Firestore.
+ *
+ * O documento `datacenter_catalog/main` contém o JSON original íntegro
+ * (`game`, `cable_types`, `levels`, ...) publicado pelo script de upload.
+ */
+export async function fetchDataCenterCatalog(): Promise<Record<
+  string,
+  unknown
+> | null> {
+  const docRef = doc(db, "datacenter_catalog", "main");
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) return null;
+  const data = snap.data() as Record<string, unknown>;
+  // `updatedAt` é metadado do upload, não faz parte do catálogo em si.
+  const { updatedAt: _updatedAt, ...rest } = data;
+  return rest;
+}
 
 export async function saveDataCenterResult(
-  uid: string, 
-  levelId: number, 
-  timeSeconds: number, 
+  uid: string,
+  levelId: number,
+  timeSeconds: number,
   movements: number,
-  score: number
+  score: number,
 ): Promise<void> {
-  const docRef = doc(db, 'users', uid, 'datacenterResults', levelId.toString());
+  const docRef = doc(db, "users", uid, "datacenterResults", levelId.toString());
   const docSnap = await getDoc(docRef);
-  
+
   if (docSnap.exists()) {
     const existing = docSnap.data();
     const newBestTime = Math.min(existing.bestTime ?? Infinity, timeSeconds);
     const newBestMoves = Math.min(existing.bestMoves ?? Infinity, movements);
     const newBestScore = Math.max(existing.bestScore ?? 0, score);
-    
-    await setDoc(docRef, {
-      levelId,
-      completed: true,
-      bestTime: newBestTime,
-      bestMoves: newBestMoves,
-      bestScore: newBestScore,
-      lastMovements: movements,
-      lastTime: timeSeconds,
-      lastScore: score,
-      updatedAt: serverTimestamp(),
-    }, { merge: true });
+
+    await setDoc(
+      docRef,
+      {
+        levelId,
+        completed: true,
+        bestTime: newBestTime,
+        bestMoves: newBestMoves,
+        bestScore: newBestScore,
+        lastMovements: movements,
+        lastTime: timeSeconds,
+        lastScore: score,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
   } else {
     await setDoc(docRef, {
       levelId,
@@ -43,17 +73,39 @@ export async function saveDataCenterResult(
       updatedAt: serverTimestamp(),
     });
   }
-  
+
   await invalidateUserCaches(uid);
   await updateUserProfile(uid);
 }
 
-export async function fetchDataCenterProgress(uid: string): Promise<Record<string, { completed: boolean; bestTime: number; bestMoves: number; bestScore: number; lastScore: number }>> {
-  const colRef = collection(db, 'users', uid, 'datacenterResults');
+export async function fetchDataCenterProgress(
+  uid: string,
+): Promise<
+  Record<
+    string,
+    {
+      completed: boolean;
+      bestTime: number;
+      bestMoves: number;
+      bestScore: number;
+      lastScore: number;
+    }
+  >
+> {
+  const colRef = collection(db, "users", uid, "datacenterResults");
   const snapshot = await getDocs(colRef);
-  
-  const results: Record<string, { completed: boolean; bestTime: number; bestMoves: number; bestScore: number; lastScore: number }> = {};
-  snapshot.docs.forEach(d => {
+
+  const results: Record<
+    string,
+    {
+      completed: boolean;
+      bestTime: number;
+      bestMoves: number;
+      bestScore: number;
+      lastScore: number;
+    }
+  > = {};
+  snapshot.docs.forEach((d) => {
     const data = d.data();
     results[d.id] = {
       completed: data.completed,
@@ -63,6 +115,6 @@ export async function fetchDataCenterProgress(uid: string): Promise<Record<strin
       lastScore: data.lastScore ?? 0,
     };
   });
-  
+
   return results;
 }

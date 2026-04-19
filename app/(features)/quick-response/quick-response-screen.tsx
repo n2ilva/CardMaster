@@ -1,44 +1,50 @@
-import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  useColorScheme, 
-  Animated,
-  Dimensions,
-  StyleSheet,
-  Alert,
-  Modal
-} from 'react-native';
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Audio } from 'expo-av';
-import { router } from 'expo-router';
-import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
+import { GlossaryText } from '@/components/glossary-text';
 import { PanelCard } from '@/components/quiz/panel-card';
-import { QUIZ_COLORS } from '@/constants/quiz-ui';
+import { ConfirmExitModal } from '@/components/ui/confirm-exit-modal';
+import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
+import { fetchQuickResponseProgress, saveQuickResponseResult } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 import { useData } from '@/providers/data-provider';
-import { fetchQuickResponseProgress, saveQuickResponseResult } from '@/lib/api';
-import { GlossaryText } from '@/components/glossary-text';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View
+} from 'react-native';
 
-import SupportData from '../coding-practice/Data/suportetecnico.json';
-import { 
-  QuickResponseData, 
-  QuickResponseCategory, 
-  QuickResponseExercise,
-  QuickResponseOption
+import {
+  QuickResponseCategory,
+  QuickResponseData,
+  QuickResponseExercise
 } from './quick-response.types';
 
 const { width } = Dimensions.get('window');
-const data = SupportData as unknown as QuickResponseData;
+
+// Fallback usado enquanto o catálogo do Firestore ainda não chegou.
+const EMPTY_QUICK_RESPONSE_DATA: QuickResponseData = {
+  game: '',
+  version: '0',
+  categories: [],
+} as unknown as QuickResponseData;
 
 export function QuickResponseScreen() {
   const isDark = useColorScheme() === 'dark';
   const topPadding = useTopContentPadding();
   const bottomPadding = useTabContentPadding();
   const { user } = useAuth();
-  const { refreshUserProgress } = useData();
+  const { refreshUserProgress, quickResponseCatalog } = useData();
+
+  // Catálogo vem do Firestore via DataProvider (preload).
+  const data = (quickResponseCatalog as QuickResponseData | null) ?? EMPTY_QUICK_RESPONSE_DATA;
 
   const [selectedCategory, setSelectedCategory] = useState<QuickResponseCategory | null>(null);
   const [activeExercise, setActiveExercise] = useState<QuickResponseExercise | null>(null);
@@ -52,6 +58,7 @@ export function QuickResponseScreen() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSuccessTransition, setShowSuccessTransition] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState<'TODOS' | 'BAIXA' | 'URGENTE' | 'CRÍTICA'>('TODOS');
+  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
   const successScale = useRef(new Animated.Value(0)).current;
   const successOpacity = useRef(new Animated.Value(0)).current;
 
@@ -212,6 +219,20 @@ export function QuickResponseScreen() {
     }
   };
 
+  // Fully cancel the in-progress incident exercise: wipe selections, timer,
+  // validation flags and any transient overlays so the user lands back on a
+  // clean category view.
+  const handleConfirmExit = () => {
+    setConfirmExitOpen(false);
+    setActiveExercise(null);
+    setFeedback(null);
+    setSelectedIds(new Set());
+    setIsValidated(false);
+    setCurrentAttempts(0);
+    setIsSyncing(false);
+    setShowSuccessTransition(false);
+  };
+
   const renderCategoryList = () => (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: topPadding + 20, paddingBottom: bottomPadding + 40, paddingHorizontal: 20 }}>
       <View style={{ marginBottom: 32 }}>
@@ -333,7 +354,7 @@ export function QuickResponseScreen() {
       <View style={{ flex: 1, backgroundColor: bg }}>
         <View style={{ paddingTop: topPadding + 10, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: borderColor, backgroundColor: surfaceColor }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <TouchableOpacity onPress={() => { setActiveExercise(null); setFeedback(null); }} style={{ padding: 8, marginLeft: -8 }}>
+            <TouchableOpacity onPress={() => setConfirmExitOpen(true)} style={{ padding: 8, marginLeft: -8 }}>
               <MaterialIcons name="close" size={24} color={textPrimary} />
             </TouchableOpacity>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -514,6 +535,18 @@ export function QuickResponseScreen() {
           </Animated.View>
         </Animated.View>
       )}
+
+      {/* Confirm exit — only reachable from the active-exercise close (X);
+          category/exercise list back buttons bypass this. */}
+      <ConfirmExitModal
+        visible={confirmExitOpen}
+        onCancel={() => setConfirmExitOpen(false)}
+        onConfirm={handleConfirmExit}
+        title="Abandonar incidente?"
+        message="Seu progresso neste incidente será descartado. Deseja realmente sair?"
+        confirmLabel="Abandonar"
+        cancelLabel="Continuar"
+      />
     </View>
   );
 }

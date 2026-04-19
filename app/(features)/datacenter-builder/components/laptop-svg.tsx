@@ -33,10 +33,22 @@ export const LAPTOP_PORT = {
 
 export function getLaptopSerialPortLocalPos(serialOnRight: boolean) {
   // Returns the top-left of the serial port rectangle in the laptop's local SVG space.
+  // Desktop layout → port hangs off the left edge of the hinge.
+  // Mobile/stacked layout → port sits on the top face of the base, near the
+  // right edge (between the keyboard area and the rounded right corner), so
+  // the console cable comes down from above and plugs into the top of the
+  // base without crossing the screen.
+  if (serialOnRight) {
+    // Place the port on the deck (top face of the base), vertically between
+    // the hinge and the trackpad, and horizontally tucked against the right
+    // edge of the base with a small inset so it stays clearly inside.
+    const y = LAPTOP_GEOMETRY.height + 18;
+    const x =
+      LAPTOP_GEOMETRY.width + 46 - LAPTOP_PORT.width - 14;
+    return { x, y };
+  }
   const y = LAPTOP_GEOMETRY.height + LAPTOP_PORT.insetY;
-  const x = serialOnRight
-    ? LAPTOP_GEOMETRY.width + 14
-    : -LAPTOP_PORT.width - 14;
+  const x = -LAPTOP_PORT.width - 14;
   return { x, y };
 }
 

@@ -1,36 +1,37 @@
-import { Audio } from 'expo-av';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Audio } from 'expo-av';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ScrollView, Text, TouchableOpacity, View, Animated, useColorScheme, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { DraxProvider } from 'react-native-drax';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTabContentPadding, useTopContentPadding } from '@/hooks/use-tab-content-padding';
 import { useAuth } from '@/providers/auth-provider';
 
-import {
-  LANGUAGE_TOKENS,
-  LANGUAGES,
-  type LanguageInfo,
-} from './coding-practice.constants';
-import { type Exercise, type Language, type PlacedToken } from './coding-practice.types';
-import { StudyFeedbackOverlay } from '../study-session/components/study-feedback-overlay';
-import { StudyCompletionOverlay } from '../study-session/components/study-completion-overlay';
-import { QUIZ_COLORS } from '@/constants/quiz-ui';
 import { QuizStatCard } from '@/components/quiz/stat-card';
+import { ConfirmExitModal } from '@/components/ui/confirm-exit-modal';
+import { QUIZ_COLORS } from '@/constants/quiz-ui';
+import { StudyCompletionOverlay } from '../study-session/components/study-completion-overlay';
+import { StudyFeedbackOverlay } from '../study-session/components/study-feedback-overlay';
 import {
-  AnswerArea,
-  CategoryGridCard,
-  DIFFICULTY_CONFIG,
-  ExerciseListCard,
-  LanguageSelector,
-  QuestionCard,
-  TokenKeyboard,
-  ValidateButton,
-} from './components/coding-practice-components';
+    LANGUAGE_TOKENS,
+    LANGUAGES,
+    type LanguageInfo,
+} from './coding-practice.constants';
 import { CodingPracticeStore, type GlobalProgress } from './coding-practice.store';
+import { type Exercise, type Language, type PlacedToken } from './coding-practice.types';
+import {
+    AnswerArea,
+    CategoryGridCard,
+    DIFFICULTY_CONFIG,
+    ExerciseListCard,
+    LanguageSelector,
+    QuestionCard,
+    TokenKeyboard,
+    ValidateButton,
+} from './components/coding-practice-components';
 
 // ─── helpers ─────────────────────────────────────────────
 function uid() {
@@ -88,6 +89,7 @@ export function CodingPracticeScreen() {
   const [liveTimer, setLiveTimer] = useState(0);
   const [isHintsVisible, setIsHintsVisible] = useState(false);
   const [moveCount, setMoveCount] = useState(0);
+  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
 
   // Load exercises from db / cache
   React.useEffect(() => {
@@ -250,6 +252,17 @@ export function CodingPracticeScreen() {
     setFinished(false);
     await refreshProgress();
   }, [refreshProgress]);
+
+  // Back from inside an in-progress exercise: prompt for confirmation so the
+  // user doesn't accidentally discard their in-flight puzzle.
+  const handleRequestExit = useCallback(() => {
+    setConfirmExitOpen(true);
+  }, []);
+
+  const handleConfirmExit = useCallback(async () => {
+    setConfirmExitOpen(false);
+    await handleBack();
+  }, [handleBack]);
 
   const handleRestartExercise = useCallback(async () => {
     setPlaced([]);
@@ -610,7 +623,7 @@ export function CodingPracticeScreen() {
                     <QuestionCard
                       exercise={activeExercise}
                       language={selectedLang}
-                      onBack={handleBack}
+                      onBack={handleRequestExit}
                       hintIndex={hintIndex}
                       onShowHint={handleShowHint}
                       isHintsVisible={isHintsVisible}
@@ -875,6 +888,17 @@ export function CodingPracticeScreen() {
         ringScale={completionRingScale}
         ringOpacity={completionRingOpacity}
       />
-    </View>
+
+      {/* Confirm exit — only reachable from the active exercise back button;
+          the finished results view bypasses this dialog. */}
+      <ConfirmExitModal
+        visible={confirmExitOpen}
+        onCancel={() => setConfirmExitOpen(false)}
+        onConfirm={handleConfirmExit}
+        title="Sair do exercício?"
+        message="Seu progresso neste quebra-cabeça será descartado. Deseja realmente sair?"
+        confirmLabel="Sair do exercício"
+        cancelLabel="Continuar"
+      />    </View>
   );
 }
