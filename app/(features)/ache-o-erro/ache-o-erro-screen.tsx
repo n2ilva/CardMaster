@@ -12,10 +12,10 @@ import { useAuth } from '@/providers/auth-provider';
 import { QuizStatCard } from '@/components/quiz/stat-card';
 import { ConfirmExitModal } from '@/components/ui/confirm-exit-modal';
 
-import { DEBUG_COLORS, DEBUG_LANGUAGES, LEVEL_CONFIG } from '@/app/(features)/ache-o-erro/ache-o-erro.constants';
-import { DebugPracticeStore, GlobalProgress } from '@/app/(features)/ache-o-erro/ache-o-erro.store';
-import { DebugExercise, LanguageInfo, Level, PlacedToken, Token } from '@/app/(features)/ache-o-erro/ache-o-erro.types';
-import { ExerciseCard, LanguageSelector, LevelCard, DebugToken, ValidateFAB } from '@/app/(features)/ache-o-erro/components/ache-o-erro-components';
+import { DEBUG_COLORS, DEBUG_LANGUAGES, LEVEL_CONFIG } from './ache-o-erro.constants';
+import { DebugPracticeStore, GlobalProgress } from './ache-o-erro.store';
+import { DebugExercise, LanguageInfo, Level, PlacedToken, Token } from './ache-o-erro.types';
+import { ExerciseCard, LanguageSelector, LevelCard, DebugToken, ValidateFAB } from './components/ache-o-erro-components';
 import { StudyCompletionOverlay } from '../study-session/components/study-completion-overlay';
 
 function uid() {
@@ -224,12 +224,8 @@ export function AcheOErroScreen() {
 
     if (!selectedLevel) {
       return (
-        <View style={{ flex: 1 }}>
-          <View style={{ paddingHorizontal: 20, marginBottom: 24, marginTop: 12 }}>
-            <Text style={{ fontSize: 24, fontWeight: '800', color: isDark ? '#ECEDEE' : '#11181C' }}>Ache o Erro</Text>
-            <Text style={{ color: DEBUG_COLORS.textMuted, marginTop: 4 }}>Escolha sua senioridade para começar.</Text>
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16 }}>
+        <View style={[{ flex: 1 }, styles.maxContentWidth]}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, marginTop: 12 }}>
             {['junior', 'pleno', 'senior'].map((l) => {
               const level = l as Level;
               const count = langExercises.filter(e => e.level === level).length;
@@ -252,7 +248,7 @@ export function AcheOErroScreen() {
     const levelExercises = langExercises.filter(e => e.level === selectedLevel);
 
     return (
-      <View style={{ flex: 1, paddingHorizontal: 20 }}>
+      <View style={[{ flex: 1, paddingHorizontal: 20 }, styles.maxContentWidth]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 12 }}>
           <TouchableOpacity onPress={() => setSelectedLevel(null)} style={styles.backButton}>
             <MaterialIcons name="arrow-back" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
@@ -491,11 +487,33 @@ export function AcheOErroScreen() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.container, { paddingTop: topPadding }]}>
         {!activeExercise && (
-           <LanguageSelector 
-             languages={DEBUG_LANGUAGES} 
-             selected={selectedLang} 
-             onSelect={(lang) => { setSelectedLang(lang); setSelectedLevel(null); }} 
-           />
+          <>
+            <View style={{ paddingHorizontal: 20, marginBottom: 16, marginTop: 12, flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity 
+                onPress={() => router.push('/(features)/(main)/practice')} 
+                style={{ 
+                  width: 40, height: 40, borderRadius: 20, 
+                  backgroundColor: isDark ? '#1C1F24' : '#F1F5F9', 
+                  alignItems: 'center', justifyContent: 'center', 
+                  marginRight: 16 
+                }}
+              >
+                <MaterialIcons name="arrow-back" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
+              </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 28, fontWeight: '900', color: isDark ? '#ECEDEE' : '#11181C', letterSpacing: -0.5 }}>Ache o Erro</Text>
+                <Text style={{ color: DEBUG_COLORS.textMuted, marginTop: 2, fontSize: 13 }}>Escolha linguagem e senioridade.</Text>
+              </View>
+            </View>
+
+            <View style={styles.maxContentWidth}>
+              <LanguageSelector 
+                languages={DEBUG_LANGUAGES} 
+                selected={selectedLang} 
+                onSelect={(lang) => { setSelectedLang(lang); setSelectedLevel(null); }} 
+              />
+            </View>
+          </>
         )}
         
         {isLoading ? (
@@ -596,6 +614,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
+  },
+  maxContentWidth: {
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
   },
   successIconOuter: {
     width: 120,
