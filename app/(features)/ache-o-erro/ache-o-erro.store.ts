@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DebugExercise, Level } from '@/app/(features)/ache-o-erro/ache-o-erro.types';
+import { DebugExercise, Level } from './ache-o-erro.types';
 import javascriptData from '@/data/ache-o-erro/javascript.json';
 import javaData from '@/data/ache-o-erro/java.json';
 import pythonData from '@/data/ache-o-erro/python.json';

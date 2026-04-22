@@ -1,4 +1,4 @@
-import { Level, LanguageInfo } from '@/app/(features)/ache-o-erro/ache-o-erro.types';
+import { Level, LanguageInfo } from './ache-o-erro.types';
 
 export const DEBUG_LANGUAGES: LanguageInfo[] = [
   {

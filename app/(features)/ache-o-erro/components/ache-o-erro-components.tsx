@@ -3,8 +3,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React from 'react';
 import { Modal, Text, TouchableOpacity, View, useColorScheme, useWindowDimensions, Platform } from 'react-native';
 import { DraggableTokenWrapper } from '@/components/ui/draggable-token-wrapper';
-import { DEBUG_COLORS, LEVEL_CONFIG } from '@/app/(features)/ache-o-erro/ache-o-erro.constants';
-import { DebugExercise, PlacedToken, Token, Level, LanguageInfo } from '@/app/(features)/ache-o-erro/ache-o-erro.types';
+import { DEBUG_COLORS, LEVEL_CONFIG } from '../ache-o-erro.constants';
+import { DebugExercise, PlacedToken, Token, Level, LanguageInfo } from '../ache-o-erro.types';
 
 // ─────────────────────────────────────────────
 // Language Selector
@@ -272,37 +272,6 @@ export function DebugToken({
         </Text>
       </TouchableOpacity>
     </DraggableTokenWrapper>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Validation FAB
-// ─────────────────────────────────────────────
-export function ValidateFAB({ onPress, disabled }: { onPress: () => void; disabled?: boolean }) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled}
-      activeOpacity={0.8}
-      style={{
-        position: 'absolute',
-        bottom: 24,
-        right: 24,
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: disabled ? '#374151' : DEBUG_COLORS.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-      }}
-    >
-      <MaterialIcons name="check" size={32} color="#FFFFFF" />
-    </TouchableOpacity>
   );
 }
 

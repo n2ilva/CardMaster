@@ -33,6 +33,13 @@ export function AcheOErroScreen() {
   const isDark = colorScheme === 'dark';
   const isSmallScreen = width < 768;
 
+  const LANG_EXTENSION: Record<string, string> = {
+    javascript: 'bug-fix.js',
+    python: 'bug-fix.py',
+    csharp: 'bug-fix.cs',
+    java: 'BugFix.java',
+  };
+
   // Navigation State
   const [selectedLang, setSelectedLang] = useState<LanguageInfo>(DEBUG_LANGUAGES[0]);
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
@@ -306,20 +313,22 @@ export function AcheOErroScreen() {
     const levelsAvailable = Array.from(new Set(langExercises.map(e => e.level))) as Level[];
 
     if (!selectedLevel) {
+      const levelsOrder: Level[] = ['junior', 'pleno', 'senior'];
+      const sortedLevels = levelsOrder.filter(l => levelsAvailable.includes(l));
+
       return (
         <View style={[{ flex: 1 }, styles.maxContentWidth]}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, marginTop: 12 }}>
-            {['junior', 'pleno', 'senior'].map((l) => {
-              const level = l as Level;
+            {sortedLevels.map((level) => {
               const count = langExercises.filter(e => e.level === level).length;
               const completedCount = langExercises.filter(e => e.level === level && userProgress[e.id]?.completed).length;
               return (
-                <LevelCard 
-                  key={level} 
-                  level={level} 
-                  count={count} 
-                  completedCount={completedCount} 
-                  onPress={() => setSelectedLevel(level)} 
+                <LevelCard
+                  key={level}
+                  level={level}
+                  count={count}
+                  completedCount={completedCount}
+                  onPress={() => setSelectedLevel(level)}
                 />
               );
             })}
@@ -453,7 +462,9 @@ export function AcheOErroScreen() {
                   <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FF5F56' }} />
                   <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FFBD2E' }} />
                   <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#27C93F' }} />
-                  <Text style={{ color: '#4B5563', fontSize: 11, fontWeight: '700', marginLeft: 8, textTransform: 'uppercase', letterSpacing: 1 }}>bug-fix.js</Text>
+                  <Text style={{ color: '#4B5563', fontSize: 11, fontWeight: '700', marginLeft: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
+                    {LANG_EXTENSION[selectedLang.id] ?? 'bug-fix.js'}
+                  </Text>
                 </View>
 
                 {placedRows.map((row, rowIdx) => (
