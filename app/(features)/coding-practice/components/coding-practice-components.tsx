@@ -794,10 +794,8 @@ export function AnswerArea({
                 const id = payload.replace('kb_', '');
                 onAddToken(id);
               }
-              // ans_* drops on empty space = no-op (already in list)
             }
           }}
-          renderHoverContent={undefined}
           receivingStyle={{
             borderColor: '#10B981',
             borderWidth: 2,
@@ -806,104 +804,117 @@ export function AnswerArea({
           }}
         >
           {/* Clear button */}
-        {placed.length > 0 && (
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 4 }}>
-            <TouchableOpacity
-              onPress={onClear}
-              hitSlop={8}
-              activeOpacity={0.6}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: 8,
-                backgroundColor: isDark ? '#1A1D21' : '#F1F5F9',
-              }}
-            >
-              <MaterialIcons name="backspace" size={13} color={isDark ? '#4B5563' : '#94A3B8'} />
-              <Text style={{ color: isDark ? '#4B5563' : '#94A3B8', fontSize: 10, fontWeight: '600' }}>Limpar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+          {placed.length > 0 && (
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 4 }}>
+              <TouchableOpacity
+                onPress={onClear}
+                hitSlop={8}
+                activeOpacity={0.6}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: 8,
+                  backgroundColor: isDark ? '#1A1D21' : '#F1F5F9',
+                }}
+              >
+                <MaterialIcons name="backspace" size={13} color={isDark ? '#4B5563' : '#94A3B8'} />
+                <Text style={{ color: isDark ? '#4B5563' : '#94A3B8', fontSize: 10, fontWeight: '600' }}>Limpar</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-        {/* Tokens or placeholder */}
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 4,
-            minHeight: 48,
-            alignContent: 'flex-start',
-          }}
-        >
-          {placed.length === 0 ? (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10 }}>
-              <MaterialIcons name="drag-indicator" size={20} color={isDark ? '#2D3139' : '#CBD5E1'} style={{ marginBottom: 4 }} />
-              <Text style={{ color: isDark ? '#2D3139' : '#CBD5E1', fontSize: 13 }}>
-                Arraste ou toque nas peças para montar
+          {/* Tokens or placeholder */}
+          <View style={{ flexDirection: 'column', minHeight: 48 }}>
+            {placed.length === 0 ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10 }}>
+                <MaterialIcons name="drag-indicator" size={20} color={isDark ? '#2D3139' : '#CBD5E1'} style={{ marginBottom: 4 }} />
+                <Text style={{ color: isDark ? '#2D3139' : '#CBD5E1', fontSize: 13 }}>
+                  Arraste ou toque nas peças para montar
+                </Text>
+              </View>
+            ) : (
+              (() => {
+                 const rows: { tokens: (PlacedToken & { globalIndex: number })[], indent: number }[] = [];
+                 let currentTokens: (PlacedToken & { globalIndex: number })[] = [];
+                 let currentIndent = 0;
+
+                 placed.forEach((p, idx) => {
+                   const token = tokenMap.get(p.tokenId);
+                   if (!token) return;
+                   const val = token.label.trim();
+                   
+                   if (val === '}' || token.id === 'sym_newline') {
+                     if (currentTokens.length > 0) {
+                       rows.push({ tokens: currentTokens, indent: currentIndent });
+                       currentTokens = [];
+                     }
+                     if (val === '}') currentIndent = Math.max(0, currentIndent - 1);
+                     if (token.id !== 'sym_newline') currentTokens.push({ ...p, globalIndex: idx });
+
+                     const nextId = placed[idx + 1]?.tokenId;
+                     const nextToken = nextId ? tokenMap.get(nextId) : null;
+                     const nl = nextToken?.label?.trim();
+                     if (nl && (nl.toLowerCase() === 'else' || nl === ';')) {
+                        // Keep together
+                     } else {
+                        if (currentTokens.length > 0) {
+                          rows.push({ tokens: currentTokens, indent: currentIndent });
+                          currentTokens = [];
+                        }
+                     }
+                   } else {
+                     currentTokens.push({ ...p, globalIndex: idx });
+                     if (val === '{' || val === ';' || val === ':') {
+                       rows.push({ tokens: currentTokens, indent: currentIndent });
+                       currentTokens = [];
+                       if (val === '{' || val === ':') currentIndent++;
+                     }
+                   }
+                 });
+                 if (currentTokens.length > 0) rows.push({ tokens: currentTokens, indent: currentIndent });
+
+                 return rows.map((row, rowIdx) => (
+                   <View key={`row-${rowIdx}`} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', marginLeft: row.indent * 20, marginBottom: 4 }}>
+                     {row.tokens.map((p) => (
+                       <DraxView
+                         key={p.instanceId}
+                         receptive
+                         onReceiveDragDrop={(event) => {
+                           const payload = event.dragged.payload;
+                           if (payload && typeof payload === 'string') {
+                             handleDropOnIndex(payload, p.globalIndex);
+                           }
+                         }}
+                         receivingStyle={{ opacity: 0.7, borderLeftWidth: 3, borderLeftColor: '#10B981', borderRadius: 4 }}
+                       >
+                         <PuzzlePiece
+                           instanceId={p.instanceId}
+                           token={tokenMap.get(p.tokenId)!}
+                           customLabel={p.customLabel}
+                           variant="answer"
+                           onPress={() => onRemove(p.instanceId)}
+                           onRename={(newLabel) => onRename(p.instanceId, newLabel)}
+                           isCorrectPosition={correctFlags[p.globalIndex] || false}
+                         />
+                       </DraxView>
+                     ))}
+                   </View>
+                 ));
+              })()
+            )}
+          </View>
+
+          {/* Token count indicator */}
+          {placed.length > 0 && (
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+              <Text style={{ color: '#374151', fontSize: 10 }}>
+                {displayPlacedCount} / {expectedCount} peças
               </Text>
             </View>
-          ) : (
-            placed.map((p, index) => {
-              const token = tokenMap.get(p.tokenId);
-              if (!token) return null;
-
-              if (token.id === 'sym_newline') {
-                return (
-                  <View key={p.instanceId} style={{ width: '100%', flexDirection: 'row', paddingVertical: 2 }}>
-                    <TouchableOpacity
-                      onPress={() => onRemove(p.instanceId)}
-                      style={{ paddingHorizontal: 6, paddingVertical: 4, backgroundColor: isDark ? '#1A1D21' : '#F1F5F9', borderRadius: 6 }}
-                    >
-                      <MaterialIcons name="keyboard-return" size={12} color="#6B7280" />
-                    </TouchableOpacity>
-                  </View>
-                );
-              }
-
-              return (
-                <DraxView
-                  key={p.instanceId}
-                  receptive
-                  onReceiveDragDrop={(event) => {
-                    const payload = event.dragged.payload;
-                    if (payload && typeof payload === 'string') {
-                      handleDropOnIndex(payload, index);
-                    }
-                  }}
-                  receivingStyle={{
-                    opacity: 0.7,
-                    borderLeftWidth: 3,
-                    borderLeftColor: '#10B981',
-                    borderRadius: 4,
-                  }}
-                  renderHoverContent={undefined}
-                >
-                  <PuzzlePiece
-                    instanceId={p.instanceId}
-                    token={token}
-                    customLabel={p.customLabel}
-                    variant="answer"
-                    onPress={() => onRemove(p.instanceId)}
-                    onRename={(newLabel) => onRename(p.instanceId, newLabel)}
-                    isCorrectPosition={correctFlags[index] || false}
-                  />
-                </DraxView>
-              );
-            })
           )}
-        </View>
-
-        {/* Token count indicator */}
-        {placed.length > 0 && (
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
-            <Text style={{ color: '#374151', fontSize: 10 }}>
-              {displayPlacedCount} / {expectedCount} peças
-            </Text>
-          </View>
-        )}
         </DraxView>
       </View>
       {isCorrect === false && (

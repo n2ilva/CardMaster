@@ -31,7 +31,8 @@ export function DesktopSidebar({ onLogout = () => undefined }: { onLogout?: () =
              pathname.startsWith('/coding-practice') || 
              pathname.startsWith('/quiz') ||
              pathname.startsWith('/quick-response') ||
-             pathname.startsWith('/datacenter-builder');
+             pathname.startsWith('/datacenter-builder') ||
+             pathname.startsWith('/ache-o-erro');
     }
 
     return pathname.startsWith(href.replace('/(features)/(main)', ''));

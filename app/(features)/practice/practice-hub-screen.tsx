@@ -76,6 +76,48 @@ export function PracticeHubScreen() {
           </PanelCard>
         </TouchableOpacity>
 
+        {/* Ache o Erro Card */}
+        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/ache-o-erro')}>
+          <PanelCard compact={false} style={{
+            backgroundColor: isDark ? '#1C1F24' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)',
+            borderWidth: 1,
+            borderRadius: 24,
+            padding: 24,
+            shadowColor: '#F59E0B',
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: isDark ? 0.2 : 0.08,
+            shadowRadius: 16,
+            elevation: 4,
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 20 }}>
+              <View style={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: 20, 
+                backgroundColor: 'rgba(245,158,11,0.15)', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(245,158,11,0.3)',
+              }}>
+                <MaterialIcons name="bug-report" size={32} color="#F59E0B" />
+              </View>
+              <View style={{ flex: 1, paddingTop: 4 }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: isDark ? '#ECEDEE' : '#11181C', marginBottom: 6, letterSpacing: -0.5 }}>
+                  Ache o Erro
+                </Text>
+                <Text style={{ fontSize: 14, lineHeight: 22, color: isDark ? '#9BA1A6' : '#687076' }}>
+                  Identifique e corrija bugs reordenando as peças do código.
+                </Text>
+              </View>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? '#2D3139' : '#F1F5F9', alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}>
+                <MaterialIcons name="arrow-forward" size={20} color={isDark ? '#ECEDEE' : '#11181C'} />
+              </View>
+            </View>
+          </PanelCard>
+        </TouchableOpacity>
+
         {/* Quiz Card */}
         <TouchableOpacity activeOpacity={0.7} onPress={navigateToQuiz}>
           <PanelCard compact={false} style={{

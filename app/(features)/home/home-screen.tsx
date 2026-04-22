@@ -46,6 +46,24 @@ export function HomeScreen() {
     return levels.length;
   }, [datacenterCatalog]);
 
+  const totalDebug = useMemo(() => {
+    // Import json data directly for stats
+    const js = require('@/data/ache-o-erro/javascript.json');
+    const java = require('@/data/ache-o-erro/java.json');
+    const py = require('@/data/ache-o-erro/python.json');
+    const cs = require('@/data/ache-o-erro/c-sharp.json');
+    
+    let count = 0;
+    [js.javascript, java.java, py.python, cs.csharp].forEach(lang => {
+      if (lang?.levels) {
+        Object.values(lang.levels).forEach((lvl: any) => {
+          count += (lvl.questions?.length ?? 0);
+        });
+      }
+    });
+    return count;
+  }, []);
+
   const themes: HomeThemeItem[] = trackCatalog.map((item) => {
     const style = trackStyles[item.key] ?? TRACK_STYLE_FALLBACK;
     return {
@@ -97,24 +115,24 @@ export function HomeScreen() {
           <Ionicons name={loggingOut ? "sync" : "log-out-outline"} size={20} color={textMuted} />
         </Pressable>
       </View>
-
-      {/* Modern Stats Grid */}
+      {/* Modern Stats Grid */}
       <View style={{ gap: 12, marginBottom: 32 }}>
+        {/* Top Row: 3 cards */}
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ 
             flex: 1, 
             backgroundColor: '#1E293B', 
             borderRadius: 24, 
-            padding: 18,
+            padding: 16,
             borderWidth: 1,
             borderColor: 'rgba(56,189,248,0.2)'
           }}>
-            <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(56,189,248,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-              <Ionicons name="school" size={18} color="#38BDF8" />
+            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(56,189,248,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <Ionicons name="school" size={16} color="#38BDF8" />
             </View>
-            <Text style={{ color: textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>Quizzes</Text>
-            <Text style={{ color: textPrimary, fontSize: 24, fontWeight: '800', marginTop: 2 }}>
-              {stats ? stats.totalCards.toLocaleString('pt-BR') : '…'}
+            <Text style={{ color: textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>Quizzes</Text>
+            <Text style={{ color: textPrimary, fontSize: 20, fontWeight: '800' }}>
+              {stats ? (stats.totalCards > 999 ? '1k+' : stats.totalCards) : '…'}
             </Text>
           </View>
 
@@ -122,34 +140,52 @@ export function HomeScreen() {
             flex: 1, 
             backgroundColor: '#1A2121', 
             borderRadius: 24, 
-            padding: 18,
+            padding: 16,
             borderWidth: 1,
             borderColor: 'rgba(16,185,129,0.2)'
           }}>
-            <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-              <Ionicons name="terminal" size={18} color="#10B981" />
+            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <Ionicons name="terminal" size={16} color="#10B981" />
             </View>
-            <Text style={{ color: textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>Código</Text>
-            <Text style={{ color: textPrimary, fontSize: 24, fontWeight: '800', marginTop: 2 }}>
+            <Text style={{ color: textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>Código</Text>
+            <Text style={{ color: textPrimary, fontSize: 20, fontWeight: '800' }}>
               {stats ? (stats as any).totalCodingExercises ?? 0 : '…'}
+            </Text>
+          </View>
+
+          <View style={{ 
+            flex: 1, 
+            backgroundColor: '#251A2D', 
+            borderRadius: 24, 
+            padding: 16,
+            borderWidth: 1,
+            borderColor: 'rgba(168,85,247,0.2)'
+          }}>
+            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(168,85,247,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <Ionicons name="bug" size={16} color="#A855F7" />
+            </View>
+            <Text style={{ color: textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>Bugs</Text>
+            <Text style={{ color: textPrimary, fontSize: 20, fontWeight: '800' }}>
+              {totalDebug}
             </Text>
           </View>
         </View>
 
+        {/* Bottom Row: 2 cards */}
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ 
             flex: 1, 
             backgroundColor: '#2D1A1E', 
             borderRadius: 24, 
-            padding: 18,
+            padding: 16,
             borderWidth: 1,
             borderColor: 'rgba(244,63,94,0.2)'
           }}>
-            <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(244,63,94,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-              <Ionicons name="shield-checkmark" size={18} color="#F43F5E" />
+            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(244,63,94,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <Ionicons name="shield-checkmark" size={16} color="#F43F5E" />
             </View>
-            <Text style={{ color: textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>Incidentes</Text>
-            <Text style={{ color: textPrimary, fontSize: 24, fontWeight: '800', marginTop: 2 }}>
+            <Text style={{ color: textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>Incidentes</Text>
+            <Text style={{ color: textPrimary, fontSize: 20, fontWeight: '800' }}>
               {totalIncidents}
             </Text>
           </View>
@@ -158,15 +194,15 @@ export function HomeScreen() {
             flex: 1, 
             backgroundColor: '#1E1B2D', 
             borderRadius: 24, 
-            padding: 18,
+            padding: 16,
             borderWidth: 1,
             borderColor: 'rgba(139,92,246,0.2)'
           }}>
-            <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(139,92,246,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-              <Ionicons name="server" size={18} color="#8B5CF6" />
+            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(139,92,246,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <Ionicons name="server" size={16} color="#8B5CF6" />
             </View>
-            <Text style={{ color: textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>Infraestrutura</Text>
-            <Text style={{ color: textPrimary, fontSize: 24, fontWeight: '800', marginTop: 2 }}>
+            <Text style={{ color: textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>Infra</Text>
+            <Text style={{ color: textPrimary, fontSize: 20, fontWeight: '800' }}>
               {totalDataCenter}
             </Text>
           </View>
@@ -213,6 +249,14 @@ export function HomeScreen() {
                 icon: 'shield-checkmark',
                 color: '#F43F5E',
                 route: '/quick-response'
+              },
+              {
+                id: 'ache-o-erro',
+                title: 'Ache o Erro',
+                desc: 'Identifique e corrija bugs em códigos reais. Melhore seu Debugging em múltiplas linguagens.',
+                icon: 'bug',
+                color: '#A855F7',
+                route: '/ache-o-erro'
               },
               {
                 id: 'datacenter',
@@ -283,6 +327,7 @@ export function HomeScreen() {
               {[
                 { icon: "school", text: "Quiz: Reforce a teoria com questões dinâmicas", color: "#38BDF8" },
                 { icon: "terminal", text: "Código: Pratique lógica com desafios interativos", color: "#F59E0B" },
+                { icon: "bug", text: "Bugs: Treine seu olhar clínico corrigindo erros reais", color: "#A855F7" },
                 { icon: "shield-checkmark", text: "Incidentes: Gerencie crises em cenários reais", color: "#F43F5E" },
                 { icon: "server", text: "Infra: Simule a montagem física de um Data Center", color: "#10B981" }
               ].map((step, index) => (

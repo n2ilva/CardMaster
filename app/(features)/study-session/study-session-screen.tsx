@@ -32,6 +32,7 @@ import { useData } from '@/providers/data-provider';
 import { StudyCompletionOverlay } from './components/study-completion-overlay';
 import { StudyFeedbackOverlay } from './components/study-feedback-overlay';
 import { OPTION_LETTERS } from './study-session.constants';
+import { ConfirmExitModal } from '@/components/ui/confirm-exit-modal';
 
 type AnswerState = {
   selectedIndex: number | null;
