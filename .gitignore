@@ -41,8 +41,10 @@ server/.env
 # data (JSON card banks are now tracked as they are required for build/app logic)
 data/cards/
 data/cards/glossary/
-# data/data-center/
-# data/gestaodeincidentes/
+data/data-center/*.json
+data/gestaodeincidentes/*.json
+data/ache-o-erro/*.json
+data/pratica-de-codigos/*.json
 
 # generated native folders
 /ios
