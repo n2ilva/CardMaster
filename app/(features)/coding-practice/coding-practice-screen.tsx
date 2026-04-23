@@ -221,13 +221,15 @@ export function CodingPracticeScreen() {
   );
 
   const categories = useMemo(() => {
-    return Array.from(new Set(exercisesForLang.map((e) => e.exerciseType))).sort((a, b) => a.localeCompare(b));
+    const diffs = Array.from(new Set(exercisesForLang.map((e) => e.difficulty)));
+    const order = ['iniciante', 'intermediário', 'avançado'];
+    return diffs.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   }, [exercisesForLang]);
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, { total: number; completed: number }>();
     categories.forEach(cat => {
-      const exercises = exercisesForLang.filter(e => e.exerciseType === cat);
+      const exercises = exercisesForLang.filter(e => e.difficulty === cat);
       const total = exercises.length;
       const completed = exercises.filter(e => userProgress[e.id]?.completed).length;
       counts.set(cat, { total, completed });
@@ -236,7 +238,7 @@ export function CodingPracticeScreen() {
   }, [exercisesForLang, categories, userProgress]);
 
   const exercisesForCategory = useMemo(() => {
-    return exercisesForLang.filter((e) => e.exerciseType === selectedCategory);
+    return exercisesForLang.filter((e) => e.difficulty === selectedCategory);
   }, [exercisesForLang, selectedCategory]);
 
   const availableDifficulties = useMemo(() => {
@@ -244,11 +246,10 @@ export function CodingPracticeScreen() {
   }, [exercisesForCategory]);
 
   const exercises = useMemo(() => {
-    const filtered = !selectedDifficulty
-      ? exercisesForCategory
-      : exercisesForCategory.filter((e) => e.difficulty === selectedDifficulty);
-    return [...filtered].sort((a, b) => a.title.localeCompare(b.title));
-  }, [exercisesForCategory, selectedDifficulty]);
+    // Como a categoria já é a dificuldade, não precisamos de um segundo filtro de dificuldade.
+    // Vamos apenas ordenar por título (ou podemos ordenar por exerciseType caso o usuário queira agrupar)
+    return [...exercisesForCategory].sort((a, b) => a.title.localeCompare(b.title));
+  }, [exercisesForCategory]);
 
   const allLangTokens = LANGUAGE_TOKENS[selectedLang.id as Language] || [];
   const availableTokens = useMemo(() => {
@@ -831,63 +832,15 @@ export function CodingPracticeScreen() {
                 >
                   <MaterialIcons name="arrow-back" size={16} color="#ECEDEE" />
                 </TouchableOpacity>
-                <Text style={{ color: '#ECEDEE', fontSize: 16, fontWeight: '700' }}>{selectedCategory}</Text>
+                <Text style={{ color: '#ECEDEE', fontSize: 16, fontWeight: '700', textTransform: 'capitalize' }}>
+                  {selectedCategory === 'iniciante' ? 'Júnior' : selectedCategory === 'intermediário' ? 'Pleno' : selectedCategory === 'avançado' ? 'Sênior' : selectedCategory}
+                </Text>
                 <Text style={{ color: '#4B5563', fontSize: 13, marginLeft: 'auto' }}>
                   {exercisesForCategory.length} ex{exercisesForCategory.length !== 1 ? 's' : ''}
                 </Text>
               </View>
 
-              {/* Difficulty filter chips */}
-              {availableDifficulties.length > 0 && (
-                <View style={{ marginBottom: 16 }}>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-                  >
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={() => setSelectedDifficulty(null)}
-                      style={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 6,
-                        borderRadius: 20,
-                        backgroundColor: selectedDifficulty === null ? '#ECEDEE' : '#1A1D21',
-                        borderWidth: 1,
-                        borderColor: selectedDifficulty === null ? '#ECEDEE' : '#2D3139',
-                      }}
-                    >
-                      <Text style={{ color: selectedDifficulty === null ? '#111316' : '#9BA1A6', fontSize: 12, fontWeight: '700' }}>
-                        Todos
-                      </Text>
-                    </TouchableOpacity>
 
-                    {availableDifficulties.map((diff) => {
-                      const isSelected = selectedDifficulty === diff;
-                      const conf = DIFFICULTY_CONFIG[diff as keyof typeof DIFFICULTY_CONFIG] || { color: '#9BA1A6', label: diff, bg: '#1A1D21' };
-                      return (
-                        <TouchableOpacity
-                          key={diff}
-                          activeOpacity={0.7}
-                          onPress={() => setSelectedDifficulty(diff)}
-                          style={{
-                            paddingHorizontal: 12,
-                            paddingVertical: 6,
-                            borderRadius: 20,
-                            backgroundColor: isSelected ? conf.color : '#1A1D21',
-                            borderWidth: 1,
-                            borderColor: isSelected ? conf.color : '#2D3139',
-                          }}
-                        >
-                          <Text style={{ color: isSelected ? '#111316' : conf.color, fontSize: 12, fontWeight: '700', textTransform: 'capitalize' }}>
-                            {conf.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-              )}
 
               {/* Exercise cards */}
               <View style={{ paddingHorizontal: 16 }}>

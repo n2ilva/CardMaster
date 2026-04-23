@@ -17,9 +17,9 @@ import { GlossaryText } from '@/components/glossary-text';
 // Config tables
 // ─────────────────────────────────────────────
 export const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; color: string; bg: string }> = {
-  iniciante:       { label: 'Iniciante',      color: '#22C55E', bg: '#052E16' },
-  'intermediário': { label: 'Intermediário',  color: '#F59E0B', bg: '#1C1100' },
-  avançado:        { label: 'Avançado',       color: '#EF4444', bg: '#2D0000' },
+  iniciante:       { label: 'Júnior',      color: '#22C55E', bg: '#052E16' },
+  'intermediário': { label: 'Pleno',  color: '#F59E0B', bg: '#1C1100' },
+  avançado:        { label: 'Sênior',       color: '#EF4444', bg: '#2D0000' },
 };
 
 export const EXERCISE_TYPE_ICONS: Record<string, string> = {
@@ -173,8 +173,9 @@ type CategoryGridCardProps = {
 };
 
 export function CategoryGridCard({ categoryName, count, completedCount = 0, onPress }: CategoryGridCardProps) {
-  const iconName = EXERCISE_TYPE_ICONS[categoryName as ExerciseType] ?? 'extension';
-  const colorTheme = CATEGORY_COLORS[categoryName] ?? '#3B82F6';
+  const diffConf = DIFFICULTY_CONFIG[categoryName as keyof typeof DIFFICULTY_CONFIG] || { label: categoryName, color: '#3B82F6', bg: '#1A1D21' };
+  const iconName = categoryName === 'iniciante' ? 'star-border' : categoryName === 'intermediário' ? 'star-half' : categoryName === 'avançado' ? 'star' : 'extension';
+  const colorTheme = diffConf.color;
   
   const [hovered, setHovered] = React.useState(false);
   const [pressed, setPressed] = React.useState(false);
@@ -237,7 +238,7 @@ export function CategoryGridCard({ categoryName, count, completedCount = 0, onPr
         <MaterialIcons name={iconName as any} size={24} color={colorTheme} />
       </View>
       <View style={{ alignItems: 'center', paddingHorizontal: 4 }}>
-        <Text style={{ color: textPrimary, fontSize: 13, fontWeight: '800', letterSpacing: -0.3, textAlign: 'center' }}>{categoryName}</Text>
+        <Text style={{ color: textPrimary, fontSize: 13, fontWeight: '800', letterSpacing: -0.3, textAlign: 'center' }}>{diffConf.label}</Text>
       </View>
     </Pressable>
   );
